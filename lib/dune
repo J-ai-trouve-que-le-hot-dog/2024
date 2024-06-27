@@ -1,2 +1,5 @@
 (library
- (name icfpc))
+ (wrapped false)
+ (name icfpc)
+ (preprocess (pps ppx_deriving.show ppx_deriving.ord))
+ (libraries ppx_deriving ezcurl yojson))
