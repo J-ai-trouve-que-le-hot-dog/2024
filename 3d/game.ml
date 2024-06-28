@@ -273,6 +273,18 @@ let pp fmt m =
       Format.fprintf fmt "@\n")
     m
 
+let pad t =
+  let maxw =
+    Array.fold_right (fun l -> max (Array.length l))
+      t 0
+  in
+  Array.map (fun l ->
+      if Array.length l = maxw then l
+      else
+        Array.init maxw (fun i ->
+            if i < Array.length l then l.(i) else Empty))
+    t
+
 let parse s : t =
   let l = String.split_on_char '\n' s in
   List.filter_map
@@ -288,6 +300,7 @@ let parse s : t =
            |> Array.of_list))
     l
   |> Array.of_list
+  |> pad
 
 (* let rec step_n s = function 0 -> s | n -> step_n (step s) (pred n) *)
 
