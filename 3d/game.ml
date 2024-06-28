@@ -93,8 +93,11 @@ let iterij f (m : t) = Array.iteri (fun i -> Array.iteri (fun j -> f (i, j))) m
 let is_operator = function Empty | I _ | Submit | A | B -> false | _ -> true
 let is_int = function I _ -> true | _ -> false
 
-let eval (h : (int * int, cell) Hashtbl.t) ((i, j) as co) s s' =
+exception Timewarp of (int * (int * int) * cell)
+
+let eval n (h : (int * int, cell) Hashtbl.t) ((i, j) as co) s s' =
   let get = get s in
+  let is_nempty c = get c <> Empty in
   let set p c =
     match Hashtbl.find_opt h p with
     | None | Some Empty -> Hashtbl.replace h p c
@@ -151,7 +154,32 @@ let eval (h : (int * int, cell) Hashtbl.t) ((i, j) as co) s s' =
     | Mul -> mk_bin Z.mul
     | Div -> mk_bin Z.div
     | Mod -> mk_bin Z.rem
-    | Warp -> failwith "toudou"
+    | Warp -> (
+      let u = up co in
+      let l = left co in
+      let r = right co in
+      let d = down co in
+      if List.for_all is_nempty [u; l; r; d] then
+        try
+          let dt = get d |> as_int in
+          let dx = get l |> as_int in
+          let dy = get r |> as_int in
+          let v = get u in
+          let open Z.Compare in
+          if dt < Z.one then
+            Format.kasprintf failwith "timewarp bad dt: %a" Z.pp_print dt;
+          let c = i - Z.to_int dy, j - Z.to_int dx in
+          raise (Timewarp (n - Z.to_int dt, c, v))
+        with
+        | Timewarp _ as e ->
+          Format.printf "%s@." __LOC__;
+          raise e
+        | _ ->
+          Format.ksprintf failwith
+            "timewarp bad input value: dt:%s, dx:%s, dy:%s"
+            (to_string (get d))
+            (to_string (get l))
+            (to_string (get r)))
     | Eq ->
       let l = get (left co) in
       let u = get (up co) in
@@ -162,22 +190,44 @@ let eval (h : (int * int, cell) Hashtbl.t) ((i, j) as co) s s' =
       let u = get (up co) in
       if (is_int l && is_int u) || (is_operator l && is_operator u) then
         mk_eq ( <> )
-  with e -> Format.printf "%s at (%d,%d)@." (Printexc.to_string e) i j
+  with
+  | Timewarp _ as e -> raise e
+  | e -> Format.printf "%s at (%d,%d)@." (Printexc.to_string e) i j
 
 let copy m = Array.map Array.copy m
 
 exception Fini of cell
 
-let step (s : t) =
+let step n states (s : t) : int * t =
   let new_state = copy s in
   let h = Hashtbl.create 15 in
-  iterij (fun (i, j) _ -> eval h (i, j) s new_state) s;
-  Hashtbl.iter
-    (fun c v ->
-      if get new_state c = Submit then raise (Fini v);
-      set new_state c v)
-    h;
-  new_state
+  let timewarps = ref [] in
+  iterij
+    (fun (i, j) _ ->
+      try eval n h (i, j) s new_state
+      with Timewarp x -> timewarps := x :: !timewarps)
+    s;
+  let rec check_timewarps dt = function
+    | [] -> true
+    | (dt', _, _) :: t -> (
+      match dt with
+      | None -> check_timewarps (Some dt') t
+      | Some dt -> dt = dt' && check_timewarps (Some dt') t)
+  in
+  assert (check_timewarps None !timewarps);
+  if !timewarps <> [] then (
+    let new_id, _, _ = List.hd !timewarps in
+    Format.printf "Timewarping to %d!@." new_id;
+    let new_state = Hashtbl.find states new_id in
+    List.iter (fun (_, c, v) -> set new_state c v) !timewarps;
+    new_id, new_state)
+  else (
+    Hashtbl.iter
+      (fun c v ->
+        if get new_state c = Submit then raise (Fini v);
+        set new_state c v)
+      h;
+    succ n, new_state)
 
 let pp fmt m =
   Array.iter
@@ -202,9 +252,7 @@ let parse s : t =
     l
   |> Array.of_list
 
-let rec step_n s = function 0 -> s | n -> step_n (step s) (pred n)
-let t1 = parse "."
-let t1 = parse ". 2 .\n3 + .\n. . ." |> step |> Format.printf "res:@\n%a@." pp
+(* let rec step_n s = function 0 -> s | n -> step_n (step s) (pred n) *)
 
 let read_file ic =
   let rec loop acc =
@@ -225,12 +273,19 @@ let main () =
   let p =
     read_file ic |> parse |> map (function A -> I a | B -> I b | x -> x)
   in
-  let rec loop i x =
-    Format.printf "%d:@\n%a@." i pp x;
+  let h = Hashtbl.create 10 in
+  Hashtbl.replace h 1 p;
+  let rec loop pred_id i x states =
+    Format.printf "%s%d:@\n%a@."
+      (match pred_id with
+      | None -> ""
+      | Some pred_id -> Printf.sprintf "%d -> " pred_id)
+      i pp x;
     let _ = read_line () in
-    loop (succ i) (step x)
+    let new_id, new_state = step i states x in
+    loop (Some i) new_id new_state states
   in
-  try loop 1 p with Fini c -> Format.printf "Eval: %s@." (to_string c)
+  try loop None 1 p h with Fini c -> Format.printf "Eval: %s@." (to_string c)
 
 let () =
   try main ()
