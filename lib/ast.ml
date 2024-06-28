@@ -142,11 +142,10 @@ let parse_parts parts =
     | [] -> assert false
     | h :: r -> l := r; h
   in
-  let acc = ref [] in
-  while !l <> [] do
-    acc := parse get :: !acc;
-  done;
-  List.rev !acc
+  let r = parse get in
+  if !l <> [] then
+    Format.eprintf "Parse problem: remaining parts@.";
+  r
 
 let parse_input s =
   let parts = String.split_on_char ' ' s in
