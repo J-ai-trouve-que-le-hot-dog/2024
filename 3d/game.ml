@@ -195,6 +195,8 @@ let parse s : t =
         Option.some
         @@ (String.trim s
            |> String.split_on_char ' '
+           |> List.map String.trim
+           |> List.filter (function "" -> false | _ -> true)
            |> List.map (fun s -> of_string s)
            |> Array.of_list))
     l
