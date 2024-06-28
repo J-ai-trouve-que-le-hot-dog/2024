@@ -112,7 +112,7 @@ let lambdaman9 =
   let* _256 = _4 @/ _4 in
   !~ "solve lambdaman9 " ^/
   (_256 @/ (lambda (fun s ->
-      let t1 = (_256 @/ (lambda (fun s -> !~ "L" ^/ s))) @/ (!~ "") in
-      let t2 = (_256 @/ (lambda (fun s -> !~ "R" ^/ s))) @/ (!~ "") in
-      s ^/ t1 ^/ t2
+      let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "R"))) @/ s in
+      let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "L"))) @/ t1 in
+      t2 ^/ !~ "D"
     ))) @/ (!~ "")
