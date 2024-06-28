@@ -147,9 +147,9 @@ let eval n (h : (int * int, cell) Hashtbl.t) ((i, j) as co) s s' =
       let u = get (up co) in
       if op l u then (
         set (down co) l;
-        set (right co) u);
-      set_empty (left co);
-      set_empty (up co)
+        set (right co) u;
+        set_empty (left co);
+        set_empty (up co))
     with _ -> ()
   in
   try
