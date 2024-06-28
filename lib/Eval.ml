@@ -75,6 +75,8 @@ and eval_binop : Ast.binop * value * value -> value = function
   | (Lt, VInt(x), VInt(y)) -> VBool(x < y)
   | (Gt, VInt(x), VInt(y)) -> VBool(x > y)
   | (Eq, VInt(x), VInt(y)) -> VBool(x = y)
+  | (Eq, VBool(x), VBool(y)) -> VBool(x = y)
+  | (Eq, VString(x), VString(y)) -> VBool(x = y)
   | (Or, VBool(x), VBool(y)) -> VBool(x || y)
   | (And, VBool(x), VBool(y)) -> VBool(x && y)
   | (Concat, VString(s), VString(t)) -> VString(s ^ t)
