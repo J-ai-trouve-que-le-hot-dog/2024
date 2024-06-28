@@ -4,8 +4,6 @@ let () =
   let body = String.concat " " (List.tl (Array.to_list Sys.argv)) in
   let body = "S" ^ Ast.encode_string body in
   let result = Api.communicate body in
-  match Ast.parse_input result with
-  | Ast.String result ->
-    Format.printf "String@.%s@." result
-  | _ ->
-    Format.printf "RAW@.%s@." result
+  let msg = Ast.parse_input result in
+  Format.printf "@.%a@."
+    Ast.pp_expr msg
