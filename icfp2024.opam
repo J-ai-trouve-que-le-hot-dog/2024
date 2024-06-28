@@ -6,4 +6,5 @@ depends: [
   "ppx_deriving"
   "ezcurl"
   "yojson"
+  "zarith"
 ]
