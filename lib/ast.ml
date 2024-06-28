@@ -9,13 +9,15 @@ type expr =
   | If of { cond : expr; tbranch : expr; fbranch : expr }  (** If [?] *)
   | Lambda of { var : int; body : expr }  (** Lambda abstractions [L] *)
   | Var of int
+    [@@deriving(show)]
 
 and unop =
   | Neg  (** [-] *)
   | Not  (** [!] *)
   | String_to_int  (** [#] *)
   | Int_to_string  (** [$] *)
-
+    [@@deriving(show)]
+    
 and binop =
   | Add  (** [+] *)
   | Sub  (** [-] *)
@@ -31,6 +33,7 @@ and binop =
   | Take  (** [T] *)
   | Drop  (** [D] *)
   | Apply  (** [$] *)
+    [@@deriving(show)]
 
 let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&\'()*+,-./:;<=>?@[\\]^_`|~ \n"
 

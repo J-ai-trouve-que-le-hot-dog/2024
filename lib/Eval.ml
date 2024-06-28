@@ -9,6 +9,7 @@ type term =
   | If of term * term * term
   | Lambda of term
   | Var of int
+[@@deriving(show)]
 
 type value =
   | VBool of bool
@@ -16,10 +17,13 @@ type value =
   | VString of string
   | VUnop of Ast.unop
   | VLambda of closure
+[@@deriving(show)]
 
 and closure = term * env
+[@@deriving(show)]
               
 and env = EnvEmpty | EnvSnoc of env * value Lazy.t
+[@@deriving(show)]
 
 module IntMap = Map.Make(Int)
 
@@ -63,4 +67,23 @@ and eval_unop : Ast.unop * value -> value = function
   | _ -> todo __LOC__
            
 and eval_binop : Ast.binop * value * value -> value = function
-  | _ -> todo __LOC__
+  | (Add, VInt(x), VInt(y)) -> VInt(x + y)
+  | (Sub, VInt(x), VInt(y)) -> VInt(x - y)
+  | (Mul, VInt(x), VInt(y)) -> VInt(x * y)
+  | (Div, VInt(x), VInt(y)) -> VInt(x / y)
+  | (Mod, VInt(x), VInt(y)) -> VInt(x mod y)
+  | (Lt, VInt(x), VInt(y)) -> VBool(x < y)
+  | (Gt, VInt(x), VInt(y)) -> VBool(x > y)
+  | (Eq, VInt(x), VInt(y)) -> VBool(x = y)
+  | (Or, VBool(x), VBool(y)) -> VBool(x || y)
+  | (And, VBool(x), VBool(y)) -> VBool(x && y)
+  | (Concat, VString(s), VString(t)) -> VString(s ^ t)
+  | (Take, VInt(i), VString(s)) -> 
+    VString(String.sub s 0 i)
+  | (Drop, VInt(i), VString(s)) ->
+    VString(String.sub s i (String.length s - i))
+  | (Apply, VLambda(t, env), v) -> eval (EnvSnoc(env, lazy v)) t
+  | (o,x,y) ->
+    Format.printf "%a@."
+      Ast.pp_binop o;
+    impossible __LOC__
