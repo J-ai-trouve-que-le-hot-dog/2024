@@ -1,3 +1,5 @@
+let () = Ocolor_format.prettify_formatter Format.std_formatter
+
 type cell =
   | Empty (* empty . *)
   | I of Z.t
@@ -35,6 +37,26 @@ let to_string = function
   | Submit -> "S"
   | A -> "A"
   | B -> "B"
+
+let format ppf = function
+  | Empty -> Format.fprintf ppf "@{<black;bold>.@}"
+  | I i -> Format.fprintf ppf "@{<yellow>%a@}" Z.pp_print i
+  | Left -> Format.fprintf ppf "@{<cyan><@}"
+  | Right -> Format.fprintf ppf "@{<cyan>>@}"
+  | Up -> Format.fprintf ppf "@{<cyan>^@}"
+  | Down -> Format.fprintf ppf "@{<cyan>v@}"
+  | Add -> Format.fprintf ppf "@{<blue>+@}"
+  | Sub -> Format.fprintf ppf "@{<blue>-@}"
+  | Mul -> Format.fprintf ppf "@{<blue>*@}"
+  | Div -> Format.fprintf ppf "@{<blue>/@}"
+  | Mod -> Format.fprintf ppf "@{<blue>%%@}"
+  | Warp -> Format.fprintf ppf "@{<red;bold>@@@}"
+  | Eq -> Format.fprintf ppf "@{<blue>=@}"
+  | Neq -> Format.fprintf ppf "@{<blue>#@}"
+  | Submit -> Format.fprintf ppf "@{<green>S@}"
+  | A -> Format.fprintf ppf "@{<green>A@}"
+  | B -> Format.fprintf ppf "@{<green>B@}"
+
 
 let of_string = function
   | "." -> Empty
@@ -230,9 +252,24 @@ let step n states (s : t) : int * t =
     succ n, new_state)
 
 let pp fmt m =
+  let width = function
+    | I x -> String.length (Z.to_string x)
+    | _ -> 1
+  in
   Array.iter
     (fun l ->
-      Array.iter (fun c -> Format.fprintf fmt "%s " (to_string c)) l;
+      Array.iteri (fun i ->
+           let w =
+             Array.fold_left (fun acc l ->
+                 try max (width l.(i)) acc
+                 with Invalid_argument _ -> acc)
+               1
+               m
+           in
+           function
+           | I x -> Format.fprintf fmt "@{<yellow>%*d@} " w (Z.to_int x)
+           | c -> Format.fprintf fmt "%*s%a " (w-1) "" format c)
+        l;
       Format.fprintf fmt "@\n")
     m
 
