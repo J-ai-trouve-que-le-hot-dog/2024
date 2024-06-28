@@ -58,6 +58,12 @@ let decode_unop : char -> unop = function
   | '$' -> Int_to_string
   | _ -> impossible __LOC__
 
+let encode_unop : unop -> char = function
+  | Neg -> '-' 
+  | Not -> '!' 
+  | String_to_int -> '#' 
+  | Int_to_string -> '$' 
+
 let decode_binop : char -> binop = function
   | '+' -> Add
   | '-' -> Sub
@@ -74,4 +80,21 @@ let decode_binop : char -> binop = function
   | 'D' -> Drop
   | '$' -> Apply
   | _ -> impossible __LOC__
+           
+let encode_binop : binop -> char = function
+  | Add -> '+' 
+  | Sub -> '-' 
+  | Mul -> '*' 
+  | Div -> '/' 
+  | Mod -> '%' 
+  | Lt -> '<' 
+  | Gt -> '>' 
+  | Eq -> '=' 
+  | Or -> '|' 
+  | And -> '&' 
+  | Concat -> '.' 
+  | Take -> 'T' 
+  | Drop -> 'D' 
+  | Apply -> '$' 
+
 
