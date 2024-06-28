@@ -10,10 +10,10 @@ let positions_from_string s =
       | _ -> failwith "Parse error")
 
 let positions s =
-  match s with
-  | Ast.String s ->
-    positions_from_string
-      (Ast.Encoded_string.to_string s)
+  match Eval.eval EnvEmpty (Eval.term_from_expr s) with
+  | Eval.VString s ->
+    let s = Ast.Encoded_string.(to_string (from_raw_string s)) in
+    positions_from_string s
   | _ ->
     let error = Format.asprintf "Unexpected spaceship input@.%a@." Ast.pp_expr s in
     failwith error
