@@ -1,8 +1,11 @@
+open Lamdaman_handcoded
 
-let solution_6 = "B$ L1 B. S3/,6%},!-\"$!-!.[} B$ v1 B$ v1 B$ v1 SLLLL L0 B. v0 B. v0 B. v0 v0"
+let n = int_of_string (Sys.argv.(1))
+
+let solution = IntMap.find n solutions
 
 let () =
-  let body = v in
+  let body = Format.asprintf "%a" Ast.print_ast solution in
   let result = Api.communicate body in
   let msg = Ast.parse_input result in
   let r = Eval.eval EnvEmpty (Eval.term_from_expr msg) in
