@@ -21,3 +21,21 @@
  (public_name eval)
  (modules eval)
  (libraries icfpc))
+
+(executable
+ (name spaceship)
+ (public_name spaceship)
+ (modules spaceship)
+ (libraries icfpc spaceship))
+
+(executable
+ (name submit_lambdaman)
+ (public_name submit_lambdaman)
+ (modules submit_lambdaman)
+ (libraries icfpc))
+
+(executable
+ (name lambdaman)
+ (public_name lambdaman)
+ (modules lambdaman)
+ (libraries icfpc))
