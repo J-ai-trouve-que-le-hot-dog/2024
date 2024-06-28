@@ -3,6 +3,8 @@ open Common
 module Encoded_string : sig
   type t
 
+  val pp : Format.formatter -> t -> unit
+  
   val from_raw_string : string -> t
   val to_raw_string : t -> string
 
@@ -10,6 +12,7 @@ module Encoded_string : sig
   val to_string : t -> string
 end = struct
   type t = string
+    [@@deriving(show)]
 
   let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&\'()*+,-./:;<=>?@[\\]^_`|~ \n"
 

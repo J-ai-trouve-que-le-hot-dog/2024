@@ -31,7 +31,7 @@ let term_from_expr =
   let rec go nvar (varmap : int IntMap.t) : Ast.expr -> term = function
     | Bool(b) -> Bool(b)
     | Int(i) -> Int(i)
-    | String(s) -> String(s)
+    | String(s) -> String(Ast.Encoded_string.to_string s)
     | Unop(o,t) -> Unop(o, go nvar varmap t)
     | Binop(b,x,y) ->
       Binop(b, go nvar varmap x, go nvar varmap y)
@@ -84,6 +84,11 @@ and eval_binop : Ast.binop * value * value -> value = function
     VString(String.sub s i (String.length s - i))
   | (Apply, VLambda(t, env), v) -> eval (EnvSnoc(env, lazy v)) t
   | (o,x,y) ->
-    Format.printf "%a@."
-      Ast.pp_binop o;
+    Format.printf "%a %a %a@."
+      Ast.pp_binop o
+      pp_value x
+      pp_value y
+    ;
     impossible __LOC__
+
+(* let t () = eval EnvEmpty (term_from_expr Decode.v) *)
