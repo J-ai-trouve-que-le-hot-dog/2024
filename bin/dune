@@ -7,3 +7,8 @@
  (name scoreboard)
  (modules scoreboard)
  (libraries icfpc))
+
+(executable
+ (name communicate)
+ (modules communicate)
+ (libraries icfpc))

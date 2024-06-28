@@ -53,10 +53,11 @@ let get_scoreboard () : scoreboard =
   let json = Yojson.Basic.from_string r.body in
   parse_scoreboard json
 
-let submit_todo (data_todo : string) : unit =
-  let url = base_url ^ "submit" in
+let communicate (body : string) : string =
+  let url = base_url ^ "communicate" in
   let headers = make_headers () in
-  let params = [Curl.CURLFORM_CONTENT ("data", data_todo, Curl.DEFAULT)] in
-  let r = Ezcurl.post ~url ~headers ~params () in
-  let _ = Result.get_ok r in
-  ()
+  let params = [] in
+  let content = `String(body) in
+  let r = Ezcurl.post ~url ~headers ~params ~content () in
+  let r = Result.get_ok r in
+  r.body
