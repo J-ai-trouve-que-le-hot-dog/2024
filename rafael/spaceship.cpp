@@ -20,12 +20,9 @@ ostream& operator<<(ostream& os, pt const &p) {
   return os << mt(p.x,p.y);
 }
 
-vector<pt> A;
-i64 n;
-
-const i64 MAXD = 100'000;
-const i64 MAXV = 60;
-const i64 MAX_ITER = 200'000'000;
+const i64 MAXD = 40'000;
+const i64 MAXV = 100;
+const i64 MAX_ITER = 5'000'000'000;
 
 using pre_inner = array<array<u64,2*MAXV+1>,2*MAXV+1>;
 
@@ -38,12 +35,12 @@ i64 f2(i64 x) {
 i64 naive_cost_1d(i64 dx, i64 vx0, i64 vx1) {
   vx0 -= MAXV;
   vx1 -= MAXV;
-  i64 cost = 0;
+  i64 cost = abs(vx0)+abs(vx1);
 
-  while(vx0 > 0) { vx0 -= 1; dx -= vx0; cost += 1; }
-  while(vx0 < 0) { vx0 += 1; dx -= vx0; cost += 1; }
-  while(vx0 < vx1) { vx0 += 1; dx -= vx0; cost += 1; }
-  while(vx0 > vx1) { vx0 -= 1; dx -= vx0; cost += 1; }
+  if(vx0 > 0) { dx -= f2(vx0-1); }
+  if(vx0 < 0) { dx += f2(-vx0-1); }
+  if(vx1 > 0) { dx -= f2(vx1); }
+  if(vx1 < 0) { dx += f2(-vx1); }
  
   return cost + 2*sqrt(abs(dx));
 }
@@ -64,7 +61,7 @@ i64 cost(i64 dx, i64 dy, i64 vx0, i64 vy0, i64 vx1, i64 vy1) {
   return __builtin_ctzll(m);
 }
 
-i64 cost(i64 i, pt si, i64 j, pt sj) {
+i64 cost(i32 n, vector<pt> const& A, i64 i, pt si, i64 j, pt sj) {
   if(j == n) return 0;
   i64 dx = A[j].x-A[i].x;
   i64 dy = A[j].y-A[i].y;
@@ -134,7 +131,6 @@ void reconstruct_naive
   runtime_assert(ay.back() == vy1-MAXV);
   auto totx = accumulate(begin(ax)+1, end(ax), 0);
   auto toty = accumulate(begin(ay)+1, end(ay), 0);
-  debug(dx,totx,dy,toty);
   runtime_assert(totx == dx);
   runtime_assert(toty == dy);
   
@@ -202,13 +198,13 @@ void reconstruct(string& out,
   runtime_assert(false);
 }
 
-void reconstruct(string& out, i64 i, pt si, i64 j, pt sj) {
+void reconstruct(vector<pt> const& A, string& out, i64 i, pt si, i64 j, pt sj) {
   i64 dx = A[j].x-A[i].x;
   i64 dy = A[j].y-A[i].y;
   reconstruct(out,dx,dy,si.x,si.y,sj.x,sj.y,0,0);
 }
 
-void check_solution(string s) {
+void check_solution(i32 n, vector<pt> const& A, string s) {
   set<pt> todo;
   FORU(i, 1, n-1) todo.insert(A[i]);
   i64 vx = 0, vy = 0;
@@ -231,15 +227,15 @@ struct state {
   vector<pt>  speed;
   i64         score;
 
-  void reset() {
+  void reset(i32 n, vector<pt> const& A) {
     perm = {0,n};
     FORU(i, 1, n-1) {
-      i64 bj = 0;
+      i64 bj = 0; // rng.random32(perm.size()-1);
       i64 bc = 1ull<<60;
       FOR(j, (i64)perm.size()-1) {
         i64 c =
-          cost(perm[j],pt(MAXV,MAXV), i,pt(MAXV,MAXV)) +
-          cost(i,pt(MAXV,MAXV), perm[j+1],pt(MAXV,MAXV));
+          cost(n,A, perm[j],pt(MAXV,MAXV), i,pt(MAXV,MAXV)) +
+          cost(n,A, i,pt(MAXV,MAXV), perm[j+1],pt(MAXV,MAXV));
         if(c < bc) {
           bc = c;
           bj = j;
@@ -248,63 +244,37 @@ struct state {
       perm.insert(begin(perm)+bj+1, i);
     }
     speed.assign(n+1, pt(MAXV, MAXV));
-    score = calc_score();
+    score = calc_score(n,A);
   }
 
-  void reconstruct(string& out) const {
+  void reconstruct(i32 n, vector<pt> const& A, string& out) const {
     FOR(i, n-1) {
       auto a = perm[i], b = perm[i+1];
       auto sa = speed[a], sb = speed[b];
-      ::reconstruct(out,a,sa,b,sb);
+      ::reconstruct(A,out,a,sa,b,sb);
     }
   }
   
-  i64 calc_score() const {
+  i64 calc_score(i32 n, vector<pt> const& A) const {
     i64 score = 0;
     FOR(i, n-1) {
       auto a = perm[i], b = perm[i+1];
       auto sa = speed[a], sb = speed[b];
-      score += cost(a,sa,b,sb);
+      score += cost(n,A, a,sa,b,sb);
     }
     return score;
   }
 
-  void check_score() const {
-    runtime_assert(score == calc_score());
+  void check_score(i32 n, vector<pt> const& A) const {
+    runtime_assert(score == calc_score(n,A));
   }
 };
 
 
-int main(int argc, char** argv) {
+void do_precomputation() {
   pre = new pre_inner[MAXD+1];
-  runtime_assert(argc == 2);
-  i64 id = atoi(argv[1]);
-  runtime_assert(1 <= id && id <= 25);
-  
-  ifstream is("inputs/spaceship" + to_string(id));
-  runtime_assert(is.good());
-  A.eb(0,0);
-  { string line;
-    while(getline(is,line)) {
-      if(line.empty()) break;
-      istringstream iline(line);
-      i64 x,y; iline >> x >> y;
-      A.eb(x,y);
-    }
-  }
 
-  n = A.size();
-  debug(n);
-
-  FOR(dx, MAXD+1) FOR(v0, 2*MAXV+1) FOR(v1, 2*MAXV+1) {
-    pre[dx][v0][v1] = 0;
-  }
-
-  FOR(v, 2*MAXV+1) {
-    pre[0][v][v] = 1;
-  }
-
-  FOR(i, 63) {
+  FOR(i, 63) { 
     cerr << "Precomputation: " << i << "/63" << endl;
     FOR(dx, MAXD+1) FOR(v0, 2*MAXV+1) FOR(v1, 2*MAXV+1) {
       FOR(e, 3) {
@@ -324,13 +294,41 @@ int main(int argc, char** argv) {
       }
     }
   }
+}
+
+void solve_id(i32 id) {
+  vector<pt> A;
+  i64 n;
+  
+  ifstream is("inputs/spaceship" + to_string(id));
+  runtime_assert(is.good());
+  A.eb(0,0);
+  { string line;
+    while(getline(is,line)) {
+      if(line.empty()) break;
+      istringstream iline(line);
+      i64 x,y; iline >> x >> y;
+      A.eb(x,y);
+    }
+  }
+
+  n = A.size();
+
+  FOR(dx, MAXD+1) FOR(v0, 2*MAXV+1) FOR(v1, 2*MAXV+1) {
+    pre[dx][v0][v1] = 0;
+  }
+
+  FOR(v, 2*MAXV+1) {
+    pre[0][v][v] = 1;
+  }
   
   i64 niter = 0;
   f64 done  = 0;
-  f64 temp0 = 16.0;
+  f64 temp0 = 0.1;
+  f64 temp1 = 0.05;
   f64 temp  = temp0;
 
-  state S; S.reset();
+  state S; S.reset(n,A);
   debug(S.score);
 
   i64 best_score = S.score;
@@ -341,14 +339,20 @@ int main(int argc, char** argv) {
     if(niter % 1024 == 0) {
       done = (f64) niter / MAX_ITER;
       if(done > 1.0) break;
-      temp = temp0 * (1-done);
+      temp = temp0 * pow(temp1 / temp0, done);
     }
     if(niter % (1<<20) == 0) {
-      cerr
-        << "niter = " << setw(12) << niter << ", "
-        << "score = " << setw(12) << S.score << ", "
-        << "best_score = " << setw(12) << best_score << ", "
-        << endl;
+#pragma omp critical
+      {
+        cerr
+          << "id = " << setw(2) << id << ", "
+          << "niter = " << setw(12) << niter << ", "
+          << "done = " << fixed << setprecision(6) << done << ", "
+          << "temp = " << fixed << setprecision(6) << temp << ", "
+          << "score = " << setw(9) << S.score << ", "
+          << "best_score = " << setw(9) << best_score << ", "
+          << endl;
+      }
     }
 
     auto accept = [&](i64 delta) -> bool {
@@ -357,7 +361,7 @@ int main(int argc, char** argv) {
     };
 
     auto get_new_speed = [&](pt s) {
-      if(rng.random32(3) == 0) {
+      if(rng.random32(30) == 0) {
         return pt(rng.random32(2*MAXV+1), rng.random32(2*MAXV+1));
       }else{
         auto ns = s;
@@ -385,10 +389,12 @@ int main(int argc, char** argv) {
       auto c1 = S.perm[k], c2 = S.perm[k+1];
       auto sc1 = S.speed[c1], sc2 = S.speed[c2];
 
-      auto nsa2 = get_new_speed(sa2);
-      auto nsb1 = get_new_speed(sb1);
-      auto nsb2 = get_new_speed(sb2);
-      auto nsc1 = get_new_speed(sc1);
+      i32 change_speeds = rng.random32(2) == 0;
+      
+      auto nsa2 = change_speeds ? get_new_speed(sa2) : sa2;
+      auto nsb1 = change_speeds ? get_new_speed(sb1) : sb1;
+      auto nsb2 = change_speeds ? get_new_speed(sb2) : sb2;
+      auto nsc1 = change_speeds ? get_new_speed(sc1) : sc1;
       if(b1 == a2) nsb1 = nsa2;
       if(c1 == b2) nsc1 = nsb2;
 
@@ -397,36 +403,36 @@ int main(int argc, char** argv) {
       // TODO: allow moving the last item (use a dummy c2)
       
       i64 delta = 0;
-      delta -= cost(a1,sa1, a2,sa2);
-      delta -= cost(b1,sb1, b2,sb2);
-      delta -= cost(c1,sc1, c2,sc2);
-      delta += cost(a1,sa1, b2,nsb2);
-      delta += cost(b1,nsb1, c2,sc2);
-      delta += cost(c1,nsc1, a2,nsa2);
+      delta -= cost(n,A, a1,sa1, a2,sa2);
+      delta -= cost(n,A, b1,sb1, b2,sb2);
+      delta -= cost(n,A, c1,sc1, c2,sc2);
+      delta += cost(n,A, a1,sa1, b2,nsb2);
+      delta += cost(n,A, b1,nsb1, c2,sc2);
+      delta += cost(n,A, c1,nsc1, a2,nsa2);
       if(i+2 == j) {
-        delta -= cost(a2,sa2, b1,sb1);
-        delta += cost(a2,nsa2, b1,nsb1);
+        delta -= cost(n,A, a2,sa2, b1,sb1);
+        delta += cost(n,A, a2,nsa2, b1,nsb1);
       }else if(i+2 < j) {
         { auto x = S.perm[i+2];
-          delta -= cost(a2,sa2, x,S.speed[x]);
-          delta += cost(a2,nsa2, x,S.speed[x]);
+          delta -= cost(n,A, a2,sa2, x,S.speed[x]);
+          delta += cost(n,A, a2,nsa2, x,S.speed[x]);
         }
         { auto x = S.perm[j-1];
-          delta -= cost(x,S.speed[x], b1,sb1);
-          delta += cost(x,S.speed[x], b1,nsb1);
+          delta -= cost(n,A, x,S.speed[x], b1,sb1);
+          delta += cost(n,A, x,S.speed[x], b1,nsb1);
         }
       }
       if(j+2 == k) {
-        delta -= cost(b2,sb2, c1,sc1);
-        delta += cost(b2,nsb2, c1,nsc1);
+        delta -= cost(n,A, b2,sb2, c1,sc1);
+        delta += cost(n,A, b2,nsb2, c1,nsc1);
       }else if(j+2 < k) {
         { auto x = S.perm[j+2];
-          delta -= cost(b2,sb2, x,S.speed[x]);
-          delta += cost(b2,nsb2, x,S.speed[x]);
+          delta -= cost(n,A, b2,sb2, x,S.speed[x]);
+          delta += cost(n,A, b2,nsb2, x,S.speed[x]);
         }
         { auto x = S.perm[k-1];
-          delta -= cost(x,S.speed[x], c1,sc1);
-          delta += cost(x,S.speed[x], c1,nsc1);
+          delta -= cost(n,A, x,S.speed[x], c1,sc1);
+          delta += cost(n,A, x,S.speed[x], c1,nsc1);
         }
       }
 
@@ -454,24 +460,24 @@ int main(int argc, char** argv) {
 
       { i64 a = S.perm[i-1];
         auto sa = S.speed[a];
-        delta -= cost(a,sa, b,sb);
+        delta -= cost(n,A, a,sa, b,sb);
         
         i64 c = S.perm[i+1];
         auto sc = S.speed[c];
-        delta -= cost(b,sb, c,sc);
+        delta -= cost(n,A, b,sb, c,sc);
 
-        delta += cost(a,sa, c,sc);
+        delta += cost(n,A, a,sa, c,sc);
       }
       
       { i64 a = S.perm[j];
         auto sa = S.speed[a];
-        delta += cost(a,sa, b,nsb);
+        delta += cost(n,A, a,sa, b,nsb);
 
         i64 c = S.perm[j+1];
         auto sc = S.speed[c];
-        delta += cost(b,nsb, c,sc);
+        delta += cost(n,A, b,nsb, c,sc);
 
-        delta -= cost(a,sa, c,sc);
+        delta -= cost(n,A, a,sa, c,sc);
       }
 
       if(accept(delta)) {
@@ -492,13 +498,13 @@ int main(int argc, char** argv) {
 
       i64 a = S.perm[i-1];
       auto sa = S.speed[a];
-      delta -= cost(a,sa, b,sb);
-      delta += cost(a,sa, b,nsb);
+      delta -= cost(n,A, a,sa, b,sb);
+      delta += cost(n,A, a,sa, b,nsb);
 
       i64 c = S.perm[i+1];
       auto sc = S.speed[c];
-      delta -= cost(b,sb, c,sc);
-      delta += cost(b,nsb, c,sc);
+      delta -= cost(n,A, b,sb, c,sc);
+      delta += cost(n,A, b,nsb, c,sc);
     
       if(accept(delta)) {
         S.score += delta;
@@ -506,39 +512,58 @@ int main(int argc, char** argv) {
       }
     }
 
+    // S.check_score();
+
     if(S.score < best_score) {
       best_score = S.score;
       best_state = S;
     }
   }
 
-  best_state.check_score();
+#pragma omp critical
+  { 
+    best_state.check_score(n,A);
 
-  debug(best_state.perm);
-  
-  debug(best_score);
-  if(best_score < 1'000'000) {
-    string out;
-    best_state.reconstruct(out);
-    check_solution(out);
-    // cout << out << endl;
+    if(best_score < 1'000'000) {
+      string out;
+      best_state.reconstruct(n,A,out);
+      check_solution(n,A,out);
+      // cout << out << endl;
 
-    string filename = "solutions/spaceship" + to_string(id);
+      string filename = "solutions/spaceship" + to_string(id);
     
-    if(filesystem::exists(filename)) {
-      string previous_best; 
-      { ifstream file(filename);
-        file >> previous_best;
-      }
-      if(out.size() < previous_best.size()) {
+      if(filesystem::exists(filename)) {
+        string previous_best; 
+        { ifstream file(filename);
+          file >> previous_best;
+        }
+        if(out.size() < previous_best.size()) {
+          ofstream file(filename);
+          file << out;       
+        }
+      }else{
         ofstream file(filename);
-        file << out;       
+        file << out;
       }
-    }else{
-      ofstream file(filename);
-      file << out;
     }
   }
-  
+}
+
+int main(int argc, char** argv) {
+  runtime_assert(argc >= 2 && argc <= 3);
+  i64 id1 = atoi(argv[1]);
+  runtime_assert(1 <= id1 && id1 <= 25);
+  i32 id2 = id1;
+  if(argc == 3) {
+    i64 id2 = atoi(argv[2]);
+    runtime_assert(id1 <= id2 && id2 <= 25);
+  }
+  do_precomputation();
+
+#pragma omp parallel for
+  FORU(i, id1, id2) {
+    solve_id(i);
+  } 
+
   return 0;
 }
