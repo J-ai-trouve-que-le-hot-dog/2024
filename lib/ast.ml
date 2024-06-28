@@ -1,9 +1,38 @@
 open Common
 
+module Encoded_string : sig
+  type t
+
+  val from_raw_string : string -> t
+  val to_raw_string : t -> string
+
+  val from_string : string -> t
+  val to_string : t -> string
+end = struct
+  type t = string
+
+  let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&\'()*+,-./:;<=>?@[\\]^_`|~ \n"
+
+  let from_raw_string s = s
+  let to_raw_string s = s
+
+  let decode_char c =
+    chars.[(Char.code c - 33)]
+
+  let to_string s =
+    String.map decode_char s
+
+  let encode_char c =
+    Char.chr (String.index_from chars 0 c + 33)
+
+  let from_string s =
+    String.map encode_char s
+end
+
 type expr =
   | Bool of bool  (** Booleans [T] *)
   | Int of int  (** Integers [I] *)
-  | String of string  (** Strings [S] *)
+  | String of Encoded_string.t  (** Strings [S] *)
   | Unop of unop * expr  (** Unary operators [U] *)
   | Binop of binop * expr * expr  (** Unary operators [B] *)
   | If of { cond : expr; tbranch : expr; fbranch : expr }  (** If [?] *)
@@ -35,26 +64,6 @@ and binop =
   | Apply  (** [$] *)
     [@@deriving(show)]
 
-let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&\'()*+,-./:;<=>?@[\\]^_`|~ \n"
-
-let decode_char c =
-  chars.[(Char.code c - 33)]
-
-let decode_string s =
-  String.map decode_char s
-
-let decode s =
-  if s.[0] = 'S' then
-    Some (decode_string (String.sub s 1 (String.length s - 1)))
-  else
-    None
-
-let encode_char c =
-  Char.chr (String.index_from chars 0 c + 33)
-
-let encode_string s =
-  String.map encode_char s
-
 let decode_unop : char -> unop = function
   | '-' -> Neg
   | '!' -> Not
@@ -63,10 +72,10 @@ let decode_unop : char -> unop = function
   | _ -> impossible __LOC__
 
 let encode_unop : unop -> char = function
-  | Neg -> '-' 
-  | Not -> '!' 
-  | String_to_int -> '#' 
-  | Int_to_string -> '$' 
+  | Neg -> '-'
+  | Not -> '!'
+  | String_to_int -> '#'
+  | Int_to_string -> '$'
 
 let decode_binop : char -> binop = function
   | '+' -> Add
@@ -84,21 +93,81 @@ let decode_binop : char -> binop = function
   | 'D' -> Drop
   | '$' -> Apply
   | _ -> impossible __LOC__
-           
+
 let encode_binop : binop -> char = function
-  | Add -> '+' 
-  | Sub -> '-' 
-  | Mul -> '*' 
-  | Div -> '/' 
-  | Mod -> '%' 
-  | Lt -> '<' 
-  | Gt -> '>' 
-  | Eq -> '=' 
-  | Or -> '|' 
-  | And -> '&' 
-  | Concat -> '.' 
-  | Take -> 'T' 
-  | Drop -> 'D' 
-  | Apply -> '$' 
+  | Add -> '+'
+  | Sub -> '-'
+  | Mul -> '*'
+  | Div -> '/'
+  | Mod -> '%'
+  | Lt -> '<'
+  | Gt -> '>'
+  | Eq -> '='
+  | Or -> '|'
+  | And -> '&'
+  | Concat -> '.'
+  | Take -> 'T'
+  | Drop -> 'D'
+  | Apply -> '$'
+
+let rem s = String.sub s 1 (String.length s - 1)
+
+let decode_int s =
+  let r = ref 0 in
+  for i = 0 to String.length s - 1 do
+    r := 94 * !r + Char.code s.[i] - 33
+  done;
+  !r
+
+let rec parse get =
+  let s = get () in
+  match s.[0] with
+  | 'T' -> Bool true
+  | 'F' -> Bool false
+  | 'I' -> Int (decode_int (rem s))
+  | 'S' -> String (Encoded_string.from_raw_string (rem s))
+  | 'U' -> Unop (decode_unop s.[1], parse get)
+  | 'B' ->
+    let e1 = parse get in
+    let e2 = parse get in
+    Binop (decode_binop s.[1], e1, e2)
+  | '?' ->
+    let c = parse get in
+    let e1 = parse get in
+    let e2 = parse get in
+    If { cond = c; tbranch = e1; fbranch = e2 }
+  | 'L' ->
+    let v = decode_int (rem s) in
+    Lambda { var = v; body = parse get }
+  | 'v' ->
+    let v = decode_int (rem s) in
+    Var v
+  | _ -> Bool false
+
+let parse_parts parts =
+  let l = ref parts in
+  let get () =
+    match !l with
+    | [] -> assert false
+    | h :: r -> l := r; h
+  in
+  let r = parse get in
+  if !l <> [] then
+    Format.eprintf "Parse problem: remaining parts@.";
+  r
+
+let parse_input s =
+  let parts = String.split_on_char ' ' s in
+  parse_parts parts
 
 
+let rec pp_expr ff e =
+  match e with
+  | Bool b -> Format.fprintf ff "%b" b
+  | Int i -> Format.fprintf ff "%d" i
+  | String s -> Format.fprintf ff "%S" (Encoded_string.to_string s)
+  | Unop (u, e) -> Format.fprintf ff "U%c (%a)" (encode_unop u) pp_expr e
+  | Binop (b, e1, e2) -> Format.fprintf ff "(%a) %c (%a)" pp_expr e1 (encode_binop b) pp_expr e2
+  | If { cond; tbranch; fbranch } -> Format.fprintf ff "if %a then %a else %a" pp_expr cond pp_expr tbranch pp_expr fbranch
+  | Lambda { var; body } -> Format.fprintf ff "(fun v%d -> %a)" var pp_expr body
+  | Var v -> Format.fprintf ff "v%d" v

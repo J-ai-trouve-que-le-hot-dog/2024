@@ -10,7 +10,7 @@ let get_token () : string =
   | Some(t) -> t
   | None ->
     try
-      let token = read_file ".token" in
+      let token = String.trim (read_file ".token") in
       cached_token := Some(token);
       token
     with
