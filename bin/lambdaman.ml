@@ -179,9 +179,9 @@ let main () =
           (sol_str osol); osol
       | None -> Format.printf "Solution @{<red>BAD@}@."; exit 1
     in
+    let sol = Miniterm.lambdaman_solution pb_num (sol_str sol) in
     let answer =
-      Api.communicate
-        ("S" ^ Ast.Encoded_string.(to_raw_string (from_string ((Printf.sprintf "solve lambdaman%d %s" pb_num (sol_str sol))))))
+      Api.communicate (Format.asprintf "%a" Ast.print_ast sol)
     in
     let r = Eval.eval EnvEmpty (Eval.term_from_expr (Ast.parse_input answer)) in
     Format.printf "ANSWER:@,%a@," Eval.pp_value r
