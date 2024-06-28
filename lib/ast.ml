@@ -110,7 +110,7 @@ let rec parse get =
   | 'T' -> Bool true
   | 'F' -> Bool false
   | 'I' -> Int (decode_int (rem s))
-  | 'S' -> String (decode_string s)
+  | 'S' -> String (decode_string (rem s))
   | 'U' -> Unop (decode_unop s.[1], parse get)
   | 'B' ->
     let e1 = parse get in
@@ -150,7 +150,7 @@ let rec pp_expr ff e =
   match e with
   | Bool b -> Format.fprintf ff "%b" b
   | Int i -> Format.fprintf ff "%d" i
-  | String s -> Format.fprintf ff "%s" s
+  | String s -> Format.fprintf ff "%S" s
   | Unop (u, e) -> Format.fprintf ff "U%c (%a)" (encode_unop u) pp_expr e
   | Binop (b, e1, e2) -> Format.fprintf ff "(%a) %c (%a)" pp_expr e1 (encode_binop b) pp_expr e2
   | If { cond; tbranch; fbranch } -> Format.fprintf ff "if %a then %a else %a" pp_expr cond pp_expr tbranch pp_expr fbranch
