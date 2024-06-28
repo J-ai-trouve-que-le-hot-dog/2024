@@ -111,8 +111,7 @@ let rec auto rsol game =
    *   let pills, emptys = List.partition (fun (_,_,x) -> x) dests in
    *   if pills <> [] then `L pills
    *   else `R emptys *)
-  print game;
-  print_newline ();
+  print_char '.';
   let rpaths =
     let rec bfs seen poss =
       let (pills, emptys) =
@@ -142,7 +141,7 @@ let rec auto rsol game =
   List.iter (fun m -> move game m |> ignore) path;
   if is_win game then
     let sol = List.rev rsol in
-    Format.printf "@{<yellow>Solved!@}@,%s@," (sol_str sol);
+    Format.printf "@,@{<yellow>Solved!@}@,%s@," (sol_str sol);
     sol
   else
     auto rsol game
@@ -151,10 +150,10 @@ let pb_num =
   try int_of_string Sys.argv.(1) with _ -> failwith "Arg1: pb number (1..20)"
 
 let game_str =
-  let got = Api.communicate ("S" ^ Ast.encode_string (Printf.sprintf "get lambdaman%d" pb_num)) in
-  match Ast.decode got with
-  | Some result -> result
-  | None -> failwith "TODO eval"
+  let body = "S" ^ Ast.Encoded_string.(to_raw_string (from_string ((Printf.sprintf "get lambdaman%d" pb_num)))) in
+  let got = Api.communicate body in
+  Eval.eval EnvEmpty (Eval.term_from_expr (Ast.parse_input got))
+  |> Format.asprintf "%a" Eval.pp_value
 
 let main () =
   let game = decode game_str in
@@ -182,13 +181,10 @@ let main () =
     in
     let answer =
       Api.communicate
-        ("S" ^ Ast.encode_string (Printf.sprintf "solve lambdaman%d %s" pb_num (sol_str sol)))
+        ("S" ^ Ast.Encoded_string.(to_raw_string (from_string ((Printf.sprintf "solve lambdaman%d %s" pb_num (sol_str sol))))))
     in
-    match Ast.decode answer with
-    | Some result ->
-      Format.printf "ANSWER:@,%s@," result
-    | None ->
-      Format.printf "RAW ANSWER!?@,%s@," answer
+    let r = Eval.eval EnvEmpty (Eval.term_from_expr (Ast.parse_input answer)) in
+    Format.printf "ANSWER:@,%a@," Eval.pp_value r
 
 
 let () =
