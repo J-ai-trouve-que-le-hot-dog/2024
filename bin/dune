@@ -44,4 +44,4 @@
  (name echo)
  (public_name echo)
  (modules echo)
- (libraries icfpc))
+ (libraries icfpc unix))
