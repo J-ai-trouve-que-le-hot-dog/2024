@@ -15,15 +15,17 @@ type value =
   | VBool of bool
   | VInt of int
   | VString of string
-  | VUnop of Ast.unop
   | VLambda of closure
-[@@deriving(show)]
 
 and closure = term * env
-[@@deriving(show)]
               
 and env = EnvEmpty | EnvSnoc of env * value Lazy.t
-[@@deriving(show)]
+
+let pp_value ff = function
+  | VBool b -> Format.fprintf ff "%b" b
+  | VInt i -> Format.fprintf ff "%d" i
+  | VString s -> Format.fprintf ff "%s" Ast.Encoded_string.(to_string (from_raw_string s))
+  | VLambda _ -> Format.fprintf ff "<closure>"
 
 module IntMap = Map.Make(Int)
 
