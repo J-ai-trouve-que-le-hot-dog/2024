@@ -34,21 +34,19 @@ end
 
 type expr =
   | Bool of bool  (** Booleans [T] *)
-  | Int of int  (** Integers [I] *)
+  | Int of Z.t  (** Integers [I] *)
   | String of Encoded_string.t  (** Strings [S] *)
   | Unop of unop * expr  (** Unary operators [U] *)
   | Binop of binop * expr * expr  (** Unary operators [B] *)
   | If of { cond : expr; tbranch : expr; fbranch : expr }  (** If [?] *)
   | Lambda of { var : int; body : expr }  (** Lambda abstractions [L] *)
   | Var of int
-    [@@deriving(show)]
 
 and unop =
   | Neg  (** [-] *)
   | Not  (** [!] *)
   | String_to_int  (** [#] *)
   | Int_to_string  (** [$] *)
-    [@@deriving(show)]
     
 and binop =
   | Add  (** [+] *)
@@ -65,7 +63,6 @@ and binop =
   | Take  (** [T] *)
   | Drop  (** [D] *)
   | Apply  (** [$] *)
-    [@@deriving(show)]
 
 let decode_unop : char -> unop = function
   | '-' -> Neg
@@ -116,9 +113,10 @@ let encode_binop : binop -> char = function
 let rem s = String.sub s 1 (String.length s - 1)
 
 let decode_int s =
-  let r = ref 0 in
+  let r = ref Z.zero in
   for i = 0 to String.length s - 1 do
-    r := 94 * !r + Char.code s.[i] - 33
+    let u = Char.code s.[i] - 33 in
+    r := Z.(of_int 94 * !r + of_int u)
   done;
   !r
 
@@ -140,10 +138,10 @@ let rec parse get =
     let e2 = parse get in
     If { cond = c; tbranch = e1; fbranch = e2 }
   | 'L' ->
-    let v = decode_int (rem s) in
+    let v = Z.to_int (decode_int (rem s)) in
     Lambda { var = v; body = parse get }
   | 'v' ->
-    let v = decode_int (rem s) in
+    let v = Z.to_int (decode_int (rem s)) in
     Var v
   | _ -> Bool false
 
@@ -172,7 +170,7 @@ let parse_input s =
 let rec pp_expr ff e =
   match e with
   | Bool b -> Format.fprintf ff "%b" b
-  | Int i -> Format.fprintf ff "%d" i
+  | Int i -> Format.fprintf ff "%s" (Z.to_string i)
   | String s -> Format.fprintf ff "%S" (Encoded_string.to_string s)
   | Unop (u, e) -> Format.fprintf ff "U%c (%a)" (encode_unop u) pp_expr e
   | Binop (b, e1, e2) -> Format.fprintf ff "(%a) %c (%a)" pp_expr e1 (encode_binop b) pp_expr e2
