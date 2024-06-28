@@ -33,3 +33,9 @@
  (public_name submit_lambdaman)
  (modules submit_lambdaman)
  (libraries icfpc))
+
+(executable
+ (name lambdaman)
+ (public_name lambdaman)
+ (modules lambdaman)
+ (libraries icfpc))
