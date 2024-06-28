@@ -13,8 +13,21 @@ and unop =
   | String_to_int  (** [#] *)
   | Int_to_string  (** [$] *)
 
-and binop = Add  (** [+] *)
-
+and binop =
+  | Add  (** [+] *)
+  | Sub  (** [-] *)
+  | Mul  (** [*] *)
+  | Div  (** [/] *)
+  | Mod  (** [%] *)
+  | Lt  (** [<] *)
+  | Gt  (** [>] *)
+  | Eq  (** [=] *)
+  | Or  (** [|] *)
+  | And  (** [&] *)
+  | Concat  (** [.] *)
+  | Take  (** [T] *)
+  | Drop  (** [D] *)
+  | Apply  (** [$] *)
 
 let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&\'()*+,-./:;<=>?@[\\]^_`|~ \n"
 
