@@ -61,3 +61,23 @@ let communicate (body : string) : string =
   let r = Ezcurl.post ~url ~headers ~params ~content () in
   let r = Result.get_ok r in
   r.body
+
+let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&\'()*+,-./:;<=>?@[\\]^_`|~ \n"
+
+let decode_char c =
+  chars.[(Char.code c - 33)]
+
+let decode_string s =
+  String.map decode_char s
+
+let decode s =
+  if s.[0] = 'S' then
+    decode_string s
+  else
+    failwith "TODO"
+
+let encode_char c =
+  Char.chr (String.index_from chars 0 c + 33)
+
+let encode_string s =
+  String.map encode_char s
