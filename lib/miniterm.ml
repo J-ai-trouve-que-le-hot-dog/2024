@@ -72,3 +72,47 @@ let lambdaman_solution n solution =
 let run e =
   let r = Eval.eval EnvEmpty (Eval.term_from_expr e) in
   Format.asprintf "%a" Eval.pp_value r
+
+
+let pair x y = lambda (fun f -> (f @/ x) @/ y)
+let fst p = p @/ (lambda (fun x -> lambda (fun _ -> x)))
+let snd p = p @/ (lambda (fun _ -> lambda (fun y -> y)))
+
+let church n =
+  lambda (fun f -> lambda (fun z ->
+      let rec go = function
+        | 0 -> z
+        | n -> f @/ (go (n-1))
+      in go n
+    ))
+
+let one = lambda (fun f -> lambda (fun x -> f @/ x))
+let two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x)))
+let succ = lambda (fun n -> lambda (fun f -> lambda (fun z ->
+    (n @/ f) @/ (f @/ z))))
+let add n m = (n @/ succ) @/ m
+let mult n m = lambda (fun x -> n @/ (m @/ x))
+
+let lambdaman8 =
+  let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
+  let* _4 = two @/ two in
+  let* _256 = _4 @/ _4 in
+  !~ "solve lambdaman8 " ^/
+  (_256 @/ (lambda (fun s ->
+      let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "D"))) @/ s in
+      let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "L"))) @/ t1 in
+      let t3 = (_256 @/ (lambda (fun s -> s ^/ !~ "U"))) @/ t2 in
+      let t4 = (_256 @/ (lambda (fun s -> s ^/ !~ "R"))) @/ t3 in
+      t4
+    ))) @/ (!~ "")
+
+let lambdaman9 =
+  let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
+  let* _4 = two @/ two in
+  let* _256 = _4 @/ _4 in
+  !~ "solve lambdaman9 " ^/
+  (_256 @/ (lambda (fun s ->
+      let t1 = (_256 @/ (lambda (fun s -> !~ "L" ^/ s))) @/ (!~ "") in
+      let t2 = (_256 @/ (lambda (fun s -> !~ "R" ^/ s))) @/ (!~ "") in
+      s ^/ t1 ^/ t2
+    ))) @/ (!~ "")

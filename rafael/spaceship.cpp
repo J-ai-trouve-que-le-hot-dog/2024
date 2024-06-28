@@ -20,13 +20,36 @@ ostream& operator<<(ostream& os, pt const &p) {
   return os << mt(p.x,p.y);
 }
 
-const i64 MAXD = 40'000;
-const i64 MAXV = 100;
-const i64 MAX_ITER = 5'000'000'000;
+const i64 MAXD = 20'000;
+const i64 MAXV = 50;
 
 using pre_inner = array<array<u64,2*MAXV+1>,2*MAXV+1>;
-
 pre_inner *pre = 0;
+
+void do_precomputation() {
+  pre = new pre_inner[MAXD+1];
+
+  FOR(i, 63) { 
+    cerr << "Precomputation: " << i << "/63" << endl;
+    FOR(dx, MAXD+1) FOR(v0, 2*MAXV+1) FOR(v1, 2*MAXV+1) {
+      FOR(e, 3) {
+        i64 nv0 = v0 + (e-1);
+        if(nv0 < 0 || nv0 >= 2*MAXV+1) continue; 
+        i64 ndx = dx - (nv0 - MAXV);
+        i64 nv1 = v1;
+        if(ndx < 0) {
+          ndx = -ndx;
+          nv0 = 2*MAXV - nv0;
+          nv1 = 2*MAXV - nv1;
+        }
+        if(ndx > MAXD) continue;
+        if(pre[ndx][nv0][nv1] & (1ull<<i)) {
+          pre[dx][v0][v1] |= (1ull<<(i+1));
+        }
+      }
+    }
+  }
+}
 
 i64 f2(i64 x) {
   return x*(x+1)/2;
@@ -198,372 +221,83 @@ void reconstruct(string& out,
   runtime_assert(false);
 }
 
-void reconstruct(vector<pt> const& A, string& out, i64 i, pt si, i64 j, pt sj) {
-  i64 dx = A[j].x-A[i].x;
-  i64 dy = A[j].y-A[i].y;
-  reconstruct(out,dx,dy,si.x,si.y,sj.x,sj.y,0,0);
-}
+struct problem {
+  i32 id;
+  i32 n;
+  vector<pt> A;
 
-void check_solution(i32 n, vector<pt> const& A, string s) {
-  set<pt> todo;
-  FORU(i, 1, n-1) todo.insert(A[i]);
-  i64 vx = 0, vy = 0;
-  i64 x = 0, y = 0;
-  for(char c : s) {
-    FOR(dx, 3) FOR(dy, 3) if(dc[dy][dx] == c) {
-      vx += dx-1;
-      vy += dy-1;
-    }
-    x += vx; y += vy;
-    pt p(x,y);
-    todo.erase(p);
+  void reconstruct(string& out, i64 i, pt si, i64 j, pt sj) {
+    i64 dx = A[j].x-A[i].x;
+    i64 dy = A[j].y-A[i].y;
+    ::reconstruct(out,dx,dy,si.x,si.y,sj.x,sj.y,0,0);
   }
-  debug(todo.size());
-  // runtime_assert(todo.empty());
-}
 
-struct state {
-  vector<i64> perm;
-  vector<pt>  speed;
-  i64         score;
-
-  void reset(i32 n, vector<pt> const& A) {
-    perm = {0,n};
-    FORU(i, 1, n-1) {
-      i64 bj = 0; // rng.random32(perm.size()-1);
-      i64 bc = 1ull<<60;
-      FOR(j, (i64)perm.size()-1) {
-        i64 c =
-          cost(n,A, perm[j],pt(MAXV,MAXV), i,pt(MAXV,MAXV)) +
-          cost(n,A, i,pt(MAXV,MAXV), perm[j+1],pt(MAXV,MAXV));
-        if(c < bc) {
-          bc = c;
-          bj = j;
-        }
+  void check_solution(string s) {
+    set<pt> todo;
+    FORU(i, 1, n-1) todo.insert(A[i]);
+    i64 vx = 0, vy = 0;
+    i64 x = 0, y = 0;
+    for(char c : s) {
+      FOR(dx, 3) FOR(dy, 3) if(dc[dy][dx] == c) {
+        vx += dx-1;
+        vy += dy-1;
       }
-      perm.insert(begin(perm)+bj+1, i);
+      x += vx; y += vy;
+      pt p(x,y);
+      todo.erase(p);
     }
-    speed.assign(n+1, pt(MAXV, MAXV));
-    score = calc_score(n,A);
+    debug(todo.size());
+    runtime_assert(todo.empty());
   }
 
-  void reconstruct(i32 n, vector<pt> const& A, string& out) const {
-    FOR(i, n-1) {
-      auto a = perm[i], b = perm[i+1];
-      auto sa = speed[a], sb = speed[b];
-      ::reconstruct(A,out,a,sa,b,sb);
+  void read(i32 id_) {
+    id = id_;
+    ifstream is("inputs/spaceship" + to_string(id));
+    runtime_assert(is.good());
+
+    A.clear();
+    A.eb(0,0);
+    { string line;
+      while(getline(is,line)) {
+        if(line.empty()) break;
+        istringstream iline(line);
+        i64 x,y; iline >> x >> y;
+        A.eb(x,y);
+      }
     }
-  }
-  
-  i64 calc_score(i32 n, vector<pt> const& A) const {
-    i64 score = 0;
-    FOR(i, n-1) {
-      auto a = perm[i], b = perm[i+1];
-      auto sa = speed[a], sb = speed[b];
-      score += cost(n,A, a,sa,b,sb);
-    }
-    return score;
+
+    n = A.size();
   }
 
-  void check_score(i32 n, vector<pt> const& A) const {
-    runtime_assert(score == calc_score(n,A));
+  void save(string sol) {
+    check_solution(sol);
+    string filename = "solutions/spaceship" + to_string(id);
+    
+    if(filesystem::exists(filename)) {
+      string previous_best; 
+      { ifstream file(filename);
+        file >> previous_best;
+      }
+      if(sol.size() < previous_best.size()) {
+        ofstream file(filename);
+        file << sol;       
+      }
+    }else{
+      ofstream file(filename);
+      file << sol;
+    }
   }
 };
 
-
-void do_precomputation() {
-  pre = new pre_inner[MAXD+1];
-
-  FOR(i, 63) { 
-    cerr << "Precomputation: " << i << "/63" << endl;
-    FOR(dx, MAXD+1) FOR(v0, 2*MAXV+1) FOR(v1, 2*MAXV+1) {
-      FOR(e, 3) {
-        i64 nv0 = v0 + (e-1);
-        if(nv0 < 0 || nv0 >= 2*MAXV+1) continue; 
-        i64 ndx = dx - (nv0 - MAXV);
-        i64 nv1 = v1;
-        if(ndx < 0) {
-          ndx = -ndx;
-          nv0 = 2*MAXV - nv0;
-          nv1 = 2*MAXV - nv1;
-        }
-        if(ndx > MAXD) continue;
-        if(pre[ndx][nv0][nv1] & (1ull<<i)) {
-          pre[dx][v0][v1] |= (1ull<<(i+1));
-        }
-      }
-    }
-  }
-}
-
-void solve_id(i32 id) {
-  vector<pt> A;
-  i64 n;
-  
-  ifstream is("inputs/spaceship" + to_string(id));
-  runtime_assert(is.good());
-  A.eb(0,0);
-  { string line;
-    while(getline(is,line)) {
-      if(line.empty()) break;
-      istringstream iline(line);
-      i64 x,y; iline >> x >> y;
-      A.eb(x,y);
-    }
-  }
-
-  n = A.size();
-
-  FOR(dx, MAXD+1) FOR(v0, 2*MAXV+1) FOR(v1, 2*MAXV+1) {
-    pre[dx][v0][v1] = 0;
-  }
-
-  FOR(v, 2*MAXV+1) {
-    pre[0][v][v] = 1;
-  }
-  
-  i64 niter = 0;
-  f64 done  = 0;
-  f64 temp0 = 0.1;
-  f64 temp1 = 0.05;
-  f64 temp  = temp0;
-
-  state S; S.reset(n,A);
-  debug(S.score);
-
-  i64 best_score = S.score;
-  auto best_state = S;
-  
-  while(1) {
-    niter += 1;
-    if(niter % 1024 == 0) {
-      done = (f64) niter / MAX_ITER;
-      if(done > 1.0) break;
-      temp = temp0 * pow(temp1 / temp0, done);
-    }
-    if(niter % (1<<20) == 0) {
-#pragma omp critical
-      {
-        cerr
-          << "id = " << setw(2) << id << ", "
-          << "niter = " << setw(12) << niter << ", "
-          << "done = " << fixed << setprecision(6) << done << ", "
-          << "temp = " << fixed << setprecision(6) << temp << ", "
-          << "score = " << setw(9) << S.score << ", "
-          << "best_score = " << setw(9) << best_score << ", "
-          << endl;
-      }
-    }
-
-    auto accept = [&](i64 delta) -> bool {
-      if(delta <= 0) return true;
-      return delta <= temp * rng.randomDouble();
-    };
-
-    auto get_new_speed = [&](pt s) {
-      if(rng.random32(30) == 0) {
-        return pt(rng.random32(2*MAXV+1), rng.random32(2*MAXV+1));
-      }else{
-        auto ns = s;
-        ns.x += rng.random32(3)-1;
-        ns.y += rng.random32(3)-1;
-        if(ns.x < 0 || ns.x >= 2*MAXV+1) ns.x = s.x;
-        if(ns.y < 0 || ns.y >= 2*MAXV+1) ns.y = s.y;
-        return ns;
-      }
-    };
-
-    i64 ty = rng.random32(3);
-    if(ty == 0) {
-      i64 i = rng.random32(n);
-      i64 j = rng.random32(n);
-      i64 k = rng.random32(n);
-      if(i > j) swap(i,j);
-      if(j > k) swap(j,k);
-      if(i > j) swap(i,j);
-      if(i == j || j == k) continue;
-      auto a1 = S.perm[i], a2 = S.perm[i+1];
-      auto sa1 = S.speed[a1], sa2 = S.speed[a2];
-      auto b1 = S.perm[j], b2 = S.perm[j+1];
-      auto sb1 = S.speed[b1], sb2 = S.speed[b2];
-      auto c1 = S.perm[k], c2 = S.perm[k+1];
-      auto sc1 = S.speed[c1], sc2 = S.speed[c2];
-
-      i32 change_speeds = rng.random32(2) == 0;
-      
-      auto nsa2 = change_speeds ? get_new_speed(sa2) : sa2;
-      auto nsb1 = change_speeds ? get_new_speed(sb1) : sb1;
-      auto nsb2 = change_speeds ? get_new_speed(sb2) : sb2;
-      auto nsc1 = change_speeds ? get_new_speed(sc1) : sc1;
-      if(b1 == a2) nsb1 = nsa2;
-      if(c1 == b2) nsc1 = nsb2;
-
-      // TODO: change speeds of a1,a2,b1,b2,c1,c2
-      // careful: it is possible that b1 = a2, c1 = a2
-      // TODO: allow moving the last item (use a dummy c2)
-      
-      i64 delta = 0;
-      delta -= cost(n,A, a1,sa1, a2,sa2);
-      delta -= cost(n,A, b1,sb1, b2,sb2);
-      delta -= cost(n,A, c1,sc1, c2,sc2);
-      delta += cost(n,A, a1,sa1, b2,nsb2);
-      delta += cost(n,A, b1,nsb1, c2,sc2);
-      delta += cost(n,A, c1,nsc1, a2,nsa2);
-      if(i+2 == j) {
-        delta -= cost(n,A, a2,sa2, b1,sb1);
-        delta += cost(n,A, a2,nsa2, b1,nsb1);
-      }else if(i+2 < j) {
-        { auto x = S.perm[i+2];
-          delta -= cost(n,A, a2,sa2, x,S.speed[x]);
-          delta += cost(n,A, a2,nsa2, x,S.speed[x]);
-        }
-        { auto x = S.perm[j-1];
-          delta -= cost(n,A, x,S.speed[x], b1,sb1);
-          delta += cost(n,A, x,S.speed[x], b1,nsb1);
-        }
-      }
-      if(j+2 == k) {
-        delta -= cost(n,A, b2,sb2, c1,sc1);
-        delta += cost(n,A, b2,nsb2, c1,nsc1);
-      }else if(j+2 < k) {
-        { auto x = S.perm[j+2];
-          delta -= cost(n,A, b2,sb2, x,S.speed[x]);
-          delta += cost(n,A, b2,nsb2, x,S.speed[x]);
-        }
-        { auto x = S.perm[k-1];
-          delta -= cost(n,A, x,S.speed[x], c1,sc1);
-          delta += cost(n,A, x,S.speed[x], c1,nsc1);
-        }
-      }
-
-
-      if(accept(delta)) {
-        S.score += delta;
-        rotate(begin(S.perm)+i+1, begin(S.perm)+j+1, begin(S.perm)+k+1);
-        S.speed[a2] = nsa2;
-        S.speed[b1] = nsb1;
-        S.speed[b2] = nsb2;
-        S.speed[c1] = nsc1;
-      }
-    }else if(ty == 1) {
-      i64 i = 1+rng.random32(n-1);
-      i64 j = rng.random32(n);
-      if(j == i || j+1 == i) {
-        continue;
-      }
-
-      i64 b = S.perm[i];
-      auto sb = S.speed[b];
-      pt nsb = get_new_speed(sb);
-
-      i64 delta = 0;
-
-      { i64 a = S.perm[i-1];
-        auto sa = S.speed[a];
-        delta -= cost(n,A, a,sa, b,sb);
-        
-        i64 c = S.perm[i+1];
-        auto sc = S.speed[c];
-        delta -= cost(n,A, b,sb, c,sc);
-
-        delta += cost(n,A, a,sa, c,sc);
-      }
-      
-      { i64 a = S.perm[j];
-        auto sa = S.speed[a];
-        delta += cost(n,A, a,sa, b,nsb);
-
-        i64 c = S.perm[j+1];
-        auto sc = S.speed[c];
-        delta += cost(n,A, b,nsb, c,sc);
-
-        delta -= cost(n,A, a,sa, c,sc);
-      }
-
-      if(accept(delta)) {
-        S.score += delta;
-        S.perm.erase(begin(S.perm)+i);
-        if(i < j) j -= 1;
-        S.perm.insert(begin(S.perm)+j+1, b);
-        S.speed[b] = nsb;
-      }
-    }else if(ty == 2){
-      i64 i = 1+rng.random32(n-1);
-
-      i64 b = S.perm[i];
-      auto sb = S.speed[b];
-      pt nsb = get_new_speed(sb);
-
-      i64 delta = 0;
-
-      i64 a = S.perm[i-1];
-      auto sa = S.speed[a];
-      delta -= cost(n,A, a,sa, b,sb);
-      delta += cost(n,A, a,sa, b,nsb);
-
-      i64 c = S.perm[i+1];
-      auto sc = S.speed[c];
-      delta -= cost(n,A, b,sb, c,sc);
-      delta += cost(n,A, b,nsb, c,sc);
-    
-      if(accept(delta)) {
-        S.score += delta;
-        S.speed[b] = nsb;
-      }
-    }
-
-    // S.check_score();
-
-    if(S.score < best_score) {
-      best_score = S.score;
-      best_state = S;
-    }
-  }
-
-#pragma omp critical
-  { 
-    best_state.check_score(n,A);
-
-    if(best_score < 1'000'000) {
-      string out;
-      best_state.reconstruct(n,A,out);
-      check_solution(n,A,out);
-      // cout << out << endl;
-
-      string filename = "solutions/spaceship" + to_string(id);
-    
-      if(filesystem::exists(filename)) {
-        string previous_best; 
-        { ifstream file(filename);
-          file >> previous_best;
-        }
-        if(out.size() < previous_best.size()) {
-          ofstream file(filename);
-          file << out;       
-        }
-      }else{
-        ofstream file(filename);
-        file << out;
-      }
-    }
-  }
-}
-
 int main(int argc, char** argv) {
-  runtime_assert(argc >= 2 && argc <= 3);
-  i64 id1 = atoi(argv[1]);
-  runtime_assert(1 <= id1 && id1 <= 25);
-  i32 id2 = id1;
-  if(argc == 3) {
-    i64 id2 = atoi(argv[2]);
-    runtime_assert(id1 <= id2 && id2 <= 25);
-  }
+  runtime_assert(argc >= 2);
+  i64 id = atoi(argv[1]);
+  runtime_assert(1 <= id && id <= 25);
   do_precomputation();
 
-#pragma omp parallel for
-  FORU(i, id1, id2) {
-    solve_id(i);
-  } 
-
+  problem pb; pb.read(id);
+  
+  
+  
   return 0;
 }
