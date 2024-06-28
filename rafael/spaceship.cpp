@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
     }
   }
   
-  const i64 MAX_ITER = 500'000'000;
+  const i64 MAX_ITER = 5'000'000'000;
   
   i64 niter = 0;
   f64 done  = 0;
@@ -236,6 +236,10 @@ int main(int argc, char** argv) {
       auto c1 = S.perm[k], c2 = S.perm[k+1];
       auto sc1 = S.speed[c1], sc2 = S.speed[c2];
 
+      // TODO: change speeds of a1,a2,b1,b2,c1,c2
+      // careful: it is possible that b1 = a2, c1 = a2
+      // TODO: allow moving the last item (use a dummy c2)
+      
       i64 delta = 0;
       delta -= cost(a1,sa1, a2,sa2);
       delta -= cost(b1,sb1, b2,sb2);
