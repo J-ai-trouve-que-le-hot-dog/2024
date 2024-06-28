@@ -1,14 +1,17 @@
 (executable
  (name main)
+ (public_name main)
  (modules main)
  (libraries icfpc))
  
 (executable
  (name scoreboard)
+ (public_name scoreboard)
  (modules scoreboard)
  (libraries icfpc))
 
 (executable
  (name communicate)
+ (public_name communicate)
  (modules communicate)
  (libraries icfpc))
