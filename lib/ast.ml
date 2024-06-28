@@ -144,3 +144,15 @@ let parse_parts parts =
 let parse_input s =
   let parts = String.split_on_char ' ' s in
   parse_parts parts
+
+
+let rec pp_expr ff e =
+  match e with
+  | Bool b -> Format.fprintf ff "%b" b
+  | Int i -> Format.fprintf ff "%d" i
+  | String s -> Format.fprintf ff "%s" s
+  | Unop (u, e) -> Format.fprintf ff "U%c (%a)" (encode_unop u) pp_expr e
+  | Binop (b, e1, e2) -> Format.fprintf ff "(%a) %c (%a)" pp_expr e1 (encode_binop b) pp_expr e2
+  | If { cond; tbranch; fbranch } -> Format.fprintf ff "if %a then %a else %a" pp_expr cond pp_expr tbranch pp_expr fbranch
+  | Lambda { var; body } -> Format.fprintf ff "(fun v%d -> %a)" var pp_expr body
+  | Var v -> Format.fprintf ff "v%d" v
