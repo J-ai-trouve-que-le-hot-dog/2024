@@ -43,12 +43,6 @@ let decode_char c =
 let decode_string s =
   String.map decode_char s
 
-let decode s =
-  if s.[0] = 'S' then
-    Some (decode_string (String.sub s 1 (String.length s - 1)))
-  else
-    None
-
 let encode_char c =
   Char.chr (String.index_from chars 0 c + 33)
 
@@ -63,10 +57,10 @@ let decode_unop : char -> unop = function
   | _ -> impossible __LOC__
 
 let encode_unop : unop -> char = function
-  | Neg -> '-' 
-  | Not -> '!' 
-  | String_to_int -> '#' 
-  | Int_to_string -> '$' 
+  | Neg -> '-'
+  | Not -> '!'
+  | String_to_int -> '#'
+  | Int_to_string -> '$'
 
 let decode_binop : char -> binop = function
   | '+' -> Add
@@ -84,22 +78,22 @@ let decode_binop : char -> binop = function
   | 'D' -> Drop
   | '$' -> Apply
   | _ -> impossible __LOC__
-           
+
 let encode_binop : binop -> char = function
-  | Add -> '+' 
-  | Sub -> '-' 
-  | Mul -> '*' 
-  | Div -> '/' 
-  | Mod -> '%' 
-  | Lt -> '<' 
-  | Gt -> '>' 
-  | Eq -> '=' 
-  | Or -> '|' 
-  | And -> '&' 
-  | Concat -> '.' 
-  | Take -> 'T' 
-  | Drop -> 'D' 
-  | Apply -> '$' 
+  | Add -> '+'
+  | Sub -> '-'
+  | Mul -> '*'
+  | Div -> '/'
+  | Mod -> '%'
+  | Lt -> '<'
+  | Gt -> '>'
+  | Eq -> '='
+  | Or -> '|'
+  | And -> '&'
+  | Concat -> '.'
+  | Take -> 'T'
+  | Drop -> 'D'
+  | Apply -> '$'
 
 let rem s = String.sub s 1 (String.length s - 1)
 
