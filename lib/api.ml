@@ -72,9 +72,9 @@ let decode_string s =
 
 let decode s =
   if s.[0] = 'S' then
-    decode_string s
+    Some (decode_string s)
   else
-    failwith "TODO"
+    None
 
 let encode_char c =
   Char.chr (String.index_from chars 0 c + 33)
