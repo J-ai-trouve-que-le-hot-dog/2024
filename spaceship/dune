@@ -1,0 +1,3 @@
+(library
+  (libraries icfpc)
+  (name spaceship))
