@@ -58,7 +58,6 @@ let int_to_encoded_string : int -> string = fun n ->
   if !o = [] then "!" else String.of_seq (List.to_seq !o)
 
 let rec eval (env : env) (t : term) : value =
-  Format.printf "eval %a@." pp_term t;
   eval_go env t
   
 and eval_go (env : env) : term -> value = function
