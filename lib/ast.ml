@@ -160,7 +160,12 @@ let parse_parts parts =
   r
 
 let parse_input s =
-  let parts = String.split_on_char ' ' s in
+  let parts =
+    s
+    |> String.trim
+    |> String.split_on_char ' '
+    |> List.filter (fun s -> s <> "\n" && s <> " ")
+  in
   parse_parts parts
 
 
