@@ -32,13 +32,38 @@ let decode_int s =
   done;
   !r
 
-let cases s : Ast.expr =
+let rec parse get : Ast.expr =
+  let s = get () in
   match s.[0] with
   | 'T' -> Bool true
   | 'F' -> Bool false
   | 'I' -> Int (decode_int (rem s))
   | 'S' -> String (decode_string s)
+  | 'U' -> Unop (Ast.decode_unop s.[1], parse get)
+  | 'B' ->
+    let e1 = parse get in
+    let e2 = parse get in
+    Binop (Ast.decode_binop s.[1], e1, e2)
+  | '?' ->
+    let c = parse get in
+    let e1 = parse get in
+    let e2 = parse get in
+    If { cond = c; tbranch = e1; fbranch = e2 }
+  | 'L' ->
+    let v = decode_int (rem s) in
+    Lambda { var = v; body = parse get }
+  | 'v' ->
+    let v = decode_int (rem s) in
+    Var v
   | _ -> Bool false
 
+let parse parts =
+  let l = ref parts in
+  let get () =
+    match !l with
+    | [] -> assert false
+    | h :: r -> l := r; h
+  in
+  parse get
 
-let v = List.map cases parts
+let v = parse parts

@@ -5,9 +5,10 @@ type expr =
   | Int of int  (** Integers [I] *)
   | String of string  (** Strings [S] *)
   | Unop of unop * expr  (** Unary operators [U] *)
-  | Binop of binop * expr  (** Unary operators [B] *)
+  | Binop of binop * expr * expr  (** Unary operators [B] *)
   | If of { cond : expr; tbranch : expr; fbranch : expr }  (** If [?] *)
   | Lambda of { var : int; body : expr }  (** Lambda abstractions [L] *)
+  | Var of int
 
 and unop =
   | Neg  (** [-] *)
