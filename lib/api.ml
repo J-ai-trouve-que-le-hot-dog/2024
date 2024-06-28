@@ -14,9 +14,9 @@ let get_token () : string =
       cached_token := Some(token);
       token
     with
-    | Not_found ->
+    | Sys_error(_) as e ->
       eprintf "Please create a \".token\" file with the authentication token.\n";
-      exit 1
+      raise e
 
 let make_headers () =
   [ ("Authorization", "Bearer " ^ get_token ()) ]
