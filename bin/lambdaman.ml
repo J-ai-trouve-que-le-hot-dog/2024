@@ -83,6 +83,8 @@ let game =
   | Some result -> decode result
   | None -> failwith "TODO eval"
 
+let () = print game
+
 let sol =
   let sol = try Sys.argv.(2) with _ -> failwith "Arg2: Solution string" in
   match check game sol with
