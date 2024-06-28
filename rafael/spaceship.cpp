@@ -18,8 +18,8 @@ ostream& operator<<(ostream& os, pt const &p) {
 vector<pt> A;
 i32 n;
 
-const i32 MAXD = 20'000;
-const i32 MAXV = 64;
+const i32 MAXD = 5'000;
+const i32 MAXV = 20;
 
 uint64_t pre[MAXD+1][2*MAXV+1][2*MAXV+1];
 
@@ -40,6 +40,70 @@ i32 cost(i32 i, pt si, i32 j, pt sj) {
   return cost(dx,dy,si.x,si.y,sj.x,sj.y);
 }
 
+const string dc[3] =
+  { "123",
+    "456",
+    "789"
+  };
+
+void reconstruct(string& out,
+                 i32 dx, i32 dy,
+                 i32 vx0, i32 vy0,
+                 i32 vx1, i32 vy1,
+                 bool flipx, bool flipy) {
+  if(dx == 0 && dy == 0 && vx0 == vx1 && vy0 == vy1) {
+    out += " ";
+    return;
+  }
+  if(dx < 0) { dx = -dx; vx0 = 2*MAXV-vx0; vx1 = 2*MAXV-vx1; flipx ^= 1; }
+  if(dy < 0) { dy = -dy; vy0 = 2*MAXV-vy0; vy1 = 2*MAXV-vy1; flipy ^= 1; }
+  if(dx > MAXD || dy > MAXD) runtime_assert(false);
+  auto m1 = pre[dx][vx0][vx1];
+  auto m2 = pre[dy][vy0][vy1];
+  auto m = (m1 & m2);
+  runtime_assert(m != 0);
+  auto c = __builtin_ctzll(m);
+  runtime_assert(c == cost(dx,dy,vx0,vy0,vx1,vy1));
+  debug(dx,dy,vx0-MAXV,vy0-MAXV,vx1-MAXV,vy1-MAXV,c);
+  FOR(dvx, 3) FOR(dvy, 3) {
+    i32 nvx0 = vx0 + (dvx-1);
+    if(nvx0 < 0 || nvx0 >= 2*MAXV+1) continue;
+    i32 nvy0 = vy0 + (dvy-1);
+    if(nvy0 < 0 || nvy0 >= 2*MAXV+1) continue;
+    i32 ndx = dx - (nvx0-MAXV);
+    i32 ndy = dy - (nvy0-MAXV);
+    i32 nvx1 = vx1, nvy1 = vy1;
+    bool nflipx = flipx;
+    bool nflipy = flipy;
+    if(ndx < 0) {
+      ndx = -ndx;
+      nvx0 = 2*MAXV - nvx0;
+      nvx1 = 2*MAXV - nvx1;
+      nflipx ^= 1;
+    }
+    if(ndy < 0) {
+      ndy = -ndy;
+      nvy0 = 2*MAXV - nvy0;
+      nvy1 = 2*MAXV - nvy1;
+      nflipy ^= 1;
+    }
+    if(c == 1 + cost(ndx,ndy,nvx0,nvy0,nvx1,nvy1)){
+      debug("OK", dc[flipy?2-dvy:dvy][flipx?2-dvx:dvx], dvx, dvy, flipy?2-dvy:dvy, flipx?2-dvx:dvx);
+      out += dc[flipy?2-dvy:dvy][flipx?2-dvx:dvx];
+      reconstruct(out,ndx,ndy,nvx0,nvy0,nvx1,nvy1,nflipx,nflipy);
+      return;
+    }
+  }
+  runtime_assert(false);
+}
+
+void reconstruct(string& out, i32 i, pt si, i32 j, pt sj) {
+  i32 dx = A[j].x-A[i].x;
+  i32 dy = A[j].y-A[i].y;
+  reconstruct(out,dx,dy,si.x,si.y,sj.x,sj.y,0,0);
+}
+
+
 struct state {
   vector<i32> perm;
   vector<pt>  speed;
@@ -52,6 +116,15 @@ struct state {
     score = calc_score();
   }
 
+  void reconstruct(string& out) const {
+    FOR(i, n-1) {
+      auto a = perm[i], b = perm[i+1];
+      auto sa = speed[a], sb = speed[b];
+      debug(A[a],sa,A[b],sb);
+      ::reconstruct(out,a,sa,b,sb);
+    }
+  }
+  
   i64 calc_score() const {
     i64 score = 0;
     FOR(i, n-1) {
@@ -69,6 +142,8 @@ struct state {
 
 
 int main() {
+  rng.reset(32);
+  
   A.eb(0,0);
   { i32 x,y; 
     while(scanf("%d %d", &x, &y) != -1) {
@@ -89,7 +164,7 @@ int main() {
 
   FOR(i, 63) {
     cerr << "Precomputation: " << i << "/63" << endl;
-    FOR(dx, MAXD+1) FOR(v0, 2*MAXV+1) FOR(v1, 2*MAXV+1) if(pre[dx][v0][v1] & (1ull<<i)) {
+    FOR(dx, MAXD+1) FOR(v0, 2*MAXV+1) FOR(v1, 2*MAXV+1) {
       FOR(e, 3) {
         i32 nv0 = v0 + (e-1);
         if(nv0 < 0 || nv0 >= 2*MAXV+1) continue; 
@@ -101,12 +176,14 @@ int main() {
           nv1 = 2*MAXV - nv1;
         }
         if(ndx > MAXD) continue;
-        pre[ndx][nv0][nv1] |= (1ull<<(i+1));
+        if(pre[ndx][nv0][nv1] & (1ull<<i)) {
+          pre[dx][v0][v1] |= (1ull<<(i+1));
+        }
       }
     }
   }
-
-  const i64 MAX_ITER = 500'000'000;
+  
+  const i64 MAX_ITER = 1'000'000;
   
   i64 niter = 0;
   f64 done  = 0;
@@ -212,7 +289,18 @@ int main() {
     }
   }
 
+  FOR(i, n) {
+    debug(A[best_state.perm[i]]);
+  }
+
+  best_state.check_score();
+  
   debug(best_score);
+  if(best_score < 1'000'000) {
+    string out;
+    best_state.reconstruct(out);
+    cout << out << endl;
+  }
   
   return 0;
 }
