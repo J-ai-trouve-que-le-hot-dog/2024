@@ -1,7 +1,7 @@
 (executable
  (name main)
- (libraries icfpc graphics unix))
+ (libraries icfpc))
  
 (executable
  (name scoreboard)
- (libraries icfpc spectrum))
+ (libraries icfpc))
