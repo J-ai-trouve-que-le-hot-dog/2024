@@ -14,3 +14,24 @@ and unop =
   | Int_to_string  (** [$] *)
 
 and binop = Add  (** [+] *)
+
+
+let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&\'()*+,-./:;<=>?@[\\]^_`|~ \n"
+
+let decode_char c =
+  chars.[(Char.code c - 33)]
+
+let decode_string s =
+  String.map decode_char s
+
+let decode s =
+  if s.[0] = 'S' then
+    Some (decode_string (String.sub s 1 (String.length s - 1)))
+  else
+    None
+
+let encode_char c =
+  Char.chr (String.index_from chars 0 c + 33)
+
+let encode_string s =
+  String.map encode_char s
