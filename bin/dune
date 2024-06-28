@@ -1,7 +1,9 @@
 (executable
  (name main)
+ (modules main)
  (libraries icfpc))
  
 (executable
  (name scoreboard)
+ (modules scoreboard)
  (libraries icfpc))
