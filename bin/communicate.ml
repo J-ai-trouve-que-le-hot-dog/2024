@@ -1,7 +1,7 @@
 
 let () =
-  assert(Array.length Sys.argv = 2);
-  let body = Sys.argv.(1) in
+  assert(Array.length Sys.argv >= 2);
+  let body = String.concat " " (List.tl (Array.to_list Sys.argv)) in
   let body = "S" ^ Ast.encode_string body in
   let result = Api.communicate body in
   match Ast.decode result with
