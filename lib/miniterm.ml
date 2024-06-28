@@ -10,6 +10,8 @@ let (!+) i = Int (Z.of_int i)
 let (!~) s = String (Encoded_string.from_string s)
 let (+/) a b = Binop (Add, a, b)
 
+let (!~+) e = Unop (Int_to_string, e)
+
 let ( ^/ ) a b = Binop (Concat, a, b)
 
 let ( %/ ) a b = Binop (Mod, a, b)

@@ -63,8 +63,8 @@ and binop =
   | Take  (** [T] *)
   | Drop  (** [D] *)
   | Apply  (** [$] *)
-  | Mystery_1 (** [!] *)
-  | Mystery_2 (** [~] *)
+  | Apply_strict (** [!] *)
+  | Apply_mystery (** [~] *)
 
 let decode_unop : char -> unop = function
   | '-' -> Neg
@@ -94,8 +94,8 @@ let decode_binop : char -> binop = function
   | 'T' -> Take
   | 'D' -> Drop
   | '$' -> Apply
-  | '!' -> Mystery_1
-  | '~' -> Mystery_2
+  | '!' -> Apply_strict
+  | '~' -> Apply_mystery
   | _ -> impossible __LOC__
 
 let encode_binop : binop -> char = function
@@ -113,8 +113,8 @@ let encode_binop : binop -> char = function
   | Take -> 'T'
   | Drop -> 'D'
   | Apply -> '$'
-  | Mystery_1 -> '!'
-  | Mystery_2 -> '~'
+  | Apply_strict -> '!'
+  | Apply_mystery -> '~'
 
 let rem s = String.sub s 1 (String.length s - 1)
 

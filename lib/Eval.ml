@@ -57,6 +57,8 @@ and eval_go (env : env) : term -> value = function
   | Int(i) -> VInt(i)
   | String(s) -> VString(s)
   | Unop(o,x) -> eval_unop (o, eval env x)
+  | Binop(Apply_strict,x,y)
+  | Binop(Apply_mystery,x,y)
   | Binop(Apply,x,y) -> apply (eval env x , lazy (eval env y))
   | Binop(o,x,y) -> eval_binop (o , eval env x , eval env y)
   | Lambda(t) -> VLambda(t, env)
