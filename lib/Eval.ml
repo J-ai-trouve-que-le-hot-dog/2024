@@ -48,11 +48,16 @@ let rec env_lookup : env * int -> value = function
   | EnvSnoc(env, _), n -> env_lookup (env, n-1)
   | _ -> impossible __LOC__
 
-let rec eval (env : env) : term -> value = function
+let rec eval (env : env) (t : term) : value =
+  Format.printf "eval %a@." pp_term t;
+  eval_go env t
+  
+and eval_go (env : env) : term -> value = function
   | Bool(b) -> VBool(b)
   | Int(i) -> VInt(i)
   | String(s) -> VString(s)
   | Unop(o,x) -> eval_unop (o, eval env x)
+  | Binop(Apply,x,y) -> apply (eval env x , lazy (eval env y))
   | Binop(o,x,y) -> eval_binop (o , eval env x , eval env y)
   | Lambda(t) -> VLambda(t, env)
   | If(b,x,y) ->
@@ -62,6 +67,10 @@ let rec eval (env : env) : term -> value = function
     | _ -> impossible __LOC__
     end
   | Var(x) -> env_lookup (env, x)
+
+and apply : value * value Lazy.t -> value = function
+  | (VLambda(t, env), x) -> eval (EnvSnoc(env, x)) t
+  | _ -> impossible __LOC__
 
 and eval_unop : Ast.unop * value -> value = function
   | (Neg, VInt(x)) -> VInt(-x)
@@ -86,7 +95,6 @@ and eval_binop : Ast.binop * value * value -> value = function
     VString(String.sub s 0 i)
   | (Drop, VInt(i), VString(s)) ->
     VString(String.sub s i (String.length s - i))
-  | (Apply, VLambda(t, env), v) -> eval (EnvSnoc(env, lazy v)) t
   | (o,x,y) ->
     Format.printf "%a %a %a@."
       Ast.pp_binop o
