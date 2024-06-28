@@ -1,3 +1,5 @@
+open Common
+
 type expr =
   | Bool of bool  (** Booleans [T] *)
   | Int of int  (** Integers [I] *)
@@ -48,3 +50,28 @@ let encode_char c =
 
 let encode_string s =
   String.map encode_char s
+
+let decode_unop : char -> unop = function
+  | '-' -> Neg
+  | '!' -> Not
+  | '#' -> String_to_int
+  | '$' -> Int_to_string
+  | _ -> impossible __LOC__
+
+let decode_binop : char -> binop = function
+  | '+' -> Add
+  | '-' -> Sub
+  | '*' -> Mul
+  | '/' -> Div
+  | '%' -> Mod
+  | '<' -> Lt
+  | '>' -> Gt
+  | '=' -> Eq
+  | '|' -> Or
+  | '&' -> And
+  | '.' -> Concat
+  | 'T' -> Take
+  | 'D' -> Drop
+  | '$' -> Apply
+  | _ -> impossible __LOC__
+
