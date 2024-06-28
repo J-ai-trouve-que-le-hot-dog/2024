@@ -21,22 +21,21 @@ let get_token () : string =
 let make_headers () =
   [ ("Authorization", "Bearer " ^ get_token ()) ]
 
-type scoreboard_row_t =
+type scoreboard_row =
   { is_you : bool;
     rank : int;
     name : string;
   }
 [@@deriving(show)]
 
-type scoreboard_t = scoreboard_row_t list
+type scoreboard = scoreboard_row list
 [@@deriving(show)]
 
-let get_scoreboard () : scoreboard_t =
-  let parse_scoreboard (j : Yojson.Basic.t) : scoreboard_t =
+let get_scoreboard () : scoreboard =
+  let parse_scoreboard (j : Yojson.Basic.t) : scoreboard =
     let open Yojson.Basic.Util in
-    let parse_row j : scoreboard_row_t
+    let parse_row j : scoreboard_row
       =
-      Format.printf "%s\n" (Yojson.Basic.to_string j);
       { is_you = j |> member "isYou" |> to_bool;
         rank = j |> member "values" |> index 0 |> to_int;
         name = j |> member "values" |> index 1 |> to_string
