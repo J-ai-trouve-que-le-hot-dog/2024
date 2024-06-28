@@ -7,6 +7,7 @@ let var () =
   incr vars;
   !vars
 
+
 let (!!) v = Var v
 let (!+) i = Int (Z.of_int i)
 let (!~) s = String (Encoded_string.from_string s)
@@ -34,26 +35,13 @@ let t encoded_data =
   let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
   let _4 = two @/ two in
   let _16 = _4 @/ two in
-  let many = _16 in
+  let many = _16 @/ two in
   (* let many = _16 @/ two in *)
-  (many @/ lambda (fun f -> lambda (fun encoded ->
-    take (drop !~ "UDLR" (encoded %/ !+ 4)) 1 ^/ (f @/ (encoded // !+ 4))
+  ((many @/ lambda (fun f -> lambda (fun encoded ->
+    take (drop !~ "UDLR" (encoded %/ !+ 4)) !+1 ^/ (f @/ (encoded // !+ 4))
      )))
-  @/ (lambda (fun _ -> !~ "")) (Int encoded_data)
-
-
-
-let u = !~ "U"
-let d = !~ "D"
-let l = !~ "L"
-let r = !~ "R"
-
-let t =
-  let* a = !+1 +/ !+ 2 in
-  let* b = a +/ !+ 3 in
-  !~ "plop"
-
-let s_repeat c n = !~ (String.init n (fun _ -> c))
+   @/ (lambda (fun _ -> !~ "")))
+  @/ (Int encoded_data)
 
 (*
 let t =
@@ -71,8 +59,10 @@ let ev e =
   let r = Eval.eval EnvEmpty (Eval.term_from_expr e) in
   Format.asprintf "%a" Eval.pp_value r
 
-let v = ev (t (Z.of_int 123456))
-let a = Format.asprintf "%a" Ast.print_ast t
+let tt = (t (Z.of_int 123456))
+let v = ev tt
+
+let a = Format.asprintf "%a" Ast.print_ast tt
 let n = String.length a
 
 let u = Ast.parse_input a
