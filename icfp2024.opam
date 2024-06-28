@@ -3,6 +3,7 @@ name: "icfp2024"
 depends: [
   "graphics"
   "spectrum" {>= "0.6.0"}
+  "ocolor"
   "ppx_deriving"
   "ezcurl"
   "yojson"
