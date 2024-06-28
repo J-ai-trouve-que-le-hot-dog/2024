@@ -17,6 +17,12 @@
  (libraries icfpc))
 
 (executable
+ (name submit)
+ (public_name submit)
+ (modules submit)
+ (libraries icfpc))
+
+(executable
  (name eval)
  (public_name eval)
  (modules eval)
