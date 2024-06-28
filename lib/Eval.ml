@@ -64,6 +64,8 @@ let rec eval (env : env) : term -> value = function
   | Var(x) -> env_lookup (env, x)
 
 and eval_unop : Ast.unop * value -> value = function
+  | (Neg, VInt(x)) -> VInt(-x)
+  | (Not, VBool(b)) -> VBool(not b)
   | _ -> todo __LOC__
            
 and eval_binop : Ast.binop * value * value -> value = function
