@@ -23,10 +23,13 @@ ostream& operator<<(ostream& os, pt const &p) {
 vector<pt> A;
 i64 n;
 
-const i64 MAXD = 70'000;
+const i64 MAXD = 100'000;
 const i64 MAXV = 60;
+const i64 MAX_ITER = 200'000'000;
 
-uint64_t pre[MAXD+1][2*MAXV+1][2*MAXV+1];
+using pre_inner = array<array<u64,2*MAXV+1>,2*MAXV+1>;
+
+pre_inner *pre = 0;
 
 i64 f2(i64 x) {
   return x*(x+1)/2;
@@ -273,6 +276,7 @@ struct state {
 
 
 int main(int argc, char** argv) {
+  pre = new pre_inner[MAXD+1];
   runtime_assert(argc == 2);
   i64 id = atoi(argv[1]);
   runtime_assert(1 <= id && id <= 25);
@@ -321,11 +325,9 @@ int main(int argc, char** argv) {
     }
   }
   
-  const i64 MAX_ITER = 1'000'000'000;
-  
   i64 niter = 0;
   f64 done  = 0;
-  f64 temp0 = 8.0;
+  f64 temp0 = 16.0;
   f64 temp  = temp0;
 
   state S; S.reset();
