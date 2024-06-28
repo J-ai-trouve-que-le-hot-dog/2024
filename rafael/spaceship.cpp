@@ -19,23 +19,24 @@ ostream& operator<<(ostream& os, pt const &p) {
 vector<pt> A;
 i32 n;
 
-const i32 MAXD = 25'000;
-const i32 MAXV = 50;
+const i32 MAXD = 10'000;
+const i32 MAXV = 80;
 
 uint64_t pre[MAXD+1][2*MAXV+1][2*MAXV+1];
 
-i32 cost(i32 dx, i32 dy, i32 vx0, i32 vy0, i32 vx1, i32 vy1) {
+i64 cost(i32 dx, i32 dy, i32 vx0, i32 vy0, i32 vx1, i32 vy1) {
   if(dx < 0) { dx = -dx; vx0 = 2*MAXV-vx0; vx1 = 2*MAXV-vx1; }
   if(dy < 0) { dy = -dy; vy0 = 2*MAXV-vy0; vy1 = 2*MAXV-vy1; }
-  if(dx > MAXD || dy > MAXD) return 1'000'000;
+  if(dx > MAXD || dy > MAXD) return 1'000'000ull * (dx + dy);
   auto m1 = pre[dx][vx0][vx1];
   auto m2 = pre[dy][vy0][vy1];
   auto m = (m1 & m2);
-  if(m == 0) return 1'000'000;
+  if(m == 0) return 1'000'000ull * (dx + dy);
   return __builtin_ctzll(m);
 }
 
-i32 cost(i32 i, pt si, i32 j, pt sj) {
+i64 cost(i32 i, pt si, i32 j, pt sj) {
+  if(j == n) return 0;
   i32 dx = A[j].x-A[i].x;
   i32 dy = A[j].y-A[i].y;
   return cost(dx,dy,si.x,si.y,sj.x,sj.y);
@@ -108,9 +109,22 @@ struct state {
   i64         score;
 
   void reset() {
-    perm.resize(n); iota(all(perm),0);
-    rng.shuffle(perm.data()+1, perm.data()+n);
-    speed.assign(n, pt(MAXV, MAXV));
+    perm = {0,n};
+    FORU(i, 1, n-1) {
+      i32 bj = 0;
+      i64 bc = 1ull<<60;
+      FOR(j, (i32)perm.size()-1) {
+        i64 c =
+          cost(perm[j],pt(MAXV,MAXV), i,pt(MAXV,MAXV)) +
+          cost(i,pt(MAXV,MAXV), perm[j+1],pt(MAXV,MAXV));
+        if(c < bc) {
+          bc = c;
+          bj = j;
+        }
+      }
+      perm.insert(begin(perm)+bj, i);
+    }
+    speed.assign(n+1, pt(MAXV, MAXV));
     score = calc_score();
   }
 
@@ -187,11 +201,11 @@ int main(int argc, char** argv) {
     }
   }
   
-  const i64 MAX_ITER = 5'000'000'000;
+  const i64 MAX_ITER = 2'000'000'000;
   
   i64 niter = 0;
   f64 done  = 0;
-  f64 temp0 = 16.0;
+  f64 temp0 = 8.0;
   f64 temp  = temp0;
 
   state S; S.reset();
@@ -220,11 +234,24 @@ int main(int argc, char** argv) {
       return delta <= temp * rng.randomDouble();
     };
 
-    i32 ty = rng.random32(2);
+    auto get_new_speed = [&](pt s) {
+      if(rng.random32(3) == 0) {
+        return pt(rng.random32(2*MAXV+1), rng.random32(2*MAXV+1));
+      }else{
+        auto ns = s;
+        ns.x += rng.random32(3)-1;
+        ns.y += rng.random32(3)-1;
+        if(ns.x < 0 || ns.x >= 2*MAXV+1) ns.x = s.x;
+        if(ns.y < 0 || ns.y >= 2*MAXV+1) ns.y = s.y;
+        return ns;
+      }
+    };
+
+    i32 ty = rng.random32(3);
     if(ty == 0) {
-      i32 i = rng.random32(n-1);
-      i32 j = rng.random32(n-1);
-      i32 k = rng.random32(n-1);
+      i32 i = rng.random32(n);
+      i32 j = rng.random32(n);
+      i32 k = rng.random32(n);
       if(i > j) swap(i,j);
       if(j > k) swap(j,k);
       if(i > j) swap(i,j);
@@ -236,11 +263,22 @@ int main(int argc, char** argv) {
       auto c1 = S.perm[k], c2 = S.perm[k+1];
       auto sc1 = S.speed[c1], sc2 = S.speed[c2];
 
+      // auto nsa2 = get_new_speed(sa2);
+      // auto nsb1 = get_new_speed(sb1);
+      // auto nsb2 = get_new_speed(sb2);
+      // auto nsc1 = get_new_speed(sc1);
+      // if(b1 == a2) nsb1 = nsa2;
+      // if(c1 == b2) nsc1 = nsb2;
+      
       // TODO: change speeds of a1,a2,b1,b2,c1,c2
       // careful: it is possible that b1 = a2, c1 = a2
       // TODO: allow moving the last item (use a dummy c2)
       
       i64 delta = 0;
+      // if(i > 0) {
+      //   auto x = S.perm[i-1];
+      //   delta -= cost(x,S.speed[x], a2,);
+      // }
       delta -= cost(a1,sa1, a2,sa2);
       delta -= cost(b1,sb1, b2,sb2);
       delta -= cost(c1,sc1, c2,sc2);
@@ -251,23 +289,59 @@ int main(int argc, char** argv) {
       if(accept(delta)) {
         S.score += delta;
         rotate(begin(S.perm)+i+1, begin(S.perm)+j+1, begin(S.perm)+k+1);
+        // S.speed[a2] = nsa2;
+        // S.speed[b1] = nsb1;
+        // S.speed[b2] = nsb2;
+        // S.speed[c1] = nsc1;
       }
-    }else if(ty == 1){
-      i32 i = rng.random32(n);
-      if(i == 0) continue;
+    }else if(ty == 1) {
+      i32 i = 1+rng.random32(n-1);
+      i32 j = rng.random32(n);
+      if(j == i || j+1 == i) {
+        continue;
+      }
 
       i32 b = S.perm[i];
       auto sb = S.speed[b];
-      pt nsb;
-      if(rng.random32(2)) {
-        nsb = pt(rng.random32(2*MAXV+1), rng.random32(2*MAXV+1));
-      }else{
-        nsb = sb;
-        nsb.x += rng.random32(3)-1;
-        nsb.y += rng.random32(3)-1;
-        if(nsb.x < 0 || nsb.x >= 2*MAXV+1) continue; 
-        if(nsb.y < 0 || nsb.y >= 2*MAXV+1) continue; 
+      pt nsb = get_new_speed(sb);
+
+      i64 delta = 0;
+
+      { i32 a = S.perm[i-1];
+        auto sa = S.speed[a];
+        delta -= cost(a,sa, b,sb);
+        
+        i32 c = S.perm[i+1];
+        auto sc = S.speed[c];
+        delta -= cost(b,sb, c,sc);
+
+        delta += cost(a,sa, c,sc);
       }
+      
+      { i32 a = S.perm[j];
+        auto sa = S.speed[a];
+        delta += cost(a,sa, b,nsb);
+
+        i32 c = S.perm[j+1];
+        auto sc = S.speed[c];
+        delta += cost(b,nsb, c,sc);
+
+        delta -= cost(a,sa, c,sc);
+      }
+
+      if(accept(delta)) {
+        S.score += delta;
+        S.perm.erase(begin(S.perm)+i);
+        if(i < j) j -= 1;
+        S.perm.insert(begin(S.perm)+j+1, b);
+        S.speed[b] = nsb;
+      }
+    }else if(ty == 2){
+      i32 i = 1+rng.random32(n-1);
+
+      i32 b = S.perm[i];
+      auto sb = S.speed[b];
+      pt nsb = get_new_speed(sb);
 
       i64 delta = 0;
 
@@ -276,12 +350,10 @@ int main(int argc, char** argv) {
       delta -= cost(a,sa, b,sb);
       delta += cost(a,sa, b,nsb);
 
-      if(i+1 < n) {
-        i32 c = S.perm[i+1];
-        auto sc = S.speed[c];
-        delta -= cost(b,sb, c,sc);
-        delta += cost(b,nsb, c,sc);
-      }
+      i32 c = S.perm[i+1];
+      auto sc = S.speed[c];
+      delta -= cost(b,sb, c,sc);
+      delta += cost(b,nsb, c,sc);
     
       if(accept(delta)) {
         S.score += delta;
@@ -289,17 +361,11 @@ int main(int argc, char** argv) {
       }
     }
 
-    // S.check_score();
-    
     if(S.score < best_score) {
       best_score = S.score;
       best_state = S;
     }
   }
-
-  // FOR(i, n) {
-  //   debug(A[best_state.perm[i]]);
-  // }
 
   best_state.check_score();
   
