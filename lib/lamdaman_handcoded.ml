@@ -10,7 +10,7 @@ let solution_6 =
 let solutions = [6, solution_6]
 
 module IntMap = Map.Make(Int)
-let solutions = IntMap.of_list solutions
+(*let solutions = IntMap.of_list solutions*)
 
 
 let solution_6 = "B$ L1 B. S3/,6%},!-\"$!-!.[} B$ v1 B$ v1 B$ v1 SLLLL L0 B. v0 B. v0 B. v0 v0"

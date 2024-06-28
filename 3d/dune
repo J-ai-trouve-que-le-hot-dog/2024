@@ -1,3 +1,4 @@
 (executable
  (name game)
+ (public_name 3d)
  (libraries zarith))
