@@ -15,3 +15,9 @@
  (public_name communicate)
  (modules communicate)
  (libraries icfpc))
+
+(executable
+ (name eval)
+ (public_name eval)
+ (modules eval)
+ (libraries icfpc))
