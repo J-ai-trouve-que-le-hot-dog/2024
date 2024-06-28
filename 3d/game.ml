@@ -279,7 +279,8 @@ let pad t =
       t 0
   in
   Array.map (fun l ->
-      if Array.length l = maxw then l
+      let w = Array.length l in
+      if w = maxw then l
       else
         Array.init maxw (fun i ->
             if i < Array.length l then l.(i) else Empty))
