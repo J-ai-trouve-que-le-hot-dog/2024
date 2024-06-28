@@ -12,6 +12,11 @@ let (+/) a b = Binop (Add, a, b)
 
 let ( ^/ ) a b = Binop (Concat, a, b)
 
+let true_ = Bool true
+let false_ = Bool false
+
+let if_ cond tbranch fbranch = If { cond; tbranch; fbranch }
+
 let lambda e =
   let v = var () in
   Lambda { var = v; body = e (Var v) }
@@ -19,8 +24,11 @@ let lambda e =
 let (@/) f x = Binop(Apply, f, x)
 
 let ( let* ) value e =
-  let v = var () in
-  Binop (Apply, Lambda { var = v; body = e (Var v) }, value)
+  match value with
+  | Var _ -> e value
+  | _ ->
+    let v = var () in
+    Binop (Apply, Lambda { var = v; body = e (Var v) }, value)
 
 let run e =
   let r = Eval.eval EnvEmpty (Eval.term_from_expr e) in
