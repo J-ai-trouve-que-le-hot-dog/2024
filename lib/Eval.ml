@@ -31,7 +31,7 @@ let term_from_expr =
   let rec go nvar (varmap : int IntMap.t) : Ast.expr -> term = function
     | Bool(b) -> Bool(b)
     | Int(i) -> Int(i)
-    | String(s) -> String(Ast.Encoded_string.to_string s)
+    | String(s) -> String(Ast.Encoded_string.to_raw_string s)
     | Unop(o,t) -> Unop(o, go nvar varmap t)
     | Binop(b,x,y) ->
       Binop(b, go nvar varmap x, go nvar varmap y)
@@ -47,6 +47,15 @@ let rec env_lookup : env * int -> value = function
   | EnvSnoc(_, v), 0 -> Lazy.force v
   | EnvSnoc(env, _), n -> env_lookup (env, n-1)
   | _ -> impossible __LOC__
+
+let int_to_encoded_string : int -> string = fun n ->
+  let r = ref n in
+  let o = ref [] in
+  while !r > 0 do
+    o := Char.chr (33 + !r mod 94) :: !o;
+    r := !r / 94
+  done;
+  if !o = [] then "!" else String.of_seq (List.to_seq !o)
 
 let rec eval (env : env) (t : term) : value =
   Format.printf "eval %a@." pp_term t;
