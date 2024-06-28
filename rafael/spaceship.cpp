@@ -1,4 +1,5 @@
 #include "header.hpp"
+#include <filesystem>
 
 using f64 = double;
 using f32 = float;
@@ -18,8 +19,8 @@ ostream& operator<<(ostream& os, pt const &p) {
 vector<pt> A;
 i32 n;
 
-const i32 MAXD = 5'000;
-const i32 MAXV = 20;
+const i32 MAXD = 25'000;
+const i32 MAXV = 50;
 
 uint64_t pre[MAXD+1][2*MAXV+1][2*MAXV+1];
 
@@ -52,7 +53,6 @@ void reconstruct(string& out,
                  i32 vx1, i32 vy1,
                  bool flipx, bool flipy) {
   if(dx == 0 && dy == 0 && vx0 == vx1 && vy0 == vy1) {
-    out += " ";
     return;
   }
   if(dx < 0) { dx = -dx; vx0 = 2*MAXV-vx0; vx1 = 2*MAXV-vx1; flipx ^= 1; }
@@ -64,7 +64,6 @@ void reconstruct(string& out,
   runtime_assert(m != 0);
   auto c = __builtin_ctzll(m);
   runtime_assert(c == cost(dx,dy,vx0,vy0,vx1,vy1));
-  debug(dx,dy,vx0-MAXV,vy0-MAXV,vx1-MAXV,vy1-MAXV,c);
   FOR(dvx, 3) FOR(dvy, 3) {
     i32 nvx0 = vx0 + (dvx-1);
     if(nvx0 < 0 || nvx0 >= 2*MAXV+1) continue;
@@ -88,7 +87,6 @@ void reconstruct(string& out,
       nflipy ^= 1;
     }
     if(c == 1 + cost(ndx,ndy,nvx0,nvy0,nvx1,nvy1)){
-      debug("OK", dc[flipy?2-dvy:dvy][flipx?2-dvx:dvx], dvx, dvy, flipy?2-dvy:dvy, flipx?2-dvx:dvx);
       out += dc[flipy?2-dvy:dvy][flipx?2-dvx:dvx];
       reconstruct(out,ndx,ndy,nvx0,nvy0,nvx1,nvy1,nflipx,nflipy);
       return;
@@ -120,7 +118,6 @@ struct state {
     FOR(i, n-1) {
       auto a = perm[i], b = perm[i+1];
       auto sa = speed[a], sb = speed[b];
-      debug(A[a],sa,A[b],sb);
       ::reconstruct(out,a,sa,b,sb);
     }
   }
@@ -141,12 +138,19 @@ struct state {
 };
 
 
-int main() {
-  rng.reset(32);
+int main(int argc, char** argv) {
+  runtime_assert(argc == 2);
+  i32 id = atoi(argv[1]);
+  runtime_assert(1 <= id && id <= 25);
   
+  ifstream is("inputs/spaceship" + to_string(id));
+  runtime_assert(is.good());
   A.eb(0,0);
-  { i32 x,y; 
-    while(scanf("%d %d", &x, &y) != -1) {
+  { string line;
+    while(getline(is,line)) {
+      if(line.empty()) break;
+      istringstream iline(line);
+      i32 x,y; iline >> x >> y;
       A.eb(x,y);
     }
   }
@@ -183,11 +187,11 @@ int main() {
     }
   }
   
-  const i64 MAX_ITER = 1'000'000;
+  const i64 MAX_ITER = 500'000'000;
   
   i64 niter = 0;
   f64 done  = 0;
-  f64 temp0 = 30.0;
+  f64 temp0 = 16.0;
   f64 temp  = temp0;
 
   state S; S.reset();
@@ -289,9 +293,9 @@ int main() {
     }
   }
 
-  FOR(i, n) {
-    debug(A[best_state.perm[i]]);
-  }
+  // FOR(i, n) {
+  //   debug(A[best_state.perm[i]]);
+  // }
 
   best_state.check_score();
   
@@ -300,6 +304,24 @@ int main() {
     string out;
     best_state.reconstruct(out);
     cout << out << endl;
+
+    string filename = "solutions/spaceship" + to_string(id);
+    
+    if(filesystem::exists(filename)) {
+      string previous_best; 
+      { ifstream file(filename);
+        file >> previous_best;
+      }
+      if(out.size() < previous_best.size()) {
+        ofstream file(filename);
+        file << out;       
+      }
+    }else{
+      ofstream file(filename);
+      file << out;
+    }
+
+
   }
   
   return 0;
