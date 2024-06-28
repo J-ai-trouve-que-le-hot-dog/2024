@@ -4,4 +4,4 @@
  
 (executable
  (name scoreboard)
- (libraries icfpc graphics unix))
+ (libraries icfpc spectrum))

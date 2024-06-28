@@ -21,16 +21,26 @@ let get_token () : string =
 let make_headers () =
   [ ("Authorization", "Bearer " ^ get_token ()) ]
 
-type scoreboard_t = (int * string) list
+type scoreboard_row_t =
+  { is_you : bool;
+    rank : int;
+    name : string;
+  }
+[@@deriving(show)]
+
+type scoreboard_t = scoreboard_row_t list
 [@@deriving(show)]
 
 let get_scoreboard () : scoreboard_t =
   let parse_scoreboard (j : Yojson.Basic.t) : scoreboard_t =
     let open Yojson.Basic.Util in
-    let parse_row j
+    let parse_row j : scoreboard_row_t
       =
-      (j |> member "values" |> index 0 |> to_int,
-       j |> member "values" |> index 1 |> to_string)
+      Format.printf "%s\n" (Yojson.Basic.to_string j);
+      { is_you = j |> member "isYou" |> to_bool;
+        rank = j |> member "values" |> index 0 |> to_int;
+        name = j |> member "values" |> index 1 |> to_string
+      }
     in
     j
     |> member "rows"
@@ -38,7 +48,8 @@ let get_scoreboard () : scoreboard_t =
     |> List.map parse_row
   in
   let url = base_url ^ "scoreboard" in
-  let r = Ezcurl.get ~url () in
+  let headers = make_headers () in
+  let r = Ezcurl.get ~url ~headers () in
   let r = Result.get_ok r in
   let json = Yojson.Basic.from_string r.body in
   parse_scoreboard json
