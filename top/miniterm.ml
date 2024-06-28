@@ -77,3 +77,13 @@ let v' = ev u
 (*   conc @/ a *)
 
 (* let v = ev x *)
+
+
+let v = lambda (fun _ -> !~ "Ah!")
+let s = Format.asprintf "%a" Ast.print_ast v
+
+let op x y =
+  Binop (Mystery_1, x, y)
+
+let t =
+  op (lambda (fun _ -> !~ "Ah!")) !+ 3
