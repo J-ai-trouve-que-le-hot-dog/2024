@@ -39,3 +39,9 @@
  (public_name lambdaman)
  (modules lambdaman)
  (libraries icfpc))
+
+(executable
+ (name echo)
+ (public_name echo)
+ (modules echo)
+ (libraries icfpc))
