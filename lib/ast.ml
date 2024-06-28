@@ -177,3 +177,24 @@ let rec pp_expr ff e =
   | If { cond; tbranch; fbranch } -> Format.fprintf ff "if %a then %a else %a" pp_expr cond pp_expr tbranch pp_expr fbranch
   | Lambda { var; body } -> Format.fprintf ff "(fun v%d -> %a)" var pp_expr body
   | Var v -> Format.fprintf ff "v%d" v
+
+let int_to_encoded_string : Z.t -> string = fun n ->
+  let r = ref n in
+  let o = ref [] in
+  while Z.(!r > zero) do
+    o := Char.chr (33 + Z.(to_int (!r mod (of_int 94)))) :: !o;
+    r := Z.(!r / of_int 94)
+  done;
+  if !o = [] then "!" else String.of_seq (List.to_seq !o)
+
+let rec print_ast ff e =
+  match e with
+  | Bool b -> Format.fprintf ff (if b then "T" else "F")
+  | Int i -> Format.fprintf ff "I%s" (int_to_encoded_string i)
+  | String s -> Format.fprintf ff "S%s" (Encoded_string.to_raw_string s)
+  | Unop (u, e) -> Format.fprintf ff "U%c %a" (encode_unop u) print_ast e
+  | Binop (b, e1, e2) -> Format.fprintf ff "B%c %a %a" (encode_binop b) print_ast e1 print_ast e2
+  | If { cond; tbranch; fbranch } -> Format.fprintf ff "? %a %a %a" print_ast cond print_ast tbranch print_ast fbranch
+  | Lambda { var; body } -> Format.fprintf ff "L%s %a" (int_to_encoded_string (Z.of_int var)) print_ast body
+  | Var v -> Format.fprintf ff "v%s" (int_to_encoded_string (Z.of_int v))
+

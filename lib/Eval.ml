@@ -49,15 +49,6 @@ let rec env_lookup : env * int -> value = function
   | EnvSnoc(env, _), n -> env_lookup (env, n-1)
   | _ -> impossible __LOC__
 
-let int_to_encoded_string : Z.t -> string = fun n ->
-  let r = ref n in
-  let o = ref [] in
-  while Z.(!r > zero) do
-    o := Char.chr (33 + Z.(to_int (!r mod (of_int 94)))) :: !o;
-    r := Z.(!r / of_int 94)
-  done;
-  if !o = [] then "!" else String.of_seq (List.to_seq !o)
-
 let rec eval (env : env) (t : term) : value =
   eval_go env t
   
@@ -84,7 +75,7 @@ and apply : value * value Lazy.t -> value = function
 and eval_unop : Ast.unop * value -> value = function
   | (Neg, VInt(x)) -> VInt Z.(-x)
   | (Not, VBool(b)) -> VBool(not b)
-  | (Int_to_string, VInt(i)) -> VString(int_to_encoded_string i)
+  | (Int_to_string, VInt(i)) -> VString(Ast.int_to_encoded_string i)
   | (String_to_int, VString(s)) -> VInt(Ast.decode_int s)
   | _ -> impossible __LOC__
            
