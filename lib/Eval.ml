@@ -85,7 +85,9 @@ and apply : value * value Lazy.t -> value = function
 and eval_unop : Ast.unop * value -> value = function
   | (Neg, VInt(x)) -> VInt(-x)
   | (Not, VBool(b)) -> VBool(not b)
-  | _ -> todo __LOC__
+  | (Int_to_string, VInt(i)) -> VString(int_to_encoded_string i)
+  | (String_to_int, VString(s)) -> VInt(Ast.decode_int s)
+  | _ -> impossible __LOC__
            
 and eval_binop : Ast.binop * value * value -> value = function
   | (Add, VInt(x), VInt(y)) -> VInt(x + y)
