@@ -72,7 +72,7 @@ let decode_string s =
 
 let decode s =
   if s.[0] = 'S' then
-    Some (decode_string s)
+    Some (decode_string (String.sub s 1 (String.length s - 1)))
   else
     None
 
