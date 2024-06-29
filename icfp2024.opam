@@ -8,4 +8,5 @@ depends: [
   "ezcurl"
   "yojson"
   "zarith"
+  "notty"
 ]
