@@ -25,8 +25,6 @@ struct union_find {
 using f64 = double;
 using f32 = float;
 
-const i64 MAX_ITER = 5'000'000'000;
-
 const i32 dx[4] = {-1,1,0,0};
 const i32 dy[4] = {0, 0, -1, 1};
 const char* dc = "UDLR";
@@ -36,11 +34,11 @@ i64 random_next(i64 x) { return (x * 48271) % 2147483647; }
 const i32 RANDOM_SIZE = 62'500;
 
 struct state {
-  bitset<5000> visited;
-  i32          position;
-  i32          nvisited;
-  vector<i64>  history;
-  i32          value;
+  bitset<10000> visited;
+  i32           position;
+  i32           nvisited;
+  vector<i64>   history;
+  i32           value;
 
   bool operator<(state const& o) const { return nvisited < o.nvisited; }
   bool operator>(state const& o) const { return nvisited > o.nvisited; }
@@ -59,9 +57,9 @@ struct state {
     
     FOR(i, T.size()) if(!visited[i]) {
       dfs(i, -1);
-      return 5000 - ret;
+      return 50000 - ret;
     }
-    return 5000 - ret;
+    return 50000 - ret;
   }
   
   void step(vector<array<i32,4>> const& graph, vector<vector<i32>> const& T) {
@@ -89,6 +87,19 @@ struct state {
 
 };
 
+void print_string(vector<i64> const& seeds) {
+  string s; 
+  for(auto seed : seeds){
+    FOR(i, RANDOM_SIZE) {
+      i32 d = seed % 4;
+      s += dc[d];
+      seed = random_next(seed);
+    }
+  }
+  s.resize(1000);
+  cout << s << endl;
+}
+
 int main(int argc, char** argv) {
   runtime_assert(argc >= 2);
   i64 id = atoi(argv[1]);
@@ -113,7 +124,7 @@ int main(int argc, char** argv) {
   }
   i32 sz = points.size();
   debug(sz);
-  runtime_assert(sz <= 5000);
+  runtime_assert(sz <= 10000);
   i32 start = 0;
   FOR(i, n) FOR(j, m) if(grid[i][j] == 'L') {
     start = unpoint[i][j];
@@ -149,8 +160,8 @@ int main(int argc, char** argv) {
   BEAM.back().nvisited = 1;
   BEAM.back().position = start;
 
-  const i32 BRANCH = 96;
-  const i32 WIDTH  = 2'000;
+  const i32 BRANCH = 128;
+  const i32 WIDTH  = 1000;
   
   FOR(step, 1'000'000 / RANDOM_SIZE) {  
     debug(BEAM.size());
@@ -191,6 +202,7 @@ int main(int argc, char** argv) {
       if(sa.nvisited == sz) {
         debug(sa.history);
         auto seeds = sa.history;
+        print_string(seeds);
         return 0;
       }
     }

@@ -8,7 +8,7 @@ let () =
   (* Format.printf "%a\n" Ast.print_ast Miniterm.(!~ "solve lambdaman7 " ^/ e); *)
 
   let e = Miniterm.random_strings 62500
-      [42444;51340;34950;20763;39268;16211;28253;45460;49081;62557;2468;44782;23470;20426;33102;4099]
+      [4354;10647;42176;47064;14943;54960;58376;5573;59174;45354;61171;54616;24938;39401;21625]
   in
   let VString(t) = Eval.eval Eval.EnvEmpty (Eval.term_from_expr e) in
   let t = Rope.to_string t in
@@ -18,11 +18,11 @@ let () =
   (* let t = Eval.term_from_expr Miniterm.lambdaman19 in *)
   (* Format.printf "%a@." Ast.pp_expr Miniterm.lambdaman19; *)
   
-  (* let result = Api.communicate (Format.asprintf "%a" Ast.print_ast *)
-  (*                                 Miniterm.(!~ "solve lambdaman10 " ^/ e)) in *)
-  (* let msg = Ast.parse_input result in *)
-  (* let r = Eval.eval EnvEmpty (Eval.term_from_expr msg) in *)
-  (* Format.printf "%a@." Eval.pp_value r; *)
+  let result = Api.communicate (Format.asprintf "%a" Ast.print_ast
+                                  Miniterm.(!~ "solve lambdaman16 " ^/ e)) in
+  let msg = Ast.parse_input result in
+  let r = Eval.eval EnvEmpty (Eval.term_from_expr msg) in
+  Format.printf "%a@." Eval.pp_value r;
   
 
   ()
