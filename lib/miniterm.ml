@@ -120,31 +120,63 @@ let lambdaman9 =
 let lambdaman21 =
   let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
   let* _4 = two @/ two in
+  let* _8 = mult _4 two in
   let* _16 = _4 @/ two in
+  let* _64 = mult _16 _4 in
+  let* _128 = mult _64 two in
   let* _256 = _4 @/ _4 in
   let* s_l =
     (_256 @/ (lambda (fun s ->
-         let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "U"))) @/ s in
-         let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "D"))) @/ t1 in
-         t2 ^/ !~ "UL"
+         let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "D"))) @/ s in
+         let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "U"))) @/ t1 in
+         t2 ^/ !~ "DL"
        ))) @/ (!~ "")
   in
   let* s_r =
+    (_256 @/ (lambda (fun s ->
+         let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "D"))) @/ s in
+         let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "U"))) @/ t1 in
+         t2 ^/ !~ "DR"
+       ))) @/ (!~ "")
+  in
+  let* s_r2 =
     (_256 @/ (lambda (fun s ->
          let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "U"))) @/ s in
          let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "D"))) @/ t1 in
          t2 ^/ !~ "UR"
        ))) @/ (!~ "")
   in
-  let step0 =
-    (_16
+  let* l256 =
+    (_256
+     @/ (lambda (fun s -> s ^/ !~ "L")))
+    @/ (!~ "")
+  in
+  let* r256 =
+    (_256
+     @/ (lambda (fun s -> s ^/ !~ "R")))
+    @/ (!~ "")
+  in
+  let* d64 =
+    (_64
      @/ (lambda (fun s -> s ^/ !~ "D")))
     @/ (!~ "")
   in
-  step0
-  (* !~ "solve lambdaman9 " ^/ *)
-  (* (_256 @/ (lambda (fun s -> *)
-  (*     let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "R"))) @/ s in *)
-  (*     let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "L"))) @/ t1 in *)
-  (*     t2 ^/ !~ "D" *)
-  (*   ))) @/ (!~ "") *)
+  let* d8 =
+    (_8
+     @/ (lambda (fun s -> s ^/ !~ "D")))
+    @/ (!~ "")
+  in
+  let* u64 =
+    (_64
+     @/ (lambda (fun s -> s ^/ !~ "U")))
+    @/ (!~ "")
+  in
+  let* u8 =
+    (_8
+     @/ (lambda (fun s -> s ^/ !~ "U")))
+    @/ (!~ "")
+  in
+  d8 ^/ d8 ^/ d8 ^/ !~ "U" ^/ l256
+  ^/ s_r
+  ^/ s_l ^/ d64 ^/ d8 ^/ r256 ^/ s_l ^/ d64 ^/ d64 ^/ u8 ^/ r256 ^/ s_l ^/ s_r2
+  ^/ u64 ^/ u64 ^/ d8 ^/ d8 ^/ d8 ^/ !~ "DLLLLLLLLLLLLLLLLLLLLLLLLLL" ^/ s_l

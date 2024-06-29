@@ -12,7 +12,7 @@ let positions_from_string s =
 let positions s =
   match Eval.eval EnvEmpty (Eval.term_from_expr s) with
   | Eval.VString s ->
-    let s = Ast.Encoded_string.(to_string (from_raw_string s)) in
+    let s = Ast.Encoded_string.(to_string (from_raw_string (Rope.to_string s))) in
     positions_from_string s
   | _ ->
     let error = Format.asprintf "Unexpected spaceship input@.%a@." Ast.pp_expr s in

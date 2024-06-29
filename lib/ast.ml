@@ -11,25 +11,26 @@ module Encoded_string : sig
   val from_string : string -> t
   val to_string : t -> string
 end = struct
-  type t = string
-    [@@deriving(show)]
+  type t = Rope.t
+
+  let pp fmt x = Format.fprintf fmt "%s" (Rope.to_string x)
 
   let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&\'()*+,-./:;<=>?@[\\]^_`|~ \n"
 
-  let from_raw_string s = s
-  let to_raw_string s = s
+  let from_raw_string s = Rope.of_string s
+  let to_raw_string s = Rope.to_string s
 
   let decode_char c =
     chars.[(Char.code c - 33)]
 
   let to_string s =
-    String.map decode_char s
+    String.map decode_char (Rope.to_string s)
 
   let encode_char c =
     Char.chr (String.index_from chars 0 c + 33)
 
   let from_string s =
-    String.map encode_char s
+    Rope.of_string (String.map encode_char s)
 end
 
 type expr =
