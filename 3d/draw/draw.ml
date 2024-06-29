@@ -37,6 +37,7 @@ type state = {
     space : string Space.t;
     cursor : Pos.t;
     selection : PosSet.t;
+    prev : string Space.t list;
   }
 
 let mid space =
@@ -53,11 +54,11 @@ let null_str = String.init c_width (fun _ -> ' ')
 
 let draw state =
   let space = state.space in
-  let min_x = min_x space in
-  let max_x = max_x space in
+  let min_x = min_x space - 2 in
+  let max_x = max_x space + 2 in
   let width = max_x - min_x + 1 in
-  let min_y = min_y space in
-  let max_y = max_y space in
+  let min_y = min_y space - 2 in
+  let max_y = max_y space + 2 in
   let height = max_y - min_y + 1 in
   Notty.I.tabulate width height
   @@ fun i' j' ->
@@ -96,6 +97,12 @@ let (++) (a, b) (c, d) = a+c, b+d
 let cursor_move state dir =
   { state with cursor = state.cursor ++ dir }
 
+(* let logf = open_out "/tmp/caca" *)
+(* let log fmt s = Format.ksprintf (fun s -> output_string logf s)  *)
+
+let push state =
+  { state with prev = state.space :: state.prev }
+
 let selection_move state dir =
   let selection = PosSet.add state.cursor state.selection in
   let removed =
@@ -119,7 +126,7 @@ let selection_move state dir =
       let selection =
         PosSet.map ((++) dir) state.selection
       in
-      cursor_move { state with space; selection } dir
+      push @@ cursor_move { state with space; selection } dir
     end
 
 let left = (-1,0)
@@ -223,6 +230,7 @@ let init_state = {
     space = sp;
     cursor = mid sp;
     selection = PosSet.empty;
+    prev = [];
   }
 
 let output state =
@@ -250,7 +258,7 @@ let add_char state char =
   if String.length s > c_width then state
   else
     let space = Space.add state.cursor s state.space in
-    { state with space }
+    push { state with space }
 
 let del_char state =
   let space =
@@ -263,7 +271,12 @@ let del_char state =
        else
          Space.add state.cursor s state.space
   in
-  { state with space }
+  push { state with space }
+
+let undo state =
+  match state.prev with
+  | [] -> state
+  | h :: t -> { state with space = h; prev = t }
 
 let () =
   let open Notty_unix in
@@ -273,6 +286,8 @@ let () =
     | `Key (`Escape,_)        -> ()
     | `Key (`Enter,_)        -> ()
     | `Key (`ASCII ' ',_)        -> update t (select state)
+    | `Key (`ASCII ('z' | 'Z'), [`Ctrl])        ->
+       update t (undo state)
     | `Key (`ASCII 's',_)        ->
        output state;
        update t state
