@@ -396,7 +396,7 @@ struct state {
   }
 
   void solve_speeds(problem const& pb) {
-    const i32 width = 64;
+    const i32 width = 128;
     cerr << "Solving speeds, width = " << width << endl;
     struct beam_entry {
       i64 score;
@@ -662,7 +662,7 @@ int main(int argc, char** argv) {
       }
     }
 
-    if(rng.random32(100'000'000) == 0) {
+    if(niter % 100'000'000 == 0) {
       S.solve_speeds(pb);
     }
     
@@ -674,7 +674,7 @@ int main(int argc, char** argv) {
       best_state = S;
     }
 
-    if(niter > last_improvement + 100'000'000) {
+    if(niter > last_improvement + 300'000'000) {
       last_improvement = 0;
       niter = 0;
       S.reset(pb);
