@@ -187,23 +187,24 @@ let lambdaman20 =
   in
   let* pow2 = (y @/ lambda pow2_body) in
   let body call = lambda (fun i -> lambda (fun d ->
-      if_ ((i +/ !+ 0) </ !+ 0)
+      if_ ((i -/ !+ 0) </ !+ 0)
         (!~ "")
         (((pow2 @/ i) @/ (get @/ d))
+         ^/ ((call @/ (i -/ !+ 2)) @/ (p1 @/ d))
          ^/ ((pow2 @/ i) @/ (get @/ d))
-         ^/ ((call @/ (i -/ !+ 1)) @/ (p3 @/ d))
-         ^/ ((call @/ (i -/ !+ 1)) @/ d)
-         ^/ ((call @/ (i -/ !+ 1)) @/ (p1 @/ d))
+         ^/ ((call @/ (i -/ !+ 1)) @/ (p3 @/ d)) ^/ (get @/ (p1 @/ d)) (* ^/ (if_ (i </ !+ 1) (!~ "") (get @/ (p1 @/ d))) *)
+         ^/ ((call @/ (i -/ !+ 1)) @/ d) ^/ (get @/ (p2 @/ d)) (* ^/ (if_ (i </ !+ 1) (!~ "") (get @/ (p2 @/ d))) *)
+         ^/ ((call @/ (i -/ !+ 1)) @/ (p1 @/ d)) ^/ (get @/ (p3 @/ d)) (* ^/ (if_ (i </ !+ 1) (!~ "") (get @/ (p3 @/ d))) *)
          ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d)))
          ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d)))
-         ^/ (get @/ (p2 @/ d))
+         (* ^/ (get @/ (p2 @/ d)) *)
         )
     )) in
   let* f = (y @/ (lambda body)) @/ !+ 5 in
-  (f @/ !+ 0) ^/
-  (f @/ !+ 1) ^/
-  (f @/ !+ 2) ^/
-  (f @/ !+ 3)
+  (f @/ !+ 0)(* ^/ (get @/ !+ 2) ^/
+  (f @/ !+ 1) ^/ (get @/ !+ 3) ^/
+  (f @/ !+ 2) ^/ (get @/ !+ 0) ^/
+  (f @/ !+ 3) *)
 
 let lambdaman21 =
   let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
@@ -285,3 +286,32 @@ let random_string seed =
     )))
   in
   ((y @/ lambda body) @/ !+ 1000000) @/ !+ seed
+
+
+let random_strings nsteps maxseed encoded_data =
+  let () = vars := 0 in
+  let y f =
+      let* om = lambda (fun x -> f (x @/ x)) in
+      om @/ om
+  in
+  let get i = take (drop (!~ "URDL") i) (!+ 1) in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( ((call @/ (i -/ !+ 1)) @/ (((s */ s) +/ s) %/ !+ 1000000009)) ^/
+          (get (s %/ !+ 4))
+        )
+    )))
+  in
+  let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
+  let _4 = two @/ two in
+  let _16 = _4 @/ two in
+  ((_16 @/ lambda (fun f -> lambda (fun encoded ->
+    ((y body) @/ !+ nsteps) @/ (encoded %/ !+ maxseed)
+    ^/ (f @/ (encoded // !+ maxseed))
+     )))
+   @/ (lambda (fun _ -> !~ "")))
+  @/ (Int encoded_data)
+
+
+
