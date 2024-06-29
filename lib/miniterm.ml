@@ -312,7 +312,7 @@ let random_strings nsteps maxseed encoded_data =
   let _4 = two @/ two in
   let _16 = _4 @/ two in
   ((_16 @/ lambda (fun f -> lambda (fun encoded ->
-    ((y body) @/ !+ nsteps) @/ (encoded %/ !+ maxseed)
+    (((y body) @/ !+ nsteps) @/ (encoded %/ !+ maxseed))
     ^/ (f @/ (encoded // !+ maxseed))
      )))
    @/ (lambda (fun _ -> !~ "")))

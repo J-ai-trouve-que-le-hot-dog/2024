@@ -240,17 +240,17 @@ class letrec_result {
   Fun fun_;
   public:
     template<class T>
-    explicit letrec_result(T &&fun): fun_(forward<T>(fun)) {}
+    explicit letrec_result(T &&fun): fun_(std::forward<T>(fun)) {}
 
     template<class ...Args>
     decltype(auto) operator()(Args &&...args) {
-      return fun_(ref(*this), forward<Args>(args)...);
+      return fun_(ref(*this), std::forward<Args>(args)...);
     }
 };
 
 template<class Fun>
 decltype(auto) letrec(Fun &&fun) {
-  return letrec_result<decay_t<Fun>>(forward<Fun>(fun));
+  return letrec_result<decay_t<Fun>>(std::forward<Fun>(fun));
 }
 
 // Timer

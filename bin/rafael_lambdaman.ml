@@ -8,7 +8,7 @@ let () =
   (* Format.printf "%a\n" Ast.print_ast Miniterm.(!~ "solve lambdaman7 " ^/ e); *)
 
   let e = Miniterm.random_strings 62500
-      [1]
+      [42444;51340;34950;20763;39268;16211;28253;45460;49081;62557;2468;44782;23470;20426;33102;4099]
   in
   let VString(t) = Eval.eval Eval.EnvEmpty (Eval.term_from_expr e) in
   let t = Rope.to_string t in
