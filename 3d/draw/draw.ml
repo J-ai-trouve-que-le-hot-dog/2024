@@ -169,8 +169,8 @@ module P = struct
 
   let to_space t =
     let acc = ref Space.empty in
-    Array.iteri (fun i ->
-        Array.iteri (fun j v ->
+    Array.iteri (fun j ->
+        Array.iteri (fun i v ->
             match v with
             | None -> ()
             | Some v ->
@@ -203,9 +203,9 @@ module P = struct
     let t = Array.init height (fun _ -> Array.init width (fun _ -> None)) in
     for i' = min_x to max_x do
       for j' = min_y to max_y do
-        let i = i' + min_x in
-        let j = j' + min_y in
-        t.(j).(i) <- Space.find_opt (i, j) sp
+        let i = i' - min_x in
+        let j = j' - min_y in
+        t.(j).(i) <- Space.find_opt (i', j') sp
       done
     done;
     t
