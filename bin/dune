@@ -47,6 +47,13 @@
  (libraries icfpc))
 
 (executable
+ (name efficiency_sat)
+ (public_name efficiency_sat)
+ (modules efficiency_sat)
+ (libraries icfpc containers minisat))
+
+
+(executable
  (name echo)
  (public_name echo)
  (modules echo)
