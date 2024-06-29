@@ -295,7 +295,6 @@ let () =
   and loop t (state : state) =
     match Term.event t with
     | `Key (`Escape,_)        -> ()
-    | `Key (`Enter,_)        -> ()
     | `Key (`Delete, _) -> update t (delete_selection state)
     | `Key (`ASCII ' ',_)        -> update t (select state)
     | `Key (`ASCII ('z' | 'Z'), [`Ctrl])        ->
@@ -313,10 +312,10 @@ let () =
     | `Key (`Arrow `Right, []) -> update t (cursor_move state right)
     | `Key (`Arrow `Up, [])  -> update t (cursor_move state up)
     | `Key (`Arrow `Down, []) -> update t (cursor_move state down)
-    | `Key (`Arrow `Left, [`Shift])  -> update t (selection_move state left)
-    | `Key (`Arrow `Right, [`Shift]) -> update t (selection_move state right)
-    | `Key (`Arrow `Up, [`Shift])  -> update t (selection_move state up)
-    | `Key (`Arrow `Down, [`Shift]) -> update t (selection_move state down)
+    | `Key (`Arrow `Left, [`Shift|`Meta])  -> update t (selection_move state left)
+    | `Key (`Arrow `Right, [`Shift|`Meta]) -> update t (selection_move state right)
+    | `Key (`Arrow `Up, [`Shift|`Meta])  -> update t (selection_move state up)
+    | `Key (`Arrow `Down, [`Shift|`Meta]) -> update t (selection_move state down)
     | `Resize _              -> update t state
     | _                      -> loop t state
   in
