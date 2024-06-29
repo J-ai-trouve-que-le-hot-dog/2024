@@ -32,7 +32,7 @@
  (name spaceship)
  (public_name spaceship)
  (modules spaceship)
- (libraries icfpc spaceship))
+ (libraries icfpc spaceship graphics))
 
 (executable
  (name submit_lambdaman)
