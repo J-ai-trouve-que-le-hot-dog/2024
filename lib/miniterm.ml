@@ -299,7 +299,7 @@ let random_strings nsteps maxseed encoded_data =
       let* om = lambda (fun x -> f (x @/ x)) in
       om @/ om
   in
-  let get i = take (drop (!~ "URDL") i) (!+ 1) in
+  let get i = take (drop (!~ "UDLR") i) (!+ 1) in
   let body call = lambda (fun i -> (lambda (fun s ->
       if_ (i =/ !+ 0)
         (!~ "")
