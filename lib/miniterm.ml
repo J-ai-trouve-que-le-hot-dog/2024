@@ -352,6 +352,3 @@ let lambdaman7 =
 
 let lambdaman17 =
   random_string' 1 1_000_000 91
-
-let lambdaman18 =
-  random_string' 23 1_000_000 123
