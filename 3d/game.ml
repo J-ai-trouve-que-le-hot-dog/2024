@@ -252,7 +252,14 @@ let step n states (s : t) : int * t =
   if !timewarps <> [] then (
     let new_id, _, _ = List.hd !timewarps in
     Format.printf "Timewarping to %d!@." new_id;
-    let new_state = Hashtbl.find states new_id in
+    let new_state =
+      match Hashtbl.find states new_id with
+      | exception Not_found ->
+         Hashtbl.iter (fun i _ ->
+             Format.printf "%i@." i) states;
+         assert false
+      | v -> v
+    in
     List.iter (fun (_, c, v) -> set new_state c v) !timewarps;
     new_id, new_state)
   else (
@@ -342,7 +349,7 @@ let main () =
       i pp x;
     let _ = read_line () in
     let new_id, new_state = step i states x in
-    Hashtbl.add states new_id new_state;
+    Hashtbl.replace states new_id new_state;
     loop (Some i) new_id new_state states
   in
   try loop None 1 p h with Fini c -> Format.printf "Eval: %s@." (to_string c)
