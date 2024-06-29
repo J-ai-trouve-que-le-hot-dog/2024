@@ -1,6 +1,3 @@
-
-open Tsdl
-
 let read_file filename =
   let ic = open_in filename in
   let r = In_channel.input_all ic in
@@ -20,17 +17,34 @@ let positions =
   let positions = Spaceship.Parse.positions_from_string stage in
   positions
 
-let scale = ref 1.
-let offset = ref (0., 0.)
-
-let () = Graphics.open_graph " 3840x2160"
-
 let lmin l = List.fold_left min max_int l
 let lmax l = List.fold_left max min_int l
 let min_x = lmin (List.map fst positions)
 let min_y = lmin (List.map snd positions)
 let max_x = lmax (List.map fst positions)
 let max_y = lmax (List.map snd positions)
+
+let scale =
+  let dx = max_x - min_x in
+  let dy = max_y - min_y in
+  let d = max dx dy in
+  2000. /. float d
+
+let shift = (float (-min_x + 1),float (-min_y + 1))
+
+let scale = ref scale
+let offset = ref shift
+
+let ship_position = ref (0, 0)
+let ship_speed = ref (0, 0)
+
+let next_actions = ref []
+
+type step = { position : int * int; speed : int * int; action : int * int }
+
+let prev_path : step list ref = ref []
+
+let () = Graphics.open_graph " 3840x2160"
 
 let pos (x, y) =
   let (scale_x, scale_y) = !scale, !scale in
@@ -47,6 +61,30 @@ let (--) (a,b) (c,d) = a-.c, b-.d
 let (++) (a,b) (c,d) = a+.c, b+.d
 let ( ** ) s (c,d) = s*.c, s*.d
 
+module I = struct
+  let (--) (a,b) (c,d) = a-c, b-d
+  let (++) (a,b) (c,d) = a+c, b+d
+  let ( ** ) s (c,d) = s*c, s*d
+end
+
+let set_action act =
+  prev_path := { position = !ship_position; speed = !ship_speed; action = act } :: !prev_path;
+  next_actions :=
+    (match !next_actions with
+     | [] -> []
+     | _::t -> t);
+  ship_speed := I.(act ++ !ship_speed);
+  ship_position := I.(!ship_speed ++ !ship_position)
+
+let prev () =
+  match !prev_path with
+  | [] -> ()
+  | { position; speed; action } :: prev ->
+     prev_path := prev;
+     ship_position := position;
+     ship_speed := speed;
+     next_actions := action :: !next_actions
+
 let rec ev_loop () =
   let st = Graphics.wait_next_event [Key_pressed; Mouse_motion; Button_down; Button_down] in
   if st.button then begin
@@ -54,7 +92,6 @@ let rec ev_loop () =
       | None ->
          offset_and_last_button_press := Some ((float st.mouse_x, float st.mouse_y), !offset);
       | Some (pos, prev_offset) ->
-         Format.printf "ICI@.";
          let pos_now = (float st.mouse_x, float st.mouse_y) in
          offset := prev_offset ++ (1. /. !scale) ** (pos_now -- pos)
     end
@@ -63,8 +100,63 @@ let rec ev_loop () =
   | 'q' -> continue := false
   | '+' -> scale := !scale *. scale_factor
   | '-' -> scale := !scale /. scale_factor
+
+  | 'r' -> set_action (-1, 1)
+  | 't' -> set_action ( 0, 1)
+  | 'y' -> set_action ( 1, 1)
+
+  | 'f' -> set_action ( -1, 0)
+  | 'g' -> set_action ( 0, 0)
+  | 'h' -> set_action ( 1, 0)
+
+  | 'v' -> set_action ( -1, -1)
+  | 'b' -> set_action ( 0, -1)
+  | 'n' -> set_action ( 1, -1)
+
+  | 'z' -> prev ()
+  (* | 'e' -> next () *)
+
   | _ -> ()
 
+let lineto p =
+  let x, y = pos p in
+  Graphics.lineto x y
+
+let moveto p =
+  let x, y = pos p in
+  Graphics.moveto x y
+
+let fill_circle p r =
+  let x, y = pos p in
+  Graphics.fill_circle x y r
+
+let rec draw_ship_moves ~n ~pos ~speed ~acc =
+  if n >= 0 then begin
+      let next_action, acc =
+        match acc with
+        | [] -> (0,0), []
+        | h :: t -> h, t
+      in
+      let speed = I.(speed ++ next_action) in
+      let pos = I.(pos ++ speed) in
+      Graphics.set_color Graphics.red;
+      lineto pos;
+      Graphics.set_color Graphics.green;
+      fill_circle pos 2;
+      draw_ship_moves ~n:(n-1) ~pos ~speed ~acc
+    end
+
+let draw_ship () =
+  Graphics.set_color Graphics.red;
+
+  (* let ship_x, ship_y = !ship_position in *)
+  (* let vx, vy = !ship_speed in *)
+  (* let dir = Float.atan2  *)
+
+  let (cx, cy) = pos !ship_position in
+  Graphics.fill_circle cx cy 4;
+  moveto !ship_position;
+  draw_ship_moves ~n:5 ~pos:!ship_position ~speed:!ship_speed ~acc:!next_actions
 
 let draw () =
   Graphics.clear_graph ();
@@ -74,12 +166,17 @@ let draw () =
     Graphics.fill_rect (x-1) (y-1) 3 3
   in
 
-  List.iter plot positions
+  Graphics.set_color Graphics.black;
+  List.iter plot positions;
+  draw_ship ();
+  ()
 
 
 let () =
+  Graphics.auto_synchronize false;
   let rec loop () =
     draw ();
+    Graphics.synchronize ();
     ev_loop ();
     if !continue then loop ()
   in
