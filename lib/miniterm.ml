@@ -9,6 +9,7 @@ let (!!) v = Var v
 let (!+) i = Int (Z.of_int i)
 let (!~) s = String (Encoded_string.from_string s)
 let (+/) a b = Binop (Add, a, b)
+let ( */) a b = Binop (Mul, a, b)
 let (-/) a b = Binop (Sub, a, b)
 
 let (!~+) e = Unop (Int_to_string, e)
@@ -232,3 +233,19 @@ let lambdaman21 =
   ^/ s_r
   ^/ s_l ^/ d64 ^/ d8 ^/ r256 ^/ s_l ^/ d64 ^/ d64 ^/ u8 ^/ r256 ^/ s_l ^/ s_r2
   ^/ u64 ^/ u64 ^/ d8 ^/ d8 ^/ d8 ^/ !~ "DLLLLLLLLLLLLLLLLLLLLLLLLLL" ^/ s_l
+
+let random_string seed =
+  let* y = lambda (fun f ->
+      let om = lambda (fun x -> f @/ (x @/ x)) in
+      om @/ om
+    ) in
+  let get i = take (drop (!~ "URDL") i) (!+ 1) in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( ((call @/ (i -/ !+ 1)) @/ (((s */ s) +/ s) %/ !+ 1000000009)) ^/
+          (get (s %/ !+ 4))
+        )
+    )))
+  in 
+  ((y @/ lambda body) @/ !+ 1000000) @/ !+ seed
