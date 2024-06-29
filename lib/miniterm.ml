@@ -343,7 +343,6 @@ let random_string' seed n c =
 let lambdaman5 =
   random_string' 1 10000 91
 
-
 let lambdaman4 =
   random_string' 1 100000 91
 
@@ -361,3 +360,30 @@ let lambdaman13 = random_strings 62500
 
 let lambdaman14 = random_strings 62500
     [27697;27229;25602;51251;21980;15864;42734;51537;20691;4218;36164;48512;63650;17631;16915]
+
+let lambdaman10 =
+  random_string' 1 1_000_000 91
+
+let random_string'' seed n c =
+  let () = vars := 0 in
+  let y f =
+      let* om = lambda (fun x -> f (x @/ x)) in
+      om @/ om
+  in
+  let get i =
+    let* c = take (drop (!~ "URDL") (i %/ !+ 4)) (!+ 1) in
+    if_ (i </ !+ 4) c (c ^/ c ^/ c)
+  in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ c) %/ !+ 1000000009)) ^/
+          (get (s %/ !+ 8))
+        )
+    )))
+  in
+  ((y body) @/ !+ n) @/ !+ seed
+
+let lambdaman18 =
+  random_string'' 2173 490_000 91
+
