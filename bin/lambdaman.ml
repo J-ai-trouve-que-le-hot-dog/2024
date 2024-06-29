@@ -179,6 +179,8 @@ let main () =
           (sol_str osol); osol
       | None -> Format.printf "Solution @{<red>BAD@}@."; exit 1
     in
+    let str = sol_str sol in
+    Format.printf "Size: %d@." (String.length str);
     let sol = Miniterm.lambdaman_solution pb_num (sol_str sol) in
     let answer =
       Api.communicate (Format.asprintf "%a" Ast.print_ast sol)

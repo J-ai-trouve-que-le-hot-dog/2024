@@ -54,6 +54,12 @@
 
 
 (executable
+ (name rafael_lambdaman)
+ (public_name rafael_lambdaman)
+ (modules rafael_lambdaman)
+ (libraries icfpc unix))
+
+(executable
  (name echo)
  (public_name echo)
  (modules echo)

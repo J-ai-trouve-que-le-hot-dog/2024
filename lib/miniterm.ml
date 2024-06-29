@@ -116,3 +116,35 @@ let lambdaman9 =
       let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "L"))) @/ t1 in
       t2 ^/ !~ "D"
     ))) @/ (!~ "")
+
+let lambdaman21 =
+  let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
+  let* _4 = two @/ two in
+  let* _16 = _4 @/ two in
+  let* _256 = _4 @/ _4 in
+  let* s_l =
+    (_256 @/ (lambda (fun s ->
+         let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "U"))) @/ s in
+         let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "D"))) @/ t1 in
+         t2 ^/ !~ "UL"
+       ))) @/ (!~ "")
+  in
+  let* s_r =
+    (_256 @/ (lambda (fun s ->
+         let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "U"))) @/ s in
+         let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "D"))) @/ t1 in
+         t2 ^/ !~ "UR"
+       ))) @/ (!~ "")
+  in
+  let step0 =
+    (_16
+     @/ (lambda (fun s -> s ^/ !~ "D")))
+    @/ (!~ "")
+  in
+  step0
+  (* !~ "solve lambdaman9 " ^/ *)
+  (* (_256 @/ (lambda (fun s -> *)
+  (*     let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "R"))) @/ s in *)
+  (*     let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "L"))) @/ t1 in *)
+  (*     t2 ^/ !~ "D" *)
+  (*   ))) @/ (!~ "") *)
