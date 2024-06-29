@@ -3,9 +3,9 @@ open Miniterm
 let s_repeat c n = !~ (String.init n (fun _ -> c))
 
 let solution_6 =
-  let s = s_repeat 'R' 4 in
-  let* conc = lambda (fun s -> s ^/ s ^/ s ^/ s) in
-  !~ "solve lambdaman6 " ^/ conc @/ (conc @/ (conc @/ s))
+  let s = s_repeat 'R' 8 in
+  let* conc = lambda (fun s -> s ^/ s ^/ s) in
+  !~ "solve lambdaman6 " ^/ (conc @/ (conc @/ (conc @/ s)))
 
 let solutions = [
     4, !~ "solve lambdaman4 " ^/ lambdaman4;
