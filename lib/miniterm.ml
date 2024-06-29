@@ -17,6 +17,7 @@ let (!~+) e = Unop (Int_to_string, e)
 let ( ^/ ) a b = Binop (Concat, a, b)
     
 let ( =/ ) a b = Binop (Eq, a, b)
+let ( </ ) a b = Binop (Lt, a, b)
 
 let ( %/ ) a b = Binop (Mod, a, b)
 let ( // ) a b = Binop (Div, a, b)
@@ -165,6 +166,40 @@ let lambdaman19 =
         )
     )) in
   let* f = (y @/ (lambda body)) @/ !+ 6 in
+  (f @/ !+ 0) ^/
+  (f @/ !+ 1) ^/
+  (f @/ !+ 2) ^/
+  (f @/ !+ 3)
+
+let lambdaman20 =
+  let* p1 = lambda (fun i -> (i +/ !+ 1) %/ (!+ 4)) in
+  let* p2 = lambda (fun i -> (i +/ !+ 2) %/ (!+ 4)) in
+  let* p3 = lambda (fun i -> (i +/ !+ 3) %/ (!+ 4)) in
+  let* get = lambda (fun i -> take (drop (!~ "URDL") i) (!+ 1)) in
+  let* y = lambda (fun f ->
+      let om = lambda (fun x -> f @/ (x @/ x)) in
+      om @/ om
+    ) in
+  let pow2_body call = lambda (fun i -> lambda (fun s -> 
+      if_ (i =/ !+ 0)
+        s
+        ((call @/ (i -/ !+ 1)) @/ (s ^/ s))))
+  in
+  let* pow2 = (y @/ lambda pow2_body) in
+  let body call = lambda (fun i -> lambda (fun d ->
+      if_ ((i +/ !+ 0) </ !+ 0)
+        (!~ "")
+        (((pow2 @/ i) @/ (get @/ d))
+         ^/ ((pow2 @/ i) @/ (get @/ d))
+         ^/ ((call @/ (i -/ !+ 1)) @/ (p3 @/ d))
+         ^/ ((call @/ (i -/ !+ 1)) @/ d)
+         ^/ ((call @/ (i -/ !+ 1)) @/ (p1 @/ d))
+         ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d)))
+         ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d)))
+         ^/ (get @/ (p2 @/ d))
+        )
+    )) in
+  let* f = (y @/ (lambda body)) @/ !+ 5 in
   (f @/ !+ 0) ^/
   (f @/ !+ 1) ^/
   (f @/ !+ 2) ^/
