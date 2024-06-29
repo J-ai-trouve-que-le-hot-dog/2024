@@ -18,6 +18,7 @@ type cell =
   | Submit (* S *)
   | A
   | B
+  | Var of string
 
 let to_string = function
   | Empty -> "."
@@ -37,6 +38,8 @@ let to_string = function
   | Submit -> "S"
   | A -> "A"
   | B -> "B"
+  | Var s -> s
+
 
 let format ppf = function
   | Empty -> Format.fprintf ppf "@{<black;bold>.@}"
@@ -56,7 +59,7 @@ let format ppf = function
   | Submit -> Format.fprintf ppf "@{<green>S@}"
   | A -> Format.fprintf ppf "@{<green>A@}"
   | B -> Format.fprintf ppf "@{<green>B@}"
-
+  | Var s -> Format.fprintf ppf "@{<green>%s@}" s
 
 let of_string = function
   | "." -> Empty
@@ -76,6 +79,9 @@ let of_string = function
   | "A" -> A
   | "B" -> B
   | s -> (
+    if String.length s = 1 && s.[0] >= 'A' && s.[0] <= 'Z' then
+      Var s
+    else
     try I (Z.of_string s)
     with e ->
       Format.printf "exn on '%s'@." s;
@@ -154,7 +160,7 @@ let eval n (h : (int * int, cell) Hashtbl.t) ((i, j) as co) s s' =
   in
   try
     match c with
-    | I _ | Empty | A | B | Submit -> ()
+    | I _ | Empty | A | B | Var _ | Submit -> ()
     | Left ->
       if not (get (right co) = Empty) then (
         set (left co) (get (right co));
@@ -335,9 +341,18 @@ let main () =
   let ic = open_in Sys.argv.(1) in
   let a = lazy (Sys.argv.(2) |> Z.of_string) in
   let b = lazy (Sys.argv.(3) |> Z.of_string) in
+  let var s =
+    match Sys.getenv s |> Z.of_string with
+    | exception Not_found -> None
+    | x -> Some x
+  in
   let _ = input_line ic in
   let p =
-    read_file ic |> parse |> map (function A -> I (Lazy.force a) | B -> I (Lazy.force b) | x -> x)
+    read_file ic |> parse |> map (function A -> I (Lazy.force a) | B -> I (Lazy.force b)
+                                           | Var s ->
+                                              (match var s with
+                                              | Some n -> I n
+                                              | None -> Empty) | x -> x)
   in
   let h = Hashtbl.create 10 in
   Hashtbl.replace h 1 p;
