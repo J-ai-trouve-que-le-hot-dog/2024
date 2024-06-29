@@ -60,6 +60,12 @@
  (libraries icfpc unix))
 
 (executable
+ (name pierre_lambdaman)
+ (public_name pierre_lambdaman)
+ (modules pierre_lambdaman)
+ (libraries icfpc unix))
+
+(executable
  (name echo)
  (public_name echo)
  (modules echo)
