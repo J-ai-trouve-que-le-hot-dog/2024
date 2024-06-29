@@ -235,8 +235,9 @@ let lambdaman21 =
   ^/ u64 ^/ u64 ^/ d8 ^/ d8 ^/ d8 ^/ !~ "DLLLLLLLLLLLLLLLLLLLLLLLLLL" ^/ s_l
 
 let random_string seed =
-  let* y = lambda (fun f ->
-      let om = lambda (fun x -> f @/ (x @/ x)) in
+  let () = vars := 0 in
+  let y = lambda (fun f ->
+      let* om = lambda (fun x -> f @/ (x @/ x)) in
       om @/ om
     ) in
   let get i = take (drop (!~ "URDL") i) (!+ 1) in
@@ -247,5 +248,5 @@ let random_string seed =
           (get (s %/ !+ 4))
         )
     )))
-  in 
+  in
   ((y @/ lambda body) @/ !+ 1000000) @/ !+ seed
