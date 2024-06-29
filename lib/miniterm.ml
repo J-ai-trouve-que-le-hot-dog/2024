@@ -98,29 +98,19 @@ let succ = lambda (fun n -> lambda (fun f -> lambda (fun z ->
 let add n m = (n @/ succ) @/ m
 let mult n m = lambda (fun x -> n @/ (m @/ x))
 
+let lambdaman6 =
+  let* f = lambda (fun f -> lambda (fun n -> if_ (n =/ !+ 0) (!~ "") ((!~ "R") ^/ ((f @/ f) @/ (n -/ !+ 1))))) in
+  (f @/ f) @/ !+ 93
+
 let lambdaman8 =
-  let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
-  let* _4 = two @/ two in
-  let* _256 = _4 @/ _4 in
-  !~ "solve lambdaman8 " ^/
-  (_256 @/ (lambda (fun s ->
-      let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "D"))) @/ s in
-      let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "L"))) @/ t1 in
-      let t3 = (_256 @/ (lambda (fun s -> s ^/ !~ "U"))) @/ t2 in
-      let t4 = (_256 @/ (lambda (fun s -> s ^/ !~ "R"))) @/ t3 in
-      t4
-    ))) @/ (!~ "")
+  let* conc3 = lambda (fun s -> s ^/ (s ^/ s) ^/ s) in
+  let* conc81 = lambda (fun s -> conc3 @/ (conc3 @/ (conc3 @/ (conc3 @/ s)))) in
+  !~ "solve lambdaman8 " ^/ (conc81 @/ ((conc81 @/ !~ "D") ^/ (conc81 @/ !~ "L") ^/ (conc81 @/ !~ "U") ^/ (conc81 @/ !~ "R")))
 
 let lambdaman9 =
-  let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
-  let* _4 = two @/ two in
-  let* _256 = _4 @/ _4 in
-  !~ "solve lambdaman9 " ^/
-  (_256 @/ (lambda (fun s ->
-      let t1 = (_256 @/ (lambda (fun s -> s ^/ !~ "R"))) @/ s in
-      let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "L"))) @/ t1 in
-      t2 ^/ !~ "D"
-    ))) @/ (!~ "")
+  let* conc3 = lambda (fun s -> s ^/ (s ^/ s) ^/ s) in
+  let* conc81 = lambda (fun s -> conc3 @/ (conc3 @/ (conc3 @/ s))) in
+  !~ "solve lambdaman9 " ^/ (conc81 @/ ((conc81 @/ !~ "R") ^/ (conc81 @/ !~ "L") ^/ !~ "D"))
 
 (* let lambdaman16 = *)
 (*   let* p1 = lambda (fun i -> (i +/ !+ 1) %/ (!+ 4)) in *)
@@ -291,7 +281,7 @@ let random_string seed =
 let compute_params l =
   let mx = List.fold_left max 0 l in
   let l = List.rev l in
-  mx+1, List.fold_left (fun acc x -> Z.add (Z.mul (Z.of_int (mx + 1)) acc) (Z.of_int x)) Z.zero l
+  mx, List.fold_left (fun acc x -> Z.add (Z.mul (Z.of_int (mx + 1)) acc) (Z.of_int x)) Z.zero l
 
 let random_strings nsteps maxseed encoded_data =
   let () = vars := 0 in
@@ -299,7 +289,7 @@ let random_strings nsteps maxseed encoded_data =
       let* om = lambda (fun x -> f (x @/ x)) in
       om @/ om
   in
-  let get i = take (drop (!~ "UDLR") i) (!+ 1) in
+  let get i = take (drop (!~ "URDL") i) (!+ 1) in
   let body call = lambda (fun i -> (lambda (fun s ->
       if_ (i =/ !+ 0)
         (!~ "")
@@ -312,7 +302,7 @@ let random_strings nsteps maxseed encoded_data =
   let _4 = two @/ two in
   let _16 = _4 @/ two in
   ((_16 @/ lambda (fun f -> lambda (fun encoded ->
-    (((y body) @/ !+ nsteps) @/ (encoded %/ !+ maxseed))
+    ((y body) @/ !+ nsteps) @/ (encoded %/ !+ maxseed)
     ^/ (f @/ (encoded // !+ maxseed))
      )))
    @/ (lambda (fun _ -> !~ "")))
@@ -375,7 +365,6 @@ let random_string' seed n c =
 let lambdaman5 =
   random_string' 1 10000 91
 
-
 let lambdaman4 =
   random_string' 1 100000 91
 
@@ -393,3 +382,32 @@ let lambdaman13 = random_strings 62500
 
 let lambdaman14 = random_strings 62500
     [27697;27229;25602;51251;21980;15864;42734;51537;20691;4218;36164;48512;63650;17631;16915]
+
+let lambdaman10 =
+  random_string' 1 1_000_000 91
+
+let random_string'' seed n c =
+  let () = vars := 0 in
+  let y f =
+      let* om = lambda (fun x -> f (x @/ x)) in
+      om @/ om
+  in
+  let get i =
+    let* c = take (drop (!~ "URDL") (i %/ !+ 4)) (!+ 1) in
+    if_ (i </ !+ 4) c (c ^/ c ^/ c)
+  in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ c) %/ !+ 1000000009)) ^/
+          (get (s %/ !+ 8))
+        )
+    )))
+  in
+  ((y body) @/ !+ n) @/ !+ seed
+
+let lambdaman18 =
+  random_string'' 2173 490_000 91
+
+let lambdaman21 =
+  random_string'' 2 490_000 91
