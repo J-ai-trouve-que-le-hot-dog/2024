@@ -377,3 +377,5 @@ let random_string'' seed n c =
 let lambdaman18 =
   random_string'' 2173 490_000 91
 
+let lambdaman21 =
+  random_string'' 2 490_000 91

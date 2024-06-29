@@ -19,6 +19,7 @@ let solutions = [
 
     17, !~ "solve lambdaman17 " ^/ lambdaman17;
     18, !~ "solve lambdaman18 " ^/ lambdaman18;
+    21, !~ "solve lambdaman21 " ^/ lambdaman21;
 ]
 
 (* module IntMap = Map.Make(Int) *)
