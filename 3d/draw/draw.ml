@@ -24,15 +24,6 @@ let pad_left n s =
   let n = n - String.length s in
   String.init n (fun _ -> ' ') ^ s
 
-(* let test = [ *)
-(*     (1, 2), "A"; *)
-(*     (3, 1), "B"; *)
-(*     (4, 1), "-1"; *)
-(*     (-2, 2), "+"; *)
-(*   ] *)
-
-(* let sp = Space.of_list test *)
-
 type state = {
     space : string Space.t;
     cursor : Pos.t;
@@ -264,6 +255,14 @@ let add_char state char =
     let state = push state in
     { state with space }
 
+let replace_char state char =
+  let s = String.init 1 (fun _ -> char) in
+  if String.length s > c_width then state
+  else
+    let space = Space.add state.cursor s state.space in
+    let state = push state in
+    { state with space }
+
 let del_char state =
   match Space.find_opt state.cursor state.space with
   | None -> state
@@ -306,6 +305,10 @@ let () =
        update t state
     | `Key (`ASCII c,_)        -> update t (add_char state c)
     | `Key (`Backspace,  [])  -> update t (del_char state)
+    | `Key (`Arrow `Left, [`Meta])  -> update t (replace_char state '<')
+    | `Key (`Arrow `Right, [`Meta]) -> update t (replace_char state '>')
+    | `Key (`Arrow `Up, [`Meta])  -> update t (replace_char state '^')
+    | `Key (`Arrow `Down, [`Meta]) -> update t (replace_char state 'v')
     | `Key (`Arrow `Left, [])  -> update t (cursor_move state left)
     | `Key (`Arrow `Right, []) -> update t (cursor_move state right)
     | `Key (`Arrow `Up, [])  -> update t (cursor_move state up)
