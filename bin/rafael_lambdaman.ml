@@ -7,7 +7,9 @@ let () =
   (* let e = Miniterm.random_string seed in *)
   (* Format.printf "%a\n" Ast.print_ast Miniterm.(!~ "solve lambdaman7 " ^/ e); *)
 
-  let e = Miniterm.lambdaman20 in
+  let e = Miniterm.random_strings 62500
+      [1]
+  in
   let VString(t) = Eval.eval Eval.EnvEmpty (Eval.term_from_expr e) in
   let t = Rope.to_string t in
   let s = Ast.Encoded_string.to_string (Ast.Encoded_string.from_raw_string t) in
