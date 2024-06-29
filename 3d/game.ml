@@ -236,19 +236,34 @@ let step n states (s : t) : int * t =
       | None -> check_timewarps (Some dt') t
       | Some dt -> dt = dt' && check_timewarps (Some dt') t)
   in
+  let fini =
+    Hashtbl.fold
+      (fun c v acc ->
+         if get new_state c = Submit then v :: acc else acc)
+      h []
+  in
+  let () = match fini with
+    | [] -> ()
+    | [v] -> raise (Fini v)
+    | v::vs -> if List.for_all ((=) v) vs then raise (Fini v)
+      else failwith "Multiple Submit"
+  in
   assert (check_timewarps None !timewarps);
   if !timewarps <> [] then (
     let new_id, _, _ = List.hd !timewarps in
     Format.printf "Timewarping to %d!@." new_id;
-    let new_state = Hashtbl.find states new_id in
+    let new_state =
+      match Hashtbl.find states new_id with
+      | exception Not_found ->
+         Hashtbl.iter (fun i _ ->
+             Format.printf "%i@." i) states;
+         assert false
+      | v -> v
+    in
     List.iter (fun (_, c, v) -> set new_state c v) !timewarps;
     new_id, new_state)
   else (
-    Hashtbl.iter
-      (fun c v ->
-        if get new_state c = Submit then raise (Fini v);
-        set new_state c v)
-      h;
+    Hashtbl.iter (set new_state) h;
     succ n, new_state)
 
 let pp fmt m =
@@ -267,7 +282,7 @@ let pp fmt m =
                m
            in
            function
-           | I x -> Format.fprintf fmt "@{<yellow>%*d@} " w (Z.to_int x)
+           | I x -> Format.fprintf fmt "@{<yellow>%*s@} " w (Z.to_string x)
            | c -> Format.fprintf fmt "%*s%a " (w-1) "" format c)
         l;
       Format.fprintf fmt "@\n")
@@ -334,12 +349,10 @@ let main () =
       i pp x;
     let _ = read_line () in
     let new_id, new_state = step i states x in
+    Hashtbl.replace states new_id new_state;
     loop (Some i) new_id new_state states
   in
   try loop None 1 p h with Fini c -> Format.printf "Eval: %s@." (to_string c)
 
 let () =
-  try main ()
-  with e ->
-    Format.printf "exn: %s@." (Printexc.to_string e);
-    Format.printf "usage: ./game.exe <file> <A> <B>"
+  main ()
