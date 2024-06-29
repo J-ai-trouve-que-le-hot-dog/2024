@@ -9,10 +9,13 @@ let (!!) v = Var v
 let (!+) i = Int (Z.of_int i)
 let (!~) s = String (Encoded_string.from_string s)
 let (+/) a b = Binop (Add, a, b)
+let (-/) a b = Binop (Sub, a, b)
 
 let (!~+) e = Unop (Int_to_string, e)
 
 let ( ^/ ) a b = Binop (Concat, a, b)
+    
+let ( =/ ) a b = Binop (Eq, a, b)
 
 let ( %/ ) a b = Binop (Mod, a, b)
 let ( // ) a b = Binop (Div, a, b)
@@ -116,6 +119,55 @@ let lambdaman9 =
       let t2 = (_256 @/ (lambda (fun s -> s ^/ !~ "L"))) @/ t1 in
       t2 ^/ !~ "D"
     ))) @/ (!~ "")
+
+(* let lambdaman16 = *)
+(*   let* p1 = lambda (fun i -> (i +/ !+ 1) %/ (!+ 4)) in *)
+(*   let* p2 = lambda (fun i -> (i +/ !+ 2) %/ (!+ 4)) in *)
+(*   let* p3 = lambda (fun i -> (i +/ !+ 3) %/ (!+ 4)) in *)
+(*   let* get2 = lambda (fun i -> take (drop (!~ "URDL") i) (!+ 1)) in *)
+(*   (\* let* get2 = lambda (fun i -> (get @/ i) ^/ (get @/ i)) in *\) *)
+(*   let* y = lambda (fun f -> *)
+(*       let om = lambda (fun x -> f @/ (x @/ x)) in *)
+(*       om @/ om *)
+(*     ) in *)
+(*   let body call = lambda (fun i -> lambda (fun d -> lambda (fun dir -> *)
+(*       if_ (i =/ !+ 0) *)
+(*         (!~ "") *)
+(*         (failwith "TODO") *)
+(*     ))) in *)
+(*   let* f = (y @/ (lambda body)) @/ !+ 2 in *)
+(*   (f @/ !+ 0) @/ !+ 1 *)
+
+let lambdaman19 =
+  let* p1 = lambda (fun i -> (i +/ !+ 1) %/ (!+ 4)) in
+  let* p2 = lambda (fun i -> (i +/ !+ 2) %/ (!+ 4)) in
+  let* p3 = lambda (fun i -> (i +/ !+ 3) %/ (!+ 4)) in
+  let* get = lambda (fun i -> take (drop (!~ "URDL") i) (!+ 1)) in
+  let* y = lambda (fun f ->
+      let om = lambda (fun x -> f @/ (x @/ x)) in
+      om @/ om
+    ) in
+  let pow2_body call = lambda (fun i -> lambda (fun s -> 
+      if_ (i =/ !+ 0)
+        s
+        ((call @/ (i -/ !+ 1)) @/ (s ^/ s))))
+  in
+  let* pow2 = (y @/ lambda pow2_body) in
+  let body call = lambda (fun i -> lambda (fun d ->
+      if_ ((i +/ !+ 1) =/ !+ 0)
+        (!~ "")
+        (((pow2 @/ i) @/ (get @/ d))
+         ^/ ((call @/ (i -/ !+ 1)) @/ (p1 @/ d))
+         ^/ ((call @/ (i -/ !+ 1)) @/ d)
+         ^/ ((call @/ (i -/ !+ 1)) @/ (p3 @/ d))
+         ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d)))
+        )
+    )) in
+  let* f = (y @/ (lambda body)) @/ !+ 6 in
+  (f @/ !+ 0) ^/
+  (f @/ !+ 1) ^/
+  (f @/ !+ 2) ^/
+  (f @/ !+ 3)
 
 let lambdaman21 =
   let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
