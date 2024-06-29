@@ -97,11 +97,13 @@ let (++) (a, b) (c, d) = a+c, b+d
 let cursor_move state dir =
   { state with cursor = state.cursor ++ dir }
 
-(* let logf = open_out "/tmp/caca" *)
-(* let log fmt s = Format.ksprintf (fun s -> output_string logf s)  *)
+let logf = open_out "/tmp/caca"
+let log fmt = Format.ksprintf (fun s -> output_string logf s; flush logf) fmt
 
 let push state =
-  { state with prev = state.space :: state.prev }
+  let state = { state with prev = state.space :: state.prev } in
+  log "Push %i@." (List.length state.prev);
+  state
 
 let selection_move state dir =
   let selection = PosSet.add state.cursor state.selection in
@@ -126,7 +128,8 @@ let selection_move state dir =
       let selection =
         PosSet.map ((++) dir) state.selection
       in
-      push @@ cursor_move { state with space; selection } dir
+      let state = push state in
+      cursor_move { state with space; selection } dir
     end
 
 let left = (-1,0)
@@ -258,25 +261,31 @@ let add_char state char =
   if String.length s > c_width then state
   else
     let space = Space.add state.cursor s state.space in
-    push { state with space }
+    let state = push state in
+    { state with space }
 
 let del_char state =
-  let space =
-    match Space.find_opt state.cursor state.space with
-    | None -> state.space
-    | Some s ->
+  match Space.find_opt state.cursor state.space with
+  | None -> state
+  | Some s ->
+     let space =
        let s = String.sub s 1 (String.length s - 1) in
        if s = "" then
          Space.remove state.cursor state.space
        else
          Space.add state.cursor s state.space
-  in
-  push { state with space }
+     in
+     let state = push state in
+     { state with space }
 
 let undo state =
   match state.prev with
-  | [] -> state
-  | h :: t -> { state with space = h; prev = t }
+  | [] ->
+     log "Pop rien@.";
+     state
+  | h :: t ->
+     log "Pop -> %i@." (List.length t);
+     { state with space = h; prev = t }
 
 let () =
   let open Notty_unix in
