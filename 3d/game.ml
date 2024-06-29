@@ -267,7 +267,7 @@ let pp fmt m =
                m
            in
            function
-           | I x -> Format.fprintf fmt "@{<yellow>%*d@} " w (Z.to_int x)
+           | I x -> Format.fprintf fmt "@{<yellow>%*s@} " w (Z.to_string x)
            | c -> Format.fprintf fmt "%*s%a " (w-1) "" format c)
         l;
       Format.fprintf fmt "@\n")
