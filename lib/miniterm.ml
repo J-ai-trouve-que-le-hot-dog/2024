@@ -281,7 +281,7 @@ let random_string seed =
 let compute_params l =
   let mx = List.fold_left max 0 l in
   let l = List.rev l in
-  mx, List.fold_left (fun acc x -> Z.add (Z.mul (Z.of_int (mx + 1)) acc) (Z.of_int x)) Z.zero l
+  mx+1, List.fold_left (fun acc x -> Z.add (Z.mul (Z.of_int (mx + 1)) acc) (Z.of_int x)) Z.zero l
 
 let random_strings nsteps maxseed encoded_data =
   let () = vars := 0 in
@@ -289,7 +289,7 @@ let random_strings nsteps maxseed encoded_data =
       let* om = lambda (fun x -> f (x @/ x)) in
       om @/ om
   in
-  let get i = take (drop (!~ "URDL") i) (!+ 1) in
+  let get i = take (drop (!~ "UDLR") i) (!+ 1) in
   let body call = lambda (fun i -> (lambda (fun s ->
       if_ (i =/ !+ 0)
         (!~ "")
