@@ -53,7 +53,7 @@ let print game =
   done;
   flush stdout
 
-type move = U | D | L | R
+type move = U | L | R | D
 
 let move_of_char = function
   | 'U' -> U
@@ -135,7 +135,19 @@ let rec auto rsol game =
     in
     bfs (PMap.singleton game.pos []) (PMap.singleton game.pos [])
   in
-  let _, rpath = PMap.choose rpaths in
+  let choose rpaths =
+    PMap.bindings rpaths |>
+    List.sort (fun (p1, _) (p2, _) ->
+        let score p =
+          let n = neighbours game p in
+          List.length n,
+          List.length
+            (List.filter (fun (_,_,ispill) -> ispill) n)
+        in
+        compare (score p1) (score p2))
+    |> List.hd
+  in
+  let _, rpath = choose rpaths in
   let path = List.rev rpath in
   let rsol = List.rev_append path rsol in
   List.iter (fun m -> move game m |> ignore) path;
