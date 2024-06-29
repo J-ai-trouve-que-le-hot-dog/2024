@@ -303,7 +303,7 @@ let random_strings nsteps maxseed encoded_data =
   let body call = lambda (fun i -> (lambda (fun s ->
       if_ (i =/ !+ 0)
         (!~ "")
-        ( ((call @/ (i -/ !+ 1)) @/ (((s */ s) +/ s) %/ !+ 1000000009)) ^/
+        ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ 48271) %/ !+ 2147483647)) ^/
           (get (s %/ !+ 4))
         )
     )))
