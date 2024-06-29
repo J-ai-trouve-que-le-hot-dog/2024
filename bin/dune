@@ -35,6 +35,12 @@
  (libraries icfpc spaceship graphics))
 
 (executable
+ (name spaceship_gui)
+ (public_name spaceship_gui)
+ (modules spaceship_gui)
+ (libraries icfpc spaceship graphics))
+
+(executable
  (name submit_lambdaman)
  (public_name submit_lambdaman)
  (modules submit_lambdaman)
