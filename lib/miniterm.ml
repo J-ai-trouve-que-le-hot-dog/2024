@@ -321,3 +321,37 @@ let random_strings nsteps maxseed encoded_data =
 let random_strings nsteps data =
   let mx, encoded = compute_params data in
   random_strings nsteps mx encoded
+
+let random_string' seed n c =
+  let () = vars := 0 in
+  let y f =
+      let* om = lambda (fun x -> f (x @/ x)) in
+      om @/ om
+  in
+  let get i = take (drop (!~ "URDL") i) (!+ 1) in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ c) %/ !+ 1000000009)) ^/
+          (get (s %/ !+ 4))
+        )
+    )))
+  in
+  ((y body) @/ !+ n) @/ !+ seed
+
+
+let lambdaman5 =
+  random_string' 1 10000 91
+
+
+let lambdaman4 =
+  random_string' 1 100000 91
+
+let lambdaman7 =
+  random_string' 1 100000 91
+
+let lambdaman17 =
+  random_string' 1 1_000_000 91
+
+let lambdaman18 =
+  random_string' 23 1_000_000 123
