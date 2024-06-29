@@ -51,7 +51,7 @@ let pos (x, y) =
   int_of_float (scale_x *. (float x +. fst !offset)),
   int_of_float (scale_y *. (float y +. snd !offset))
 
-let scale_factor = 1.1
+let scale_factor = 1.5
 
 let continue = ref true
 
@@ -76,6 +76,33 @@ let set_action act =
   ship_speed := I.(act ++ !ship_speed);
   ship_position := I.(!ship_speed ++ !ship_position)
 
+
+let potential_moves () =
+  let acc = ref [] in
+  for i = -1 to 1 do
+    for j = -1 to 1 do
+      let speed = I.(!ship_speed ++ (i, j)) in
+      let pos = I.(!ship_position ++ speed) in
+      acc:= ((i, j), pos) :: !acc
+    done
+  done;
+  !acc
+
+let auto () =
+
+  let moves = potential_moves () in
+  let moves =
+    List.filter (fun (_, pos) ->
+        if pos = !ship_position then false
+        else
+        List.mem pos positions)
+      moves
+  in
+  match moves with
+  | [act, _] ->
+     set_action act
+  | _ -> ()
+
 let prev () =
   match !prev_path with
   | [] -> ()
@@ -84,6 +111,20 @@ let prev () =
      ship_position := position;
      ship_speed := speed;
      next_actions := action :: !next_actions
+
+let next () =
+  match !next_actions with
+  | [] -> ()
+  | act :: _ ->
+     set_action act
+
+let save () =
+  Printf.printf "\n\n\n%!";
+  List.iter (fun { action = x, y; _ } ->
+      let v = x + 3 * y + 5 in
+      Printf.printf "%d" v)
+    (List.rev !prev_path);
+  Printf.printf "\n\n\n%!"
 
 let rec ev_loop () =
   let st = Graphics.wait_next_event [Key_pressed; Mouse_motion; Button_down; Button_down] in
@@ -113,8 +154,13 @@ let rec ev_loop () =
   | 'b' -> set_action ( 0, -1)
   | 'n' -> set_action ( 1, -1)
 
+  | 's' -> save ()
+
   | 'z' -> prev ()
-  (* | 'e' -> next () *)
+
+  | 'e' -> next ()
+
+  | ' ' -> auto ()
 
   | _ -> ()
 
@@ -129,6 +175,11 @@ let moveto p =
 let fill_circle p r =
   let x, y = pos p in
   Graphics.fill_circle x y r
+
+let draw_prev_moves () =
+  Graphics.set_color Graphics.magenta;
+  moveto (!ship_position);
+  List.iter (fun { position; _ } -> lineto position) !prev_path
 
 let rec draw_ship_moves ~n ~pos ~speed ~acc =
   if n >= 0 then begin
@@ -155,15 +206,23 @@ let draw_ship () =
 
   let (cx, cy) = pos !ship_position in
   Graphics.fill_circle cx cy 4;
+
+  draw_prev_moves ();
+
   moveto !ship_position;
-  draw_ship_moves ~n:5 ~pos:!ship_position ~speed:!ship_speed ~acc:!next_actions
+  draw_ship_moves ~n:5 ~pos:!ship_position ~speed:!ship_speed ~acc:!next_actions;
+
+  Graphics.set_color Graphics.blue;
+  List.iter (fun (_, place) ->
+      fill_circle place 3;
+    ) (potential_moves ())
 
 let draw () =
   Graphics.clear_graph ();
 
   let plot p =
     let x, y = pos p in
-    Graphics.fill_rect (x-1) (y-1) 3 3
+    Graphics.fill_rect (x-4) (y-4) 9 9
   in
 
   Graphics.set_color Graphics.black;
