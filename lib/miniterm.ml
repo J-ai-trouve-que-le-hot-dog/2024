@@ -322,6 +322,38 @@ let random_strings nsteps data =
   let mx, encoded = compute_params data in
   random_strings nsteps mx encoded
 
+
+let random_strings_64 nsteps maxseed encoded_data =
+  let () = vars := 0 in
+  let y f =
+      let* om = lambda (fun x -> f (x @/ x)) in
+      om @/ om
+  in
+  let get i = take (drop (!~ "UDLR") i) (!+ 1) in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( (get (s %/ !+ 4)) ^/
+          ((call @/ (i -/ !+ 1)) @/ ((s */ !+ 48271) %/ !+ 2147483647)) 
+        )
+    )))
+  in
+  let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
+  let* _4 = two @/ two in
+  let _16 = _4 @/ two in
+  let _64 = mult _16 _4 in
+  ((_64 @/ lambda (fun f -> lambda (fun encoded ->
+    (((y body) @/ !+ nsteps) @/ (encoded %/ !+ maxseed))
+    ^/ (f @/ (encoded // !+ maxseed))
+     )))
+   @/ (lambda (fun _ -> !~ "")))
+  @/ (Int encoded_data)
+
+let random_strings_64 nsteps data =
+  let mx, encoded = compute_params data in
+  random_strings_64 nsteps mx encoded
+
+
 let random_string' seed n c =
   let () = vars := 0 in
   let y f =

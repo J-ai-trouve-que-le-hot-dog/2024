@@ -31,10 +31,10 @@ const char* dc = "UDLR";
 
 i64 random_next(i64 x) { return (x * 48271) % 2147483647; }
 
-const i32 RANDOM_SIZE = 62'500;
+const i32 RANDOM_SIZE = 62'500 / 4;
 
 struct state {
-  bitset<10000> visited;
+  bitset<20000> visited;
   i32           position;
   i32           nvisited;
   vector<i64>   history;
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
   }
   i32 sz = points.size();
   debug(sz);
-  runtime_assert(sz <= 10000);
+  runtime_assert(sz <= 20000);
   i32 start = 0;
   FOR(i, n) FOR(j, m) if(grid[i][j] == 'L') {
     start = unpoint[i][j];
@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
   BEAM.back().position = start;
 
   const i32 BRANCH = 128;
-  const i32 WIDTH  = 1000;
+  const i32 WIDTH  = 1'000;
   
   FOR(step, 1'000'000 / RANDOM_SIZE) {  
     debug(BEAM.size());
