@@ -54,10 +54,16 @@
 
 
 (executable
+ (name lambdaman_random_strings)
+ (public_name lambdaman_random_strings)
+ (modules lambdaman_random_strings)
+ (libraries icfpc))
+
+(executable
  (name rafael_lambdaman)
  (public_name rafael_lambdaman)
  (modules rafael_lambdaman)
- (libraries icfpc unix))
+ (libraries icfpc))
 
 (executable
  (name pierre_lambdaman)

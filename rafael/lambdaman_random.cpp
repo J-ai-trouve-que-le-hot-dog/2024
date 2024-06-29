@@ -25,28 +25,29 @@ struct union_find {
 using f64 = double;
 using f32 = float;
 
-const i32 dx[4] = {-1,1,0,0};
-const i32 dy[4] = {0, 0, -1, 1};
+const i64 dx[4] = {-1,1,0,0};
+const i64 dy[4] = {0, 0, -1, 1};
 const char* dc = "UDLR";
 
 i64 random_next(i64 x) { return (x * 48271) % 2147483647; }
 
-const i32 RANDOM_SIZE = 62'500 / 4;
+const i64 RANDOM_SIZE = 62'500;
 
 struct state {
   bitset<20000> visited;
-  i32           position;
-  i32           nvisited;
+  i64           position;
+  i64           nvisited;
   vector<i64>   history;
-  i32           value;
+  i64           value;
+  i64           maxseed;
+  
+  bool operator<(state const& o) const { return value < o.value; }
+  bool operator>(state const& o) const { return value > o.value; }
 
-  bool operator<(state const& o) const { return nvisited < o.nvisited; }
-  bool operator>(state const& o) const { return nvisited > o.nvisited; }
+  i64 calc_value(vector<vector<i64>> const& T) const {
+    i64 ret = 0;
 
-  i32 calc_value(vector<vector<i32>> const& T) const {
-    i32 ret = 0;
-
-    auto dfs = letrec([&](auto dfs, i32 i, i32 p) -> bool {
+    auto dfs = letrec([&](auto dfs, i64 i, i64 p) -> bool {
       bool r = !visited[i];
       for(auto j : T[i]) if(j != p) {
           if(dfs(j,i)) r = 1;
@@ -62,14 +63,16 @@ struct state {
     return 50000 - ret;
   }
   
-  void step(vector<array<i32,4>> const& graph, vector<vector<i32>> const& T) {
-    i64 seed = 1+rng.random64((1<<16)-1);
+  void step(vector<array<i64,4>> const& graph, vector<vector<i64>> const& T) {
+    i64 seed = 1+rng.random64((1<<10)-1);
     history.eb(seed);
+
+    maxseed = max(maxseed, seed);
     
     FOR(i, RANDOM_SIZE) {
-      i32 d = seed % 4;
+      i64 d = seed % 4;
 
-      i32 nposition = graph[position][d];
+      i64 nposition = graph[position][d];
       if(nposition != -1) {
         position = nposition;
         if(!visited[position]) {
@@ -81,24 +84,23 @@ struct state {
       seed = random_next(seed);
     }
 
-    value = calc_value(T);
+    value = 100000 * calc_value(T) - maxseed;
   }
 
 
 };
 
-void print_string(vector<i64> const& seeds) {
-  string s; 
-  for(auto seed : seeds){
-    FOR(i, RANDOM_SIZE) {
-      i32 d = seed % 4;
-      s += dc[d];
-      seed = random_next(seed);
-    }
-  }
-  s.resize(1000);
-  cout << s << endl;
-}
+// void print_string(vector<i64> const& seeds) {
+//   string s; 
+//   for(auto seed : seeds){
+//     FOR(i, RANDOM_SIZE) {
+//       i64 d = seed % 4;
+//       s += dc[d];
+//       seed = random_next(seed);
+//     }
+//   }
+//   s.resize(1000);
+// }
 
 int main(int argc, char** argv) {
   runtime_assert(argc >= 2);
@@ -115,27 +117,27 @@ int main(int argc, char** argv) {
     debug(line);
   }
 
-  i32 n = grid.size(), m = grid[0].size();
-  vector<array<i32,2>> points;
-  vector<vector<i32>> unpoint(n, vector<i32>(m));
+  i64 n = grid.size(), m = grid[0].size();
+  vector<array<i64,2>> points;
+  vector<vector<i64>> unpoint(n, vector<i64>(m));
   FOR(i, n) FOR(j, m) if(grid[i][j] != '#') {
     unpoint[i][j] = points.size();
     points.pb({i,j});
   }
-  i32 sz = points.size();
+  i64 sz = points.size();
   debug(sz);
   runtime_assert(sz <= 20000);
-  i32 start = 0;
+  i64 start = 0;
   FOR(i, n) FOR(j, m) if(grid[i][j] == 'L') {
     start = unpoint[i][j];
   }
 
-  vector<array<i32,4>> graph(sz);
+  vector<array<i64,4>> graph(sz);
   FOR(i, sz) {
     auto p = points[i];
     FOR(d, 4) {
-      i32 x = p[0] + dx[d];
-      i32 y = p[1] + dy[d];
+      i64 x = p[0] + dx[d];
+      i64 y = p[1] + dy[d];
       if(x<0||x>=n||y<0||y>=m||grid[x][y]=='#') {
         graph[i][d] = -1;
       }else{
@@ -144,9 +146,9 @@ int main(int argc, char** argv) {
     }
   }
 
-  vector<vector<i32>> T(sz);
+  vector<vector<i64>> T(sz);
   union_find uf(sz);
-  FOR(i, sz) FOR(d, 4) if(i32 j = graph[i][d]; j != -1) {
+  FOR(i, sz) FOR(d, 4) if(i64 j = graph[i][d]; j != -1) {
     if(uf.unite(i,j)) {
       T[i].eb(j);
       T[j].eb(i);
@@ -160,17 +162,17 @@ int main(int argc, char** argv) {
   BEAM.back().nvisited = 1;
   BEAM.back().position = start;
 
-  const i32 BRANCH = 128;
-  const i32 WIDTH  = 1'000;
+  const i64 BRANCH = 128;
+  const i64 WIDTH  = 1'000;
   
   FOR(step, 1'000'000 / RANDOM_SIZE) {  
     debug(BEAM.size());
     vector<min_queue<state> > NBEAM(sz);
 
-    i32 branch = BRANCH;
+    i64 branch = BRANCH;
     if(step == 0) branch *= WIDTH;
 
-    i32 it = 0;
+    i64 it = 0;
     for(auto const& sa : BEAM) {
       it += 1;
       if(it % 1000 == 0) debug(it);
@@ -198,16 +200,23 @@ int main(int argc, char** argv) {
       NBEAM[i].pop();
     }
 
+    sort(all(BEAM), greater<>());
+
     for(auto const& sa : BEAM) {
       if(sa.nvisited == sz) {
         debug(sa.history);
         auto seeds = sa.history;
-        print_string(seeds);
+        // print_string(seeds);
+        cout << id << ' ';
+        cout << RANDOM_SIZE << ' ';
+        cout << sa.history.size() << ' ';
+        for(auto x : sa.history) cout << x << ' ';
+        cout << endl;
         return 0;
       }
     }
     
-    i32 best = 0;
+    i64 best = 0;
     for(auto const& sa : BEAM) best = max(best, sa.value);
     debug((step+1) * RANDOM_SIZE, best, sz);
   }
