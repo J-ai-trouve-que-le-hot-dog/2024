@@ -36,16 +36,21 @@ struct problem {
     runtime_assert(is.good());
 
     A.clear();
+    set<pt> points;
     { string line;
       while(getline(is,line)) {
         if(line.empty()) break;
         istringstream iline(line);
         i64 x,y; iline >> x >> y;
-        A.eb(x,y);
+        pt q(x,y);
+        points.insert(q);
       }
     }
+    A.assign(all(points));
 
     n = A.size();
+    debug(n);
+    exit(0);
   }
 
   void save(string sol) {
