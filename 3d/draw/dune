@@ -1,4 +1,4 @@
 (executable
  (name draw)
- (public_name 3d)
+ (public_name 3ddraw)
  (libraries notty notty.unix))
