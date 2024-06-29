@@ -410,6 +410,7 @@ struct state {
         .from = -1
       });
     FOR(i, pb.n-1) {
+      if(i % 1000 == 0) cerr << i << "/" << pb.n << endl;
       auto a = perm[i], b = perm[i+1];
       FORU(vx, speed[a].x - 32, speed[a].x + 32) {
         if(vx < 0 || vx >= 2*MAXV) continue;
@@ -473,6 +474,8 @@ int main(int argc, char** argv) {
   f64 temp1 = 0.05;
   f64 temp  = temp0;
 
+  i64 last_improvement = 0;
+  
   i64 best_score = S.score;
   auto best_state = S;
 
@@ -666,8 +669,16 @@ int main(int argc, char** argv) {
     // S.check_score();
 
     if(S.score < best_score) {
+      last_improvement = niter;
       best_score = S.score;
       best_state = S;
+    }
+
+    if(niter > last_improvement + 100'000'000) {
+      last_improvement = 0;
+      niter = 0;
+      S.reset(pb);
+      S.solve_speeds(pb);
     }
   }
   
