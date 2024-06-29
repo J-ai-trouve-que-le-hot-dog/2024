@@ -237,6 +237,11 @@ let step n states (s : t) : int * t =
       | Some dt -> dt = dt' && check_timewarps (Some dt') t)
   in
   assert (check_timewarps None !timewarps);
+  Hashtbl.iter
+    (fun c v ->
+       if get new_state c = Submit then raise (Fini v);
+       set new_state c v)
+    h;
   if !timewarps <> [] then (
     let new_id, _, _ = List.hd !timewarps in
     Format.printf "Timewarping to %d!@." new_id;
