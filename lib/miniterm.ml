@@ -288,6 +288,11 @@ let random_string seed =
   ((y @/ lambda body) @/ !+ 1000000) @/ !+ seed
 
 
+let compute_params l =
+  let mx = List.fold_left max 0 l in
+  let l = List.rev l in
+  mx, List.fold_left (fun acc x -> Z.add (Z.mul (Z.of_int (mx + 1)) acc) (Z.of_int x)) Z.zero l
+
 let random_strings nsteps maxseed encoded_data =
   let () = vars := 0 in
   let y f =
@@ -313,5 +318,6 @@ let random_strings nsteps maxseed encoded_data =
    @/ (lambda (fun _ -> !~ "")))
   @/ (Int encoded_data)
 
-
-
+let random_strings nsteps data =
+  let mx, encoded = compute_params data in
+  random_strings nsteps mx encoded
