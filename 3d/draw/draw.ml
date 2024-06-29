@@ -287,6 +287,9 @@ let undo state =
      log "Pop -> %i@." (List.length t);
      { state with space = h; prev = t }
 
+let delete_selection state =
+  { state with selection = PosSet.empty }
+
 let () =
   let open Notty_unix in
   let rec update t state = Term.image t (draw state); loop t state
@@ -294,6 +297,7 @@ let () =
     match Term.event t with
     | `Key (`Escape,_)        -> ()
     | `Key (`Enter,_)        -> ()
+    | `Key (`Delete, _) -> update t (delete_selection state)
     | `Key (`ASCII ' ',_)        -> update t (select state)
     | `Key (`ASCII ('z' | 'Z'), [`Ctrl])        ->
        update t (undo state)

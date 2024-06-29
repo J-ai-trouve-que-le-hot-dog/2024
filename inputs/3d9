@@ -10,3 +10,4 @@
   * `A = 21122`
     `Answer = 0`
 
+A vaut 0, il faut output 1 si P=-1 et 0 sinon

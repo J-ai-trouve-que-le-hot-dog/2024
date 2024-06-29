@@ -333,11 +333,11 @@ let map f (m : t) = Array.map (Array.map f) m
 
 let main () =
   let ic = open_in Sys.argv.(1) in
-  let a = Sys.argv.(2) |> Z.of_string in
-  let b = Sys.argv.(3) |> Z.of_string in
+  let a = lazy (Sys.argv.(2) |> Z.of_string) in
+  let b = lazy (Sys.argv.(3) |> Z.of_string) in
   let _ = input_line ic in
   let p =
-    read_file ic |> parse |> map (function A -> I a | B -> I b | x -> x)
+    read_file ic |> parse |> map (function A -> I (Lazy.force a) | B -> I (Lazy.force b) | x -> x)
   in
   let h = Hashtbl.create 10 in
   Hashtbl.replace h 1 p;
