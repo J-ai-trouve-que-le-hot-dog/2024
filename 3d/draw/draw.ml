@@ -1,3 +1,5 @@
+
+let c_width = 3
 module Pos = struct
   type t = int * int
   let compare = compare
@@ -47,6 +49,8 @@ let mid space =
   min_x + width / 2,
   min_y + height / 2
 
+let null_str = String.init c_width (fun _ -> ' ')
+
 let draw state =
   let space = state.space in
   let min_x = min_x space in
@@ -72,10 +76,10 @@ let draw state =
      in
      let s =
        match Space.find_opt (i, j) space with
-       | None -> "  "
-       | Some s -> pad 2 s
+       | None -> null_str
+       | Some s -> pad c_width s
      in
-     Notty.I.(string attr s <-> string attr "  ")
+     Notty.I.(string attr s <-> string attr null_str)
 
 
 let select state =
@@ -93,15 +97,16 @@ let cursor_move state dir =
   { state with cursor = state.cursor ++ dir }
 
 let selection_move state dir =
+  let selection = PosSet.add state.cursor state.selection in
   let removed =
     PosSet.fold (fun pos acc ->
         Space.remove pos acc)
-      state.selection state.space
+      selection state.space
   in
   let collision =
     PosSet.exists (fun pos ->
         Space.mem (pos ++ dir) removed)
-      state.selection
+      selection
   in
   if collision then state else begin
       let space =
@@ -109,7 +114,7 @@ let selection_move state dir =
             match Space.find_opt pos state.space with
             | None -> acc
             | Some v -> Space.add (pos ++ dir) v acc)
-          state.selection removed
+          selection removed
       in
       let selection =
         PosSet.map ((++) dir) state.selection
@@ -227,8 +232,8 @@ let output state =
   for j = 0 to Array.length a - 1 do
     for i = 0 to Array.length a.(0) - 1 do
       match a.(j).(i) with
-      | None -> output_string oc "  ."
-      | Some s -> output_string oc (pad_left 3 s)
+      | None -> output_string oc (pad_left (1+c_width) ".")
+      | Some s -> output_string oc (pad_left (1+c_width) s)
     done;
     output_string oc "\n";
   done;
@@ -242,7 +247,7 @@ let add_char state char =
   in
   let s' = String.init 1 (fun _ -> char) in
   let s = prev ^ s' in
-  if String.length s > 2 then state
+  if String.length s > c_width then state
   else
     let space = Space.add state.cursor s state.space in
     { state with space }
