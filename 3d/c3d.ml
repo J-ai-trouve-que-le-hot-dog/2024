@@ -188,10 +188,11 @@ module M10 () = struct
     (* let st = (v "St" ~i:"0") in *)
 
     (* T1 *)
-    p3 "Acc" ~i:"A" "Acc_1" "Acc_2" "Acc_3";
+    p3 "Acc" ~i:"A" "Acc_1" "Acc_2" "Acc_tmp";
     p3 "St" ~i:"0" "St_1" "St_2" "St_tmp";
 
     (* T2 *)
+    p3 "Acc_tmp" "Acc_3" "Acc_4" "Acc_5";
     p3 "St_tmp" "St_3" "St_4" "St_5";
 
     a "Top" (v "Acc_2") '%' (c "10");
@@ -203,18 +204,25 @@ module M10 () = struct
     a "St_kind" (v "St_top") '/' (c "3");
     a "St_pop" (v "St_3") '/' (c "10");
 
-    a "Ok_not" (v "Acc_1") '+' (v "St_5");
+    a "Empty" (v "Acc_4") '=' (c "0");
+    (* T3 // *)
 
     (* T4 *)
     a "Push_not" (v "Top_1") '%' (c "2");
     a "Kind" (v "Top_2") '/' (c "3");
     a "St_next_push" (vdelay "St_shift" 1) '+' (v "Top_3");
 
-    a "OK" (c "1") '+' (v "Ok_not_test");
+    (* T4 // *)
+    a "Empty_st" (v "St_5") '+' (v "Empty");
 
-    (* T3 // *)
-    a "Ok_not_test" (v "Ok_not") '=' (c "0");
-    delay_widget "OUT" (v "OK") 1;
+    p "Empty_st" "Empty_st_1" "Empty_st_2";
+    a "OUT" (c "0") '#' (v "Empty_st_1");
+    a "Ok" (v "Empty_st_2") '+' (c "1");
+    a "OUT" (c "1") '=' (v "Ok");
+
+    (* TODO copy st *)
+    a "St_test" (v "Empty") '+' (v "St");
+    a "OUT" (c "0") '%' (v "St_test");
 
     (* T5 *)
     p3 "Push_not" "Push_not_1" "Push_not_2" "Push_not_3";
@@ -237,7 +245,7 @@ module M10 () = struct
 
     (* T9 *)
     a "St" (v "St_if_push") '+' (vdelay "St_not_push" 2);
-    a "Acc" (vdelay "Acc_3" 7) '/' (c "10");
+    a "Acc" (vdelay "Acc_3" 6) '/' (c "10");
 
     (* T9 // *)
     a "OUT" (c "0") '=' (vdelay "Bug_pop_empty_not" 0);
