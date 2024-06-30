@@ -342,8 +342,8 @@ let lambdaman21 =
 (*   let mx, encoded = compute_params data in *)
 (*   random_strings_64 nsteps mx encoded *)
 
-let random_string' name seed n c =
-  let next s = (s * c) mod 1000000009 in
+let random_string' name seed n c m =
+  let next s = (s * c) mod m in
   let rec next_n n s = if n = 0 then s else next_n (n-1) (next s) in
   let stop = next_n n seed in
   
@@ -355,8 +355,8 @@ let random_string' name seed n c =
   let get i = take (drop (!~ "URDL") i) (!+ 1) in
   let body call = lambda (fun s ->
       if_ (s =/ !+ stop)
-        (!~ ("solve " ^ name ^ " "))
-        ( (call @/ ((s */ !+ c) %/ !+ 1000000009)) ^/
+        (!~ name)
+        ( (call @/ ((s */ !+ c) %/ !+ m)) ^/
           (get (s %/ !+ 4))
         )
     )
@@ -364,19 +364,19 @@ let random_string' name seed n c =
   (y body) @/ !+ seed
 
 let lambdaman5 =
-  random_string' "lambdaman5" 1 10000 91
+  random_string' "solve lambdaman5 " 1 10000 91 3851
 
 let lambdaman4 =
-  random_string' "lambdaman4" 1 100000 91
+  random_string' "solve lambdaman4 " 1 10000 91 40721
 
 let lambdaman7 =
-  random_string' "lambdaman7" 1 100000 91
+  random_string' "solve lambdaman7 " 1 15015 91 15017
 
 let lambdaman17 =
-  random_string' "lambdaman17" 1 1_000_000 91
+  random_string' "solve lambdaman17 " 1 500007 91 500009
 
 let lambdaman10 =
-  random_string' "lambdaman10" 1 1_000_000 91
+  random_string' "solve lambdaman10 " 1 52815 91 52817
 
 let random_string'' name seed n c =
  let next s = (s * c) mod 1000000009 in
