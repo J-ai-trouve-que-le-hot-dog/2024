@@ -13,7 +13,7 @@
  (modules c3d)
  (libraries comp))
 
-(executable
- (name compile)
- (modules compile layout)
+(library
+ (name comp)
+ (modules compile layout run_comp)
  (libraries icfpc minisat containers))

@@ -102,22 +102,27 @@ let display i values =
     values;
   Format.printf "@.@."
 
-let run a b program =
+let run ?(max=max_int) a b program =
   let a = Z.of_int a in
   let b = Z.of_int b in
   let init = init_program a b program in
   let rec loop i values =
+    if i > max then None
+    else
     let values = step a b values program in
     display i values;
     match result values program with
     | [] -> loop (i+1) values
-    | [v] -> v
+    | [v] -> Some v
     | v :: t ->
       if List.for_all (fun v' -> Z.equal v v') t then
-        v
+        Some v
       else
         failwith (Format.asprintf "Multiple outputs %a %a" Z.pp_print v Z.pp_print (List.hd t))
   in
   display 0 init;
   let result = loop 1 init in
-  Format.printf "RESULT:@.%a@.@." Z.pp_print result
+  match result with
+  | None -> Format.printf "STOPPED@."
+  | Some result ->
+    Format.printf "RESULT:@.%a@.@." Z.pp_print result

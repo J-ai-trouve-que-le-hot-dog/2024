@@ -360,7 +360,7 @@ let random_strings_64 nsteps data =
   random_strings_64 nsteps mx encoded
 
 
-let random_string' seed n c =
+let random_string' name seed n c =
   let () = vars := 0 in
   let y f =
       let* om = lambda (fun x -> f (x @/ x)) in
@@ -369,7 +369,7 @@ let random_string' seed n c =
   let get i = take (drop (!~ "URDL") i) (!+ 1) in
   let body call = lambda (fun i -> (lambda (fun s ->
       if_ (i =/ !+ 0)
-        (!~ "")
+        (!~ ("solve " ^ name ^ " "))
         ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ c) %/ !+ 1000000009)) ^/
           (get (s %/ !+ 4))
         )
@@ -379,16 +379,16 @@ let random_string' seed n c =
 
 
 let lambdaman5 =
-  random_string' 1 10000 91
+  random_string' "lambdaman5" 1 10000 91
 
 let lambdaman4 =
-  random_string' 1 100000 91
+  random_string' "lambdaman4" 1 100000 91
 
 let lambdaman7 =
-  random_string' 1 100000 91
+  random_string' "lambdaman7" 1 100000 91
 
 let lambdaman17 =
-  random_string' 1 1_000_000 91
+  random_string' "lambdaman17" 1 1_000_000 91
 
 let lambdaman12 = random_strings 62500
     [37933;16152;4494;9393;49309;23993;45424;53263;25048;61400;19954;19699;8042;23775;52507;46606]
@@ -400,21 +400,21 @@ let lambdaman14 = random_strings 62500
     [27697;27229;25602;51251;21980;15864;42734;51537;20691;4218;36164;48512;63650;17631;16915]
 
 let lambdaman10 =
-  random_string' 1 1_000_000 91
+  random_string' "lambdaman10" 1 1_000_000 91
 
-let random_string'' seed n c =
+let random_string'' name seed n c =
   let () = vars := 0 in
   let y f =
       let* om = lambda (fun x -> f (x @/ x)) in
       om @/ om
   in
   let get i =
-    let* c = take (drop (!~ "URDL") (i %/ !+ 4)) (!+ 1) in
+    let* c = take (drop (!~ "URDLURDL") i) (!+ 1) in
     if_ (i </ !+ 4) c (c ^/ c ^/ c)
   in
   let body call = lambda (fun i -> (lambda (fun s ->
       if_ (i =/ !+ 0)
-        (!~ "")
+        (!~ ("solve " ^ name ^ " "))
         ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ c) %/ !+ 1000000009)) ^/
           (get (s %/ !+ 8))
         )
@@ -423,10 +423,10 @@ let random_string'' seed n c =
   ((y body) @/ !+ n) @/ !+ seed
 
 let lambdaman18 =
-  random_string'' 2173 490_000 91
+  random_string'' "lambdaman18" 2173 490_000 91
 
 let lambdaman21 =
-  random_string'' 2 490_000 91
+  random_string'' "lambdaman21" 2 490_000 91
 
 
 let random_strings_c rand_c rand_m seed1 seed2 =

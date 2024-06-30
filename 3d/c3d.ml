@@ -87,8 +87,10 @@ module M7 () = struct
     add_out "S"
 
   let prog = !program
-  let () = output (output_prog prog)
+  let () = make prog
 end
+
+module R = M7()
 
 module M12 () = struct
   let () = reset ()
@@ -125,11 +127,17 @@ module M12 () = struct
 
     equal_widet "N10" (v "N_2") (c "10");
 
+    p "N10" "N_10_1" "N_10_2";
     (* a "N10" (v "N_2") '=' (c "10"); *)
 
-    a "S_I" (v "") '*' (v "")
+    a "N_L_C" (v "N_L") '*' (v "N10_1");
 
-    a "S" (v "P9_5") '*' (v "N10");
+    a "NN_I" (v "N10_2") '-' (c "1");
+    a "N_I" (v "P10") '*' (v "NN_I");
+
+    (* a "S_I" (v "P10") '*' (v "N10"); *)
+
+    (* a "S" (v "P9_5") '*' (v "N10"); *)
 
     p "S" "S_1" "S_2";
 
@@ -143,20 +151,17 @@ module M12 () = struct
     a "N" (v "N_4") '-' (c "1");
 
     p3 ~i:"10" "N" "N_1" "N_2" "N'";
-    p "N'" "N_3" "N_4-";
-
-    a "N_4'" (v "N_4-") '+' (c "0");
-    a "N_4" (v "N_4'") '+' (c "0");
+    p "N'" "N_3" "N_L";
 
     add_out "Out"
 
   let prog = !program
-  let () = output (output_prog prog)
+  (* let () = output (output_prog prog) *)
 
-  let () = Comp.Run_comp.run 10 20 prog
+  let () = Comp.Run_comp.run ~max:5 10 20 prog
 end
 
-module R = M12()
+(* module R = M12() *)
 
 
 module M_test () = struct
@@ -170,7 +175,7 @@ module M_test () = struct
   ;;
 
   let prog = !program
-  let () = output (output_prog prog)
+  let () = make prog
 
   let () = Comp.Run_comp.run 10 10 prog
 end
