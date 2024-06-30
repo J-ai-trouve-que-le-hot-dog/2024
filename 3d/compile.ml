@@ -203,3 +203,16 @@ let output a =
     print_string "\n";
   done
 
+let () = 
+  let out = Layout.layout
+    [ [|
+      [| Some "x" |] ;
+      [| Some "x" |]
+    |]
+    ;
+    [|
+      [| Some "y" ; Some "y" |] 
+    |]
+    ] in
+  output out;
+  ()

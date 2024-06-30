@@ -8,12 +8,12 @@
  (name link)
  (modules link))
 
-(executable
- (name c3d)
- (modules c3d)
- (libraries compile))
+; (executable
+;  (name c3d)
+;  (modules c3d)
+;  (libraries compile))
 
-(library
+(executable
  (name compile)
- (modules compile)
- (libraries icfpc))
+ (modules compile layout)
+ (libraries icfpc minisat containers))
