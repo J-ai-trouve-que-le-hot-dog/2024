@@ -105,7 +105,7 @@ let lambdaman6 =
 let lambdaman8 =
   let* conc3 = lambda (fun s -> s ^/ (s ^/ s) ^/ s) in
   let* conc81 = lambda (fun s -> conc3 @/ (conc3 @/ (conc3 @/ (conc3 @/ s)))) in
-  !~ "solve lambdaman8 " ^/ (conc81 @/ ((conc81 @/ !~ "D") ^/ (conc81 @/ !~ "L") ^/ (conc81 @/ !~ "U") ^/ (conc81 @/ !~ "R")))
+  !~ "solve lambdaman8 " ^/ (conc81 @/ ((conc81 @/ !~ "DL")  ^/ (conc81 @/ !~ "UR")))
 
 let lambdaman9 =
   let* conc3 = lambda (fun s -> s ^/ (s ^/ s) ^/ s) in
