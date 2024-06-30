@@ -121,7 +121,7 @@ module M7 () = struct
 end
 
 (* module R = M7() *)
-
+(*
 module M10_no_copy () = struct
 
 (*   let () = *)
@@ -175,7 +175,7 @@ module M10_no_copy () = struct
   let () = Comp.Run_comp.run ~max:40 112342 42 prog
 
 end
-
+*)
 (* module R = M10_no_copy() *)
 
 module M10 () = struct
@@ -261,7 +261,7 @@ module M10 () = struct
 
 end
 
-module R = M10()
+(* module R = M10() *)
 
 module M12 () = struct
   let () = reset ()
@@ -327,7 +327,12 @@ module M11 () = struct
 
   let () =
     (* TODO init with loop?? *)
-    a "P12_1" (c "64") '*' (c "64");
+    a "P6i" (c "64") '+' (c "0");
+    init_from ~init:"P6" ~from:"P6i";
+    a "ZEROi1" (c "0") '+' (c "0");
+    a "ZEROi2" (v "ZEROi1") '+' (c "0");
+    init_from ~init:"P6" ~from:"ZEROi2";
+    a "P12_1" (v "P6") '*' (c "64");
     a "P12_2" (c "64") '*' (c "64");
     a "P12_3" (c "64") '*' (c "64");
     a "P12_4" (c "64") '*' (c "64");
@@ -350,14 +355,21 @@ module M11 () = struct
     a "P6144" (v "P3072_1") '*' (v "P3072_2");
     p "P6144" "P6144_1" "P6144_2";
     a "P12288" (v "P6144_1") '*' (v "P6144_2");
-    p "P12288" "P12288_1" "P12288_2";
+    p3 "P12288" "P12288_1" "P12288_2" "during_init";
     a "P24576" (v "P12288_1") '*' (v "P12288_2");
     p3 "P24576" "P24576_1" "P24576_2" "init_done";
     
+    a "during_init0" (v "during_init") '*' (c "0");
+    delay_widget "during_initd" (v "during_init0") 1;
+    p "during_initd" "during_initd_1" "during_initd_2";
+    init_from ~init:"R" ~from:"during_initd_1";
+    init_from ~init:"U" ~from:"during_initd_2";
+
     a "init_done0" (v "init_done") '*' (c "0");
     init_from ~init:"R" ~from:"P24576_1";
     init_from ~init:"U" ~from:"P24576_2";
-    a "Y" (v "P192_3") '+' (c "-2");
+    a "Yi" (v "P192_3") '+' (c "-2");
+    init_from ~init:"Y" ~from:"Yi";
     
     a "X" (v ~i:"A" "next_X") '+' (v "init_done0");   (*** 0 ***)
     p3 "X" "X_1" "X_2" "X_c";                         (*** 1 ***)
@@ -414,7 +426,7 @@ module M11 () = struct
   let prog = !program
   let () = make prog
 
-  (* let () = Comp.Run_comp.run ~max:300 33321411 10 prog *)
+  (* let () = Comp.Run_comp.run ~max:300 111 10 prog *)
 end
 
 module R2 = M11 ()
