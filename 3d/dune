@@ -8,10 +8,10 @@
  (name link)
  (modules link))
 
-; (executable
-;  (name c3d)
-;  (modules c3d)
-;  (libraries compile))
+(executable
+ (name c3d)
+ (modules c3d)
+ (libraries comp))
 
 (executable
  (name compile)

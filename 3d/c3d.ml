@@ -1,5 +1,5 @@
 open Stdlib
-open Compile
+open Comp.Compile
 
 let init_program = { act = []; copies = []; outputs = [] }
 let program = ref init_program
@@ -100,37 +100,63 @@ module M12 () = struct
     a "P3''" (c "50") '*' (c "20");
     a "P6" (v "P3") '*' (v "P3'");
     a "P9" (v "P6") '*' (v "P3''");
-    p3 "P9" "P9_1" "P9_2" "P9_3";
+    p3 "P9" "P9_1" "P9_2" "P9_4";
     a "P18" (v "P9_1") '*' (v "P9_2");
+    p "P9_4" "P9_5" "P9_3";
 
     a "P10" (v "P9_3") '*' (c "10");
-    p "P10" "P10_1" "P10_2";
+    (* p "P10" "P10_1" "P10_2"; *)
 
-    a "2N" (v "N") '*' (c "2");
+    a "2N" (v "N_1") '*' (c "2");
     p "2N" "2N_1" "2N_2";
     a "2NS1" (v "2N_1") '-' (c "1");
     a "2NS2" (v "2N_2") '-' (c "2");
 
     a "F" (v "2NS1") '*' (v "2NS2");
+    a "FSS" (v "F") '*' (v "P18");
 
     a "A2" (c "A") '*' (c "A");
 
     a "A2S" (v "A2") '*' (v "S_1");
 
-    a "P" (v "A2") '/' (c "F");
+    a "P" (v "A2S") '/' (v "FSS");
 
-    a "S" (v "P10_1") '-' (v "P");
+    a "S" (v "P10") '-' (v "P");
+
+    equal_widet "N10" (v "N_2") (c "10");
+
+    (* a "N10" (v "N_2") '=' (c "10"); *)
+
+    a "S_I" (v "") '*' (v "")
+
+    a "S" (v "P9_5") '*' (v "N10");
 
     p "S" "S_1" "S_2";
 
-    
+    a "SA" (v "S_2") '*' (c "A");
+    a "SAA" (v "SA") '*' (c "A");
+
+    a "N1" (v "N_3") '=' (c "1");
+
+    a "Out" (v "N1") '*' (v "SAA");
+
+    a "N" (v "N_4") '-' (c "1");
+
+    p3 ~i:"10" "N" "N_1" "N_2" "N'";
+    p "N'" "N_3" "N_4-";
+
+    a "N_4'" (v "N_4-") '+' (c "0");
+    a "N_4" (v "N_4'") '+' (c "0");
 
     add_out "Out"
 
   let prog = !program
   let () = output (output_prog prog)
+
+  let () = Comp.Run_comp.run 10 20 prog
 end
 
+module R = M12()
 
 
 module M_test () = struct
@@ -138,12 +164,15 @@ module M_test () = struct
   let () = reset ()
 
   let () =
-    equal_widet "S" (c "A") (c "B");
+    equal_widet "U" (c "A") (c "B");
+    a "S" (v "U") '-' (c "12");
     add_out "S"
   ;;
 
   let prog = !program
   let () = output (output_prog prog)
+
+  let () = Comp.Run_comp.run 10 10 prog
 end
 
-module R = M12()
+(* module R = M_test() *)

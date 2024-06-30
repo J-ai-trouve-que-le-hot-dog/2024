@@ -1,6 +1,5 @@
 open Graphics
 
-
 let lmin l =
   List.fold_left min max_int l
 let lmax l =
@@ -76,6 +75,7 @@ let () =
   let result = Api.communicate body in
   let msg = Ast.parse_input result in
   let positions = Spaceship.Parse.positions msg in
+  Format.printf "count: %d@." (List.length positions);
   Format.printf "positions@.@.%a@."
     Spaceship.Parse.pp positions;
   show positions
