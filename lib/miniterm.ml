@@ -444,8 +444,27 @@ let random_strings_c rand_c rand_m seed1 seed2 =
         )
     )))
   in
-  let* ff = (y body) @/ !+ 500000 in
-  (ff @/ !+ seed1)
+  let* ff = (y body) @/ !+ 250000 in
+  (ff @/ !+ seed1) ^/
+  (ff @/ !+ seed2)
+
+let lambdaman11
+  = random_strings_c 48271 2147483647 341105879 2106507128
+
+let lambdaman12
+  = random_strings_c 48271 2147483647 696859706 2004038722
+    
+let lambdaman13
+  = random_strings_c 48271 2147483647 710612814 1942769698
+
+let lambdaman14
+  = random_strings_c 48271 2147483647 1222189205 609117455
+
+let lambdaman15
+  = random_strings_c 48271 2147483647 1018387787 1994503221
+
+let lambdaman16
+  = random_strings_c 48271 2147483647 1018387787 1994503221
 
 let random_strings_c seed1 seed2 =
   let () = vars := 0 in
@@ -464,6 +483,3 @@ let random_strings_c seed1 seed2 =
   in
   let* ff = (y body) @/ !+ 500000 in
   (ff @/ !+ seed1) ^/ (ff @/ !+ seed2)
-
-let lambdaman11
-  = random_strings_c 48271 2147483647 341105879 2106507128

@@ -32,6 +32,7 @@ const i64 dy[4] = {0, 0, -1, 1};
 const char* dc = "UDLR";
 
 // ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ 11) %/ !+ 78074891)) ^/
+// i64 random_next(i64 x) { return (x * 17) % 78074891; }
 i64 random_next(i64 x) { return (x * 48271) % 2147483647; }
 
 struct state {
@@ -173,7 +174,7 @@ int main(int argc, char** argv) {
         {
           debug("here");
         }
-        FOR(i, 2) {
+        FOR(i, 1024) {
           auto T = S;
           auto seed2 = rng.random64(2147483647);
           T.step(graph, seed2);
