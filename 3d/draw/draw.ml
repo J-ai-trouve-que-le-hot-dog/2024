@@ -17,11 +17,11 @@ let max_y space =
   Space.fold (fun (_, y) _ acc -> max y acc) space min_int
 
 let pad n s =
-  let n = n - String.length s in
+  let n = max (0) (n - String.length s) in
   s ^ String.init n (fun _ -> ' ')
 
 let pad_left n s =
-  let n = n - String.length s in
+  let n = max (0) (n - String.length s) in
   String.init n (fun _ -> ' ') ^ s
 
 type state = {
