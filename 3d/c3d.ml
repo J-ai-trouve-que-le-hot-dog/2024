@@ -182,11 +182,6 @@ module M10 () = struct
 
   let () =
 
-    (* let cycles = 6 in *)
-    (* Trigger: T0 *)
-    (* let acc = (v "Acc" ~i:"A") in *)
-    (* let st = (v "St" ~i:"0") in *)
-
     (* T1 *)
     p3 "Acc" ~i:"A" "Acc_1" "Acc_2" "Acc_tmp";
     p3 "St" ~i:"0" "St_1" "St_2" "St_tmp";
@@ -231,26 +226,29 @@ module M10 () = struct
     a "Push" (c "1") '-' (v "Push_not_1");
     a "St_not_push" (vdelay "St_pop" 2) '*' (v "Push_not_2");
 
-    equal_widet "Not_same" (vdelay "St_kind" 2) (v "Kind");
-
     (* T7 *)
     p "Push" "Push_1" "Push_2";
-    a "Bug" (vdelay "Push_not_3" 1) '*' (v "Not_same");
+    equal_widet "Not_same" (vdelay "St_kind" 1) (v "Kind");
 
     (* T8 *)
-    a "St_if_push" (vdelay "St_next_push" 2) '*' (v "Push_1");
+    a "St_if_push" (vdelay "St_next_push" 3) '*' (v "Push_1");
     a "Bug_pop_empty_not" (vdelay "St_4" 5) '+' (v "Push_2");
 
-    a "Bug_not" (c "1") '-' (v "Bug");
+    a "Bug" (vdelay "Push_not_3" 2) '*' (v "Not_same");
+
 
     (* T9 *)
     a "St" (v "St_if_push") '+' (vdelay "St_not_push" 2);
     a "Acc" (vdelay "Acc_3" 6) '/' (c "10");
 
     (* T9 // *)
-    a "OUT" (c "0") '=' (vdelay "Bug_pop_empty_not" 0);
-    a "OUT" (c "0") '=' (v "Bug_not");
+    a "Bug_not" (c "1") '-' (v "Bug");
 
+    a "OUT_1" (c "0") '=' (vdelay "Bug_pop_empty_not" 0);
+    a "OUT_2" (c "0") '=' (v "Bug_not");
+
+    delay_widget "OUT" (v "OUT_1") 3;
+    delay_widget "OUT" (v "OUT_2") 3;
     (*****)
 
     add_out "OUT";
@@ -260,7 +258,8 @@ module M10 () = struct
   let prog = !program
   (* let () = make prog *)
 
-  let () = Comp.Run_comp.run ~max:60 422 42 prog
+  (* 31212124 *)
+  let () = Comp.Run_comp.run ~max:600 1112224 42 prog
 
 end
 
