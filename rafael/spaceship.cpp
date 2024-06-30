@@ -928,18 +928,22 @@ struct beam_state {
   }
 };
 
+const i32 TREE_SIZE  = 500'000;
+const i32 LIMIT_SIZE = TREE_SIZE - 100'000; // need 2 times the beam width
+
 using euler_tour_edge = u8;
 struct euler_tour {
   i32              size;
   euler_tour_edge* data;
 
   FORCE_INLINE void reset() { size = 0; }
-  FORCE_INLINE void push(i32 x) { data[size++] = x; }
+  FORCE_INLINE void push(i32 x) {
+    runtime_assert(size+1 < TREE_SIZE);
+    data[size++] = x;
+  }
   FORCE_INLINE u8& operator[](i32 ix) { return data[ix]; }
 };
-const i32 TREE_SIZE = 100'000;
-const i32 LIMIT_SIZE = TREE_SIZE - 2000;
-
+  
 vector<euler_tour> tree_pool;
 euler_tour get_new_tree(){
   euler_tour tour;
@@ -957,7 +961,7 @@ euler_tour get_new_tree(){
   return tour;
 }
 
-const i64 HASH_SIZE = 1ull<<25;
+const i64 HASH_SIZE = 1ull<<30;
 const i64 HASH_MASK = HASH_SIZE-1;
 atomic<uint64_t> *HS = nullptr; 
 
@@ -996,6 +1000,13 @@ void traverse_euler_tour
 #pragma omp critical
             {
               debug("FOUND", istep);
+              string out;
+              FOR(i, nstack_moves) {
+                i32 m = stack_moves[i];
+                i32 dx = m/3, dy = m%3;
+                out += dc[dy][dx];
+              }
+              pb.save(out);
               exit(0);
             }
           }
@@ -1048,7 +1059,7 @@ void beam_search(problem const& pb) {
     HS = ptr;
   }
   
-  const i32 width = 100'000;
+  const i32 width = 10'000'000;
   i32 max_score = pb.n;
   vector<i64> histogram(max_score+1, 0);
   
