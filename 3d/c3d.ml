@@ -69,6 +69,16 @@ let delay_widget =
   in
   loop
 
+let vdelay in_ n =
+  let var () =
+    incr count;
+    Printf.sprintf "Vm%d" !count
+  in
+  if n = 0 then (v in_)
+  else
+    let var = var () in
+    delay_widget var (v in_) n;
+    v var
 
 let a = add_act
 let p = add_copy
@@ -112,7 +122,7 @@ end
 
 (* module R = M7() *)
 
-(* module M10 () = struct *)
+module M10_no_copy () = struct
 
 (*   let () = *)
 
@@ -127,7 +137,126 @@ end
 
 (* end *)
 
-(* module R = M10() *)
+    delay_widget "St_delay_bug" st 3;
+    delay_widget "St_next_push_delay" (v "St_next_push") 1;
+
+    (* T3' *)
+    a "Bug_pop_empty_not" (v "St_delay_bug") '+' (v "Push");
+    delay_widget "Bug_pop_empty_not_delay" (v "Bug_pop_empty_not") 3;
+    a "OUT" (c "0") '=' (v "Bug_pop_empty_not_delay");
+
+    (* T4 *)
+    a "St_if_push" (v "St_next_push_delay") '*' (v "Push");
+    delay_widget "St_not_push_delay" (v "St_not_push") 1;
+
+    delay_widget "Acc_delay" acc 4;
+
+
+    (* T5 *)
+    equal_widet "Not_same" (v "St_kind") (v "Kind");
+    delay_widget "Push_not_delay_bug" (v "Push_not") 3;
+
+    a "St" (v "St_if_push") '+' (v "St_not_push_delay");
+    a "Acc" (v "Acc_delay") '/' (c "10");
+
+    (* T6 *)
+    a "Bug" (v "Push_not_delay_bug") '*' (v "Not_same");
+
+    a "Bug_not" (c "1") '-' (v "Bug");
+    a "OUT" (c "0") '=' (v "Bug_not");
+
+    add_out "OUT";
+
+    ()
+
+  let prog = !program
+  (* let () = make prog *)
+
+  let () = Comp.Run_comp.run ~max:40 112342 42 prog
+
+end
+
+(* module R = M10_no_copy() *)
+
+module M10 () = struct
+
+  let () =
+
+    (* let cycles = 6 in *)
+    (* Trigger: T0 *)
+    (* let acc = (v "Acc" ~i:"A") in *)
+    (* let st = (v "St" ~i:"0") in *)
+
+    (* T1 *)
+    p3 "Acc" ~i:"A" "Acc_1" "Acc_2" "Acc_3";
+    p3 "St" ~i:"0" "St_1" "St_2" "St_tmp";
+
+    (* T2 *)
+    p3 "St_tmp" "St_3" "St_4" "St_5";
+
+    a "Top" (v "Acc_2") '%' (c "10");
+    a "St_shift" (v "St_1") '*' (c "10");
+    a "St_top" (v "St_2") '%' (c "10");
+
+    (* T3 *)
+    p3 "Top" "Top_1" "Top_2" "Top_3";
+    a "St_kind" (v "St_top") '/' (c "3");
+    a "St_pop" (v "St_3") '/' (c "10");
+
+    a "Ok_not" (v "Acc_1") '+' (v "St_5");
+
+    (* T4 *)
+    a "Push_not" (v "Top_1") '%' (c "2");
+    a "Kind" (v "Top_2") '/' (c "3");
+    a "St_next_push" (vdelay "St_shift" 1) '+' (v "Top_3");
+
+    a "OK" (c "1") '+' (v "Ok_not_test");
+
+    (* T3 // *)
+    a "Ok_not_test" (v "Ok_not") '=' (c "0");
+    delay_widget "OUT" (v "OK") 1;
+
+    (* T5 *)
+    p3 "Push_not" "Push_not_1" "Push_not_2" "Push_not_3";
+
+    (* T6 *)
+    a "Push" (c "1") '-' (v "Push_not_1");
+    a "St_not_push" (vdelay "St_pop" 2) '*' (v "Push_not_2");
+
+    equal_widet "Not_same" (vdelay "St_kind" 2) (v "Kind");
+
+    (* T7 *)
+    p "Push" "Push_1" "Push_2";
+    a "Bug" (vdelay "Push_not_3" 1) '*' (v "Not_same");
+
+    (* T8 *)
+    a "St_if_push" (vdelay "St_next_push" 2) '*' (v "Push_1");
+    a "Bug_pop_empty_not" (vdelay "St_4" 5) '+' (v "Push_2");
+
+    a "Bug_not" (c "1") '-' (v "Bug");
+
+    (* T9 *)
+    a "St" (v "St_if_push") '+' (vdelay "St_not_push" 2);
+    a "Acc" (vdelay "Acc_3" 7) '/' (c "10");
+
+    (* T9 // *)
+    a "OUT" (c "0") '=' (vdelay "Bug_pop_empty_not" 0);
+    a "OUT" (c "0") '=' (v "Bug_not");
+
+    (*****)
+
+    add_out "OUT";
+
+    ()
+
+  let prog = !program
+  (* let () = make prog *)
+
+  let () = Comp.Run_comp.run ~max:60 422 42 prog
+
+end
+
+module R = M10()
 
 module M12 () = struct
   let () = reset ()
