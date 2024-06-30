@@ -178,9 +178,9 @@ module M12 () = struct
     ()
 
   let prog = !program
-  (* let () = make prog *)
+  let () = make prog
 
-  let () = Comp.Run_comp.run ~max:200 1047197551 10 prog
+  (* let () = Comp.Run_comp.run ~max:200 1047197551 10 prog *)
 end
 
 module R = M12()
