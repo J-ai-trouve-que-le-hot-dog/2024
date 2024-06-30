@@ -435,18 +435,18 @@ let random_strings_c rand_c rand_m seed1 seed2 =
       let* om = lambda (fun x -> f (x @/ x)) in
       om @/ om
     ) in
-  let get i = take (drop (!~ "UUDDLLRR") (i */ !+ 2)) (!+ 2) in
+  let get i = take (drop (!~ "UUDDLLRR") i) (!+ 2) in
   let body call = lambda (fun i -> (lambda (fun s ->
       if_ (i =/ !+ 0)
         (!~ "")
-        ( (get (s %/ !+ 4)) ^/
-          ((call @/ (i -/ !+ 1)) @/ ((s */ !+ rand_c) %/ !+ rand_m)) 
+        ( (get (s %/ !+ 8)) ^/
+          ((call @/ (i -/ !+ 1)) @/ ((s */ !+ rand_c) %/ !+ (2*rand_m))) 
         )
     )))
   in
   let* ff = (y body) @/ !+ 250000 in
-  (ff @/ !+ seed1) ^/
-  (ff @/ !+ seed2)
+  (ff @/ !+ (2*seed1)) ^/
+  (ff @/ !+ (2*seed2))
 
 let lambdaman11
   = random_strings_c 48271 2147483647 341105879 2106507128
@@ -483,3 +483,15 @@ let random_strings_c seed1 seed2 =
   in
   let* ff = (y body) @/ !+ 500000 in
   (ff @/ !+ seed1) ^/ (ff @/ !+ seed2)
+
+
+let random_pow name base expo =
+  let () = vars := 0 in
+  let y = (fun f -> let* om = lambda (fun x -> f (x @/ x)) in om @/ om) in
+  let get i = take (drop (!~ "URDL") i) (!+ 1) in
+  let step call = lambda (fun n -> if_ (n =/ !+ 0) (!~ ("solve " ^ name ^ " ")) (
+     (call @/ (n // !+ 4)) ^/ get (n %/ !+ 4)
+  ))
+  in
+  let exp call = lambda (fun n -> if_ (n =/ !+ 0) (!+ 1) ((!+ base) */ (call @/ (n -/ !+ 1)))) in
+  (y step) @/ ((y exp) @/ (!+ expo))
