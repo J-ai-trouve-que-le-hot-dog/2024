@@ -57,6 +57,12 @@ let step a b values program =
                 else
                   Some (Z.div l u)
               end
+            | '%' -> begin
+                if Z.equal u Z.zero then
+                  None
+                else
+                  Some (Z.rem l u)
+              end
             | '=' -> if Z.equal l u then Some l else None
             | '#' -> if Z.equal l u then None else Some l
             | _ -> failwith (Printf.sprintf "TODO %c" op)
