@@ -3,7 +3,7 @@
 #include <omp.h>
 
 
-const i64 MAXN = 100'000;
+const i64 MAXN = 250'000;
 
 const i64 B = 94;
 const i64 MAXM = 2'000'000;
@@ -44,6 +44,7 @@ void step(problem const& pb, i64& position, i64& nvisited, i64* visited, i64 d){
 bool test(problem const& pb, i64 m, i64 c, i64 x0) {
   date += 1;
   i64 x = x0;
+  runtime_assert(x0 < B/2);
   i64 sz = 0;
   while(sz < 250'000) {
     xs[sz] = x;
@@ -53,7 +54,7 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
     // if(last[x] == date) break;
   }
 
-  // while(xs[sz-1] >= B) sz -= 1;
+  while(xs[sz-1] >= B*B/2) sz -= 1;
   i64 x1 = xs[sz-1];
 
   FOR(i, pb.sz) visited[i] = 0;
@@ -89,13 +90,13 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
     debug(value);
   }
   
-  FOR(iter, 1024) {
+  FORU(y0, 1, (B-1)/2) if(y0 != x0) {
+    runtime_assert(y0 < B/2);
+
     FOR(j, pb.sz) visited2[j] = visited[j];
     i64 position2 = position;
     i64 nvisited2 = nvisited;
 
-    i64 y0 = 1+rng.random32(m-1);
-    
     date += 1;
     i64 y = y0;
     i64 sz2 = 0;
@@ -106,13 +107,18 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
       y = random_next(y,c,m);
       // if(last[y] == date) break;
     }
+    
+    while(sz2 - 1 >= 0 && xs[sz2-1] >= (B*B-1)/2) {
+      sz2 -= 1;
+    }
+    if(sz2 == 0) continue;
     i64 y1 = xs[sz2-1];
 
     FORD(i, sz2-2, 0) {
       step(pb, position2, nvisited2, visited2, xs[i]%4);
     }
 
-    if(nvisited2 >= 4500) {
+    if(nvisited2 >= 4950) {
 #pragma omp critical
       {
         debug(m, c, x0, xs[sz-1], nvisited2);
@@ -131,14 +137,16 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
     if(nvisited2 == pb.sz) {
 #pragma omp critical
       {
+        
         cout << "Found: " 
              << "m = " << m << ", "
              << "c = " << c << ", "
              << "start1 = " << x0 << ", "
              << "stop1 = " << x1 << ", "
              << "start2 = " << y0 << ", "
-             << "stop2 = " << y1 << ", "
+             << "stop2 = " << y1 << " " << B*B << ", "
              << endl;
+        cout << c << " " << m << " " << x0 << " " << x1 << " " << y0 << " " << y1 << endl;
       }
       return true;
     }
@@ -185,13 +193,13 @@ int main(int argc, char** argv) {
 
   problem pb; pb.load(id);
   
-  { i64 m = 1'000'000'000;
+  { i64 m = 78'074'896 / 10;
     while(1) {
       if(!isprime(m)) { m -= 1; continue; }
       debug(m, best, pb.sz);
-#pragma omp parallel for collapse(2)
-      FORU(c, 2, B-1) {
-        FORU(start1, 1, B-1) {
+#pragma omp parallel for collapse(2) schedule(dynamic)
+      FORU(c, 2, (B-1)/2) {
+        FORU(start1, 1, (B-1)/2) {
           if(test(pb,m,c,start1)) {
             exit(0);
           }

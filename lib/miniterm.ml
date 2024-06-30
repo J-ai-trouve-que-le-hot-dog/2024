@@ -403,12 +403,7 @@ let random_string'' name seed stop c m =
 let lambdaman18 =
   random_string'' "solve lambdaman18 " 69 56 91 500153
 
-let random_strings_c name rand_c rand_m seed1 seed2 =
- let next s = (s * rand_c) mod rand_m in
- let rec next_n n s = if n = 0 then s else next_n (n-1) (next s) in
- let stop1 = next_n 250000 seed1 in
- let stop2 = next_n 250000 seed2 in
-
+let random_strings_c name c m seed1 stop1 seed2 stop2 =
  let () = vars := 0 in
  let y = (fun f ->
      let* om = lambda (fun x -> f (x @/ x)) in
@@ -416,33 +411,33 @@ let random_strings_c name rand_c rand_m seed1 seed2 =
    ) in
  let get i = take (drop (!~ "UUDDLLRR") i) (!+ 2) in
  let body call = lambda (fun s ->
-     if_ (s =/ !+ (2 * stop1))
-       (call @/ !+ (2 * seed2))
-       (if_ (s =/ !+ (2 * stop2))
-          (!~ "")
-          ( (get (s %/ !+ 8)) ^/
-            (call @/ ((s */ !+ rand_c) %/ !+ (2*rand_m))) 
+     if_ (s =/ !+ (2 * stop2))
+       (call @/ !+ (2 * seed1))
+       (if_ (s =/ !+ (2 * stop1))
+          (!~ name)
+          ( (call @/ ((s */ !+ c) %/ !+ (2*m))) ^/
+            (get (s %/ !+ 8))
           )
        )
    )
  in
- !~ ("solve " ^ name ^ " ") ^/
- ((y body) @/ !+ (2*seed1))
+ (* !~ ("solve " ^ name ^ " ") ^/ *)
+ ((y body) @/ !+ (2*seed2))
 
 let lambdaman11
-  = random_strings_c "lambdaman11" 48271 2147483647 341105879 2106507128
+  = random_strings_c "solve lambdaman11 " 18 7805419 21 886 12 3363
 
 let lambdaman12
-  = random_strings_c "lambdaman12" 48271 2147483647 696859706 2004038722
+  = random_strings_c "solve lambdaman12 " 4 39037403 37 4235 10 3454
     
 let lambdaman13
-  = random_strings_c "lambdaman13" 48271 2147483647 710612814 1942769698
-
+  = random_strings_c "solve lambdaman13 " 27 39036989 37 976 2 4259
+    
 let lambdaman14
-  = random_strings_c "lambdaman14" 48271 2147483647 1222189205 609117455
+  = random_strings_c "solve lambdaman14 " 19 39026077 3 3557 40 582
 
 let lambdaman15
-  = random_strings_c "lambdaman15" 48271 2147483647 1018387787 1994503221
+  = random_strings_c "solve lambdaman15 " 7 39034117 1 1917 33 4131
 
 let random_strings_c seed1 seed2 =
   let () = vars := 0 in
