@@ -50,6 +50,23 @@ let equal_widet =
     add_act out (v v2) '/' (v v3);
     ()
 
+let delay_widget =
+  let var () =
+    incr count;
+    Printf.sprintf "Dm%d" !count
+  in
+  let rec loop out in_ n =
+    assert(n > 0);
+    if n = 1 then
+      add_act out in_ '+' (c "0")
+    else
+      let var = var () in
+      add_act var in_ '+' (c "0");
+      loop out (v var) (n-1)
+  in
+  loop
+
+
 let a = add_act
 let p = add_copy
 let p3 = add_copy_3
@@ -90,11 +107,31 @@ module M7 () = struct
   let () = make prog
 end
 
-module R = M7()
+(* module R = M7() *)
 
+module M10 () = struct
+
+  let () =
+
+    
+
+    ()
+
+  let prog = !program
+  (* let () = make prog *)
+
+  let () = Comp.Run_comp.run ~max:200 50000000 20 prog
+
+end
+
+module R = M10()
+
+(*
 module M12 () = struct
   let () = reset ()
 
+  let rounds = 10
+  let srounds = string_of_int rounds
   let () =
 
     a "P3" (c "50") '*' (c "20");
@@ -102,12 +139,23 @@ module M12 () = struct
     a "P3''" (c "50") '*' (c "20");
     a "P6" (v "P3") '*' (v "P3'");
     a "P9" (v "P6") '*' (v "P3''");
-    p3 "P9" "P9_1" "P9_2" "P9_4";
     a "P18" (v "P9_1") '*' (v "P9_2");
-    p "P9_4" "P9_5" "P9_3";
 
-    a "P10" (v "P9_3") '*' (c "10");
-    (* p "P10" "P10_1" "P10_2"; *)
+    p3 ~i:srounds "N" "N_1" "N_2" "N'";
+    p "N'" "N_3" "N_4";
+
+    equal_widet "N10" (v "N_2") (c srounds);
+    p "N10" "N_not_Init" "N_10'";
+    a "N_is_Init" (c "1") '-' (v "N_10'");
+    a "S_Init" (v "P9") '*' (v "N_is_Init");
+
+    a "S_d" (v "S_Init") '+' (v "S_loop" ~i:"0");
+
+    a "S" (v "S_d") '#' (c "0");
+
+    a "P" (v "A2S") '/' (v "FSS");
+
+    a "S_loop" (v "P9") '-' (v "P");
 
     a "2N" (v "N_1") '*' (c "2");
     p "2N" "2N_1" "2N_2";
@@ -115,53 +163,44 @@ module M12 () = struct
     a "2NS2" (v "2N_2") '-' (c "2");
 
     a "F" (v "2NS1") '*' (v "2NS2");
-    a "FSS" (v "F") '*' (v "P18");
+
+    a "FSS'" (v "F") '*' (v "P18");
+
+    a "FSS''" (v "FSS'") '*' (c "10");
+    a "FSS" (v "FSS''") '*' (c "10");
 
     a "A2" (c "A") '*' (c "A");
-
-    a "A2S" (v "A2") '*' (v "S_1");
-
-    a "P" (v "A2S") '/' (v "FSS");
-
-    a "S" (v "P10") '-' (v "P");
-
-    equal_widet "N10" (v "N_2") (c "10");
-
-    p "N10" "N_10_1" "N_10_2";
-    (* a "N10" (v "N_2") '=' (c "10"); *)
-
-    a "N_L_C" (v "N_L") '*' (v "N10_1");
-
-    a "NN_I" (v "N10_2") '-' (c "1");
-    a "N_I" (v "P10") '*' (v "NN_I");
-
-    (* a "S_I" (v "P10") '*' (v "N10"); *)
-
-    (* a "S" (v "P9_5") '*' (v "N10"); *)
+    a "A2S'" (v "A2") '*' (v "S_1");
+    a "A2S" (v "A2S'") '*' (c "10");
 
     p "S" "S_1" "S_2";
 
     a "SA" (v "S_2") '*' (c "A");
-    a "SAA" (v "SA") '*' (c "A");
 
-    a "N1" (v "N_3") '=' (c "1");
+    a "N1_t" (v "N_3") '=' (c "1");
 
-    a "Out" (v "N1") '*' (v "SAA");
+    delay_widget "N1" (v "N1_t") 3;
 
-    a "N" (v "N_4") '-' (c "1");
+    a "Out'" (v "N1") '*' (v "SA");
 
-    p3 ~i:"10" "N" "N_1" "N_2" "N'";
-    p "N'" "N_3" "N_L";
+    a "Out" (v "Out'") '/' (v "P9");
 
-    add_out "Out"
+    a "N_t" (v "N_4") '-' (c "1");
+
+    delay_widget "N" (v "N_t") 5;
+
+    add_out "Out";
+
+    ()
 
   let prog = !program
-  (* let () = output (output_prog prog) *)
+  (* let () = make prog *)
 
-  let () = Comp.Run_comp.run ~max:5 10 20 prog
+  let () = Comp.Run_comp.run ~max:200 50000000 20 prog
 end
 
-(* module R = M12() *)
+module R = M12()
+*)
 
 
 module M_test () = struct
