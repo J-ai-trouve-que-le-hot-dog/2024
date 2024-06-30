@@ -8,18 +8,18 @@ let solution_6 =
   !~ "solve lambdaman6 " ^/ (conc @/ (conc @/ (conc @/ s)))
 
 let solutions = [
-    4, !~ "solve lambdaman4 " ^/ lambdaman4;
-    5, !~ "solve lambdaman5 " ^/ lambdaman5;
+    4, lambdaman4;
+    5, lambdaman5;
     6, solution_6;
-    7, !~ "solve lambdaman7 " ^/ lambdaman7;
+    7, lambdaman7;
     8, lambdaman8;
     9, lambdaman9;
 
-    10, !~ "solve lambdaman10 " ^/ lambdaman10;
+    10, lambdaman10;
 
-    17, !~ "solve lambdaman17 " ^/ lambdaman17;
-    18, !~ "solve lambdaman18 " ^/ lambdaman18;
-    21, !~ "solve lambdaman21 " ^/ lambdaman21;
+    17, lambdaman17;
+    18, lambdaman18;
+    21, lambdaman21;
 ]
 
 (* module IntMap = Map.Make(Int) *)
