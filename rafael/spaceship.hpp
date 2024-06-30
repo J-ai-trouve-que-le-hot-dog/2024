@@ -469,7 +469,7 @@ struct state {
   }
 
   void solve_speeds(problem const& pb) {
-    const i32 width = 128;
+    const i32 width = 256;
     cerr << "Solving speeds, width = " << width << endl;
     struct beam_entry {
       i64 score;
@@ -485,9 +485,9 @@ struct state {
     FOR(i, pb.n-1) {
       if(i % 100 == 0) cerr << i << "/" << pb.n << endl;
       auto a = perm[i], b = perm[i+1];
-      FORU(vx, speed[a].x - 32, speed[a].x + 32) {
+      FORU(vx, speed[a].x - 16, speed[a].x + 16) {
         if(vx < 0 || vx >= 2*MAXV) continue;
-        FORU(vy, speed[a].y - 32, speed[a].y + 32) {
+        FORU(vy, speed[a].y - 16, speed[a].y + 16) {
           if(vy < 0 || vy >= 2*MAXV) continue;
           i64 score = 1ll<<60;
           pt  speed;
@@ -558,7 +558,8 @@ void local_opt(problem const &pb, string init_sol) {
       done = (f64) niter / MAX_ITER;
       done = min(done, 1.0);
     }
-    if(niter % (1<<20) == 0) {
+    if(niter % (1<<16) == 0) {
+      S.score = S.calc_score(pb);
 #pragma omp critical
       {
         cerr
@@ -591,7 +592,7 @@ void local_opt(problem const &pb, string init_sol) {
       }
     };
 
-    i64 ty = rng.random32(3);
+    i64 ty = rng.random32(4);
     if(ty == 0) {
       i64 i = rng.random32(pb.n);
       i64 j = rng.random32(pb.n);
@@ -758,11 +759,8 @@ void local_opt(problem const &pb, string init_sol) {
       auto b1 = S.perm[j], b2 = S.perm[j+1];
       auto sb1 = S.speed[b1], sb2 = S.speed[b2];
      
-
-      FORU(k, i+1, j) nspeeds[S.perm[k]] = negate_speed(departure_speed(k));
-
-      auto nsa2 = nspeeds[a2];
-      auto nsb1 = nspeeds[b1];
+      auto nsa2 = negate_speed(departure_speed(i+1)); 
+      auto nsb1 = negate_speed(departure_speed(j)); 
       
       i64 delta = 0;
       delta -= pb.cost(a1,sa1, a2,sa2);
@@ -770,18 +768,22 @@ void local_opt(problem const &pb, string init_sol) {
       delta += pb.cost(a1,sa1, b1,nsb1);
       delta += pb.cost(a2,nsa2, b2,sb2);
 
-      FORU(k, i+1, j-1) {
-        auto a = S.perm[k], b = S.perm[k+1];
-        delta -= pb.cost(a,S.speed[a], b,S.speed[b]);
-        delta += pb.cost(b,nspeeds[b], a,nspeeds[a]);
-      }
+      // i64 delta2 = 0;
+      // FORU(k, i+1, j-1) {
+      //   auto a = S.perm[k], b = S.perm[k+1];
+      //   delta -= pb.cost(a,S.speed[a], b,S.speed[b]);
+      //   delta += pb.cost(b,nspeeds[b], a,nspeeds[a]);
+      // }
 
+      // runtime_assert(delta2 == 0);
+      
       if(accept(delta)) {
         S.score += delta;
-        FORU(k, i+1, j) S.speed[S.perm[k]] = nspeeds[S.perm[k]];
+        // S.score += delta2;
+        S.speed[a2] = nsa2;
+        FORU(k, i+2, j-1) S.speed[S.perm[k]] = negate_speed(departure_speed(k));
+        S.speed[b1] = nsb1;
         reverse(begin(S.perm)+i+1, begin(S.perm)+j+1);
-       
-        // S.check_score(pb);
       }
     }
 
