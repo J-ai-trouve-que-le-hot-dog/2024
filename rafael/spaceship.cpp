@@ -1,12 +1,18 @@
 #include "header.hpp"
 #include <filesystem>
-#include <memory>
 #include <numeric>
 
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
+const i32 upper_bounds[26] = {
+  0,
+  5,     49,   10,   99,    116,    117,    94,     90,  206,
+  304,   8192, 8192, 23791, 137,    39,     1429,   415, 1839,
+  11939, 2351, 2437, 1168,  168502, 564874, 609455,
+};
 
 using f64 = double;
 using f32 = float;
@@ -272,7 +278,7 @@ struct problem {
     ::reconstruct(out,dx,dy,si.x,si.y,sj.x,sj.y,0,0);
   }
 
-  void check_solution(string s) const {
+  bool check_solution(string s) const {
     set<pt> todo;
     FORU(i, 1, n-1) todo.insert(A[i]);
     i64 vx = 0, vy = 0;
@@ -286,7 +292,7 @@ struct problem {
       pt p(x,y);
       todo.erase(p);
     }
-    runtime_assert(todo.empty());
+    return todo.empty();
   }
 
   void read(i32 id_) {
@@ -316,21 +322,24 @@ struct problem {
   }
 
   void save(string sol) const {
-    check_solution(sol);
-    string filename = "solutions/spaceship" + to_string(id);
+    if(check_solution(sol)) {
+      string filename = "solutions/spaceship" + to_string(id);
     
-    if(filesystem::exists(filename)) {
-      string previous_best; 
-      { ifstream file(filename);
-        file >> previous_best;
-      }
-      if(sol.size() < previous_best.size()) {
+      if(filesystem::exists(filename)) {
+        string previous_best; 
+        { ifstream file(filename);
+          file >> previous_best;
+        }
+        if(sol.size() < previous_best.size()) {
+          ofstream file(filename);
+          file << sol;       
+        }
+      }else{
         ofstream file(filename);
-        file << sol;       
+        file << sol;
       }
-    }else{
-      ofstream file(filename);
-      file << sol;
+    }else {
+      debug("BAD SOLUTION");
     }
   }
 };
@@ -340,19 +349,44 @@ struct state {
   vector<pt>  speed;
   i64         score;
 
-  void reset(problem const& pb) {
+  void reset(problem const& pb, string init_sol) {
+    vector<i32> vis(pb.n, 0); vis[0] = 1;
+    
+    perm.clear();
+    perm.eb(0);
     speed.assign(pb.n+1, pt(MAXV, MAXV));
+    
+    { i32 x=0,y=0,vx=0,vy=0;
+      for(char c : init_sol) {
+        FOR(dx,3) FOR(dy,3) if(dc[dy][dx] == c) {
+          vx += (dx-1);
+          vy += (dy-1);
+          x += vx;
+          y += vy;
+        }
+        auto it = pb.RA.find(pt(x,y));
+        if(it != pb.RA.end()) {
+          auto i = it->second;
+          vis[i] = 1;
+          perm.eb(i);
+          runtime_assert(-MAXV<=vx&&vx<=MAXV);
+          runtime_assert(-MAXV<=vy&&vy<=MAXV);
+          speed[i] = pt(vx+MAXV, vy+MAXV);
+        }
+      }
+    }
 
     vector<i32> points;
     FORU(i, 1, pb.n-1) points.eb(i);
     sort(all(points), [&](i32 i, i32 j) {
       return pb.A[i].dist2() < pb.A[j].dist2();
     });
-    
-    perm = {0, pb.n};
+
+    perm.eb(pb.n);
     FOR(i0, points.size()) {
       if(i0 % 100 == 0) debug(i0, points.size());
       auto i = points[i0];
+      if(vis[i]) continue;
       i64 bj = 0; 
       i64 bc = 1ull<<60;
       pt  bs = pt(MAXV,MAXV);
@@ -379,6 +413,9 @@ struct state {
       perm.insert(begin(perm)+bj+1, i);
       speed[i] = bs;
     }
+
+    debug(perm);
+    debug(speed);
     
     score = calc_score(pb);
   }
@@ -464,8 +501,8 @@ struct state {
   }
 };
 
-void local_opt(problem const &pb) {
-  state S; S.reset(pb);
+void local_opt(problem const &pb, string init_sol) {
+  state S; S.reset(pb, init_sol);
   debug(S.score);
   S.solve_speeds(pb);
  
@@ -676,15 +713,12 @@ void local_opt(problem const &pb) {
     }
 
     if(niter > last_improvement + 300'000'000) {
-      last_improvement = 0;
-      niter = 0;
-      S.reset(pb);
-      S.solve_speeds(pb);
+      return;
     }
   }
 }
 
-const i32 MAXN   = 10'000;
+const i32 MAXN   = 100'000;
 const i32 OFFSET = 500'000;
 
 u64 hash_visited[MAXN];
@@ -938,7 +972,6 @@ struct euler_tour {
 
   FORCE_INLINE void reset() { size = 0; }
   FORCE_INLINE void push(i32 x) {
-    runtime_assert(size+1 < TREE_SIZE);
     data[size++] = x;
   }
   FORCE_INLINE u8& operator[](i32 ix) { return data[ix]; }
@@ -963,10 +996,11 @@ euler_tour get_new_tree(){
 
 const i64 HASH_SIZE = 1ull<<30;
 const i64 HASH_MASK = HASH_SIZE-1;
-atomic<uint64_t> *HS = nullptr; 
+atomic<uint64_t> *HS = nullptr;
 
 void traverse_euler_tour
-(problem const& pb,
+(i32& best, string& sol,
+ problem const& pb,
  i32 istep,
  euler_tour tour_current,
  vector<euler_tour> &tours_next,
@@ -996,18 +1030,18 @@ void traverse_euler_tour
             ncommit += 1;
           }
 
-          if(S.nvisited == pb.n) {
+          if(S.nvisited > best) {
 #pragma omp critical
             {
-              debug("FOUND", istep);
-              string out;
-              FOR(i, nstack_moves) {
-                i32 m = stack_moves[i];
-                i32 dx = m/3, dy = m%3;
-                out += dc[dy][dx];
+              if(S.nvisited > best) {
+                best = S.nvisited;
+                sol.clear();
+                FOR(i, nstack_moves) {
+                  i32 m = stack_moves[i];
+                  i32 dx = m/3, dy = m%3;
+                  sol += dc[dy][dx];
+                }
               }
-              pb.save(out);
-              exit(0);
             }
           }
 
@@ -1052,14 +1086,13 @@ void traverse_euler_tour
   runtime_assert(false);
 }
 
-void beam_search(problem const& pb) {
+string beam_search(problem const& pb, i32 width) {
   init_hash();
   if(!HS) {
     auto ptr = new atomic<uint64_t>[HASH_SIZE];
     HS = ptr;
   }
   
-  const i32 width = 10'000'000;
   i32 max_score = pb.n;
   vector<i64> histogram(max_score+1, 0);
   
@@ -1074,6 +1107,9 @@ void beam_search(problem const& pb) {
     timer timer_s;
     vector<euler_tour> tours_next;
     histogram.assign(max_score+1,0);
+
+    i32 best = 0;
+    string sol;
 
 #pragma omp parallel
     {
@@ -1090,17 +1126,25 @@ void beam_search(problem const& pb) {
           }
         }
         if(tour_current.size == 0) break;
-        
+
+        i32 lbest = 0;
+        string lsol;
         traverse_euler_tour
-          (pb,
+          (lbest,lsol,
+           pb,
            istep,
            tour_current, 
            L_tours_next, 
            L_histogram.data(),
            cutoff, cutoff_keep_probability);
-        
-#pragma omp critical
+
+        #pragma omp critical
         {
+          if(lbest > best) {
+            best = lbest;
+            sol = lsol;
+          }
+
           tree_pool.eb(tour_current);
         }
       }
@@ -1114,6 +1158,10 @@ void beam_search(problem const& pb) {
         }
         FOR(i,max_score+1) histogram[i] += L_histogram[i];
       }
+    }
+
+    if(best == pb.n || istep + 8 == upper_bounds[pb.id]) {
+      return sol;
     }
 
     { i64 total_count = 0;
@@ -1146,14 +1194,21 @@ void beam_search(problem const& pb) {
 }
 
 int main(int argc, char** argv) {
-  runtime_assert(argc >= 2);
+  runtime_assert(argc >= 3);
   i64 id = atoi(argv[1]);
   runtime_assert(1 <= id && id <= 25);
-  // do_precomputation();
+  i64 width = atoi(argv[2]);
+  runtime_assert(1 <= width && width < 1'000'000'000);
 
+  debug(upper_bounds[id]);
+  
   problem pb; pb.read(id);
 
-  beam_search(pb);
+  auto sol = beam_search(pb, width);
+  pb.save(sol);
+
+  do_precomputation();
+  local_opt(pb, sol);
   
   return 0;
 }
