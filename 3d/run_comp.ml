@@ -3,6 +3,12 @@ open Compile
 type value = Z.t
 type env = (var * value) list
 
+let pp_z ff z =
+  let s = Z.to_string z in
+  if String.length s > 20 then
+    Format.fprintf ff "%s[...]%s" (String.sub s 0 5) (String.sub s (String.length s - 5) 5)
+  else Format.fprintf ff "%s" s
+
 let string_value s a b =
   match s with
   | "" -> None
@@ -73,7 +79,7 @@ let step a b values inited program =
             match List.assoc_opt out new_values with
             | Some value ->
               let (V out) = out in
-              failwith (Format.asprintf "Writing twice in %s %a %a" out Z.pp_print value Z.pp_print res)
+              failwith (Format.asprintf "Writing twice in %s %a %a" out pp_z value pp_z res)
             | None -> (out, res) :: new_values)))
       [] program.act
   in
@@ -87,7 +93,7 @@ let step a b values inited program =
               match List.assoc_opt out new_values with
               | Some value ->
                 let (V out) = out in
-                failwith (Format.asprintf "Writing twice in %s %a %a (copy)" out Z.pp_print value Z.pp_print res)
+                failwith (Format.asprintf "Writing twice in %s %a %a (copy)" out pp_z value pp_z res)
               | None -> (out, res) :: new_values)
             new_values outs)
       new_values program.copies
@@ -121,7 +127,7 @@ let display i values =
   Format.printf "STEP: %d@." i;
   List.iter (fun ((V var), value) ->
       if not (String.starts_with ~prefix:"Dm" var) then
-        Format.printf "%5s: %a@." var Z.pp_print value)
+        Format.printf "%5s: %a@." var pp_z value)
     values;
   Format.printf "@.@."
 
@@ -141,11 +147,11 @@ let run ?(max=max_int) a b program =
       if List.for_all (fun v' -> Z.equal v v') t then
         Some v
       else
-        failwith (Format.asprintf "Multiple outputs %a %a" Z.pp_print v Z.pp_print (List.hd t))
+        failwith (Format.asprintf "Multiple outputs %a %a" pp_z v pp_z (List.hd t))
   in
   display 0 init;
   let result = loop 1 init [] in
   match result with
   | None -> Format.printf "STOPPED@."
   | Some result ->
-    Format.printf "RESULT:@.%a@.@." Z.pp_print result
+    Format.printf "RESULT:@.%a@.@." pp_z result
