@@ -109,24 +109,23 @@ end
 
 (* module R = M7() *)
 
-module M10 () = struct
+(* module M10 () = struct *)
 
-  let () =
+(*   let () = *)
 
     
 
-    ()
+(*     () *)
 
-  let prog = !program
-  (* let () = make prog *)
+(*   let prog = !program *)
+(*   (\* let () = make prog *\) *)
 
-  let () = Comp.Run_comp.run ~max:200 50000000 20 prog
+(*   let () = Comp.Run_comp.run ~max:200 50000000 20 prog *)
 
-end
+(* end *)
 
-module R = M10()
+(* module R = M10() *)
 
-(*
 module M12 () = struct
   let () = reset ()
 
@@ -200,7 +199,6 @@ module M12 () = struct
 end
 
 module R = M12()
-*)
 
 
 module M_test () = struct
