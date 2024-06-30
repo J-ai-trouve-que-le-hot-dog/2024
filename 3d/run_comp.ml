@@ -109,6 +109,23 @@ let step cur_step a b values inited program =
             new_values outs)
       new_values program.copies
   in
+  let new_values =
+    List.fold_left (fun (new_values : _ list) { delay_from; delay_to } ->
+        let delay_from = match delay_from with
+          | Const s -> string_value s a b
+          | Var (v, _) -> List.assoc_opt v values
+        in
+        match delay_from with
+        | None -> new_values
+        | Some res ->
+          match List.assoc_opt delay_to new_values with
+          | Some value ->
+            let (V out) = delay_to in
+            failwith (Format.asprintf "Writing twice in %s %a %a (copy)" out pp_z value pp_z res)
+          | None -> (delay_to, res) :: new_values
+      )
+      new_values program.delay
+  in
   let new_values, inited =
     List.fold_left (fun (new_values, inited) { var_to_init; init_from } ->
         if not (List.mem init_from inited) then
