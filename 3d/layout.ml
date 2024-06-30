@@ -2,7 +2,6 @@
 let component_size component =
   Array.length component ,
   Array.fold_left max 0 (Array.map Array.length component)
-  
 
 let layout_with_sizes n m (components : string option array array list)
   : string option array array option =
@@ -11,8 +10,9 @@ let layout_with_sizes n m (components : string option array array list)
   let nv = ref 0 in
   let new_var () = incr nv; !nv in
   let sizes = Array.map component_size components in
-  let vars = Array.init ncomponents (fun i ->
-      let (x,y) = sizes.(i) in
+  let vars =
+    Array.init ncomponents (fun i ->
+        let (x,y) = sizes.(i) in
       Array.init (n+1 - x) (fun _ ->
           Array.init (m+1 - y) (fun _ ->
               new_var ()
@@ -97,10 +97,16 @@ let layout_with_sizes n m (components : string option array array list)
 
 let layout (components : string option array array list) : string option array array =
   let exception Found of string option array array in
+  let cx, cy =
+    List.fold_left (fun (mx, my) c ->
+        let mx',my' =  component_size c in
+        max mx mx', max my my')
+      (0, 0) components
+  in
   try 
     for area = 1 to 1000000 do
-      for n = 1 to area do
-        for m = 1 to area do
+      for n = cx to area do
+        for m = cy to area do
           if area = n * m
           then 
             match layout_with_sizes n m components with
