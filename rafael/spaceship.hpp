@@ -558,7 +558,7 @@ void local_opt(problem const &pb, string init_sol) {
       done = (f64) niter / MAX_ITER;
       done = min(done, 1.0);
     }
-    if(niter % (1<<16) == 0) {
+    if(niter % (1<<18) == 0) {
       S.score = S.calc_score(pb);
 #pragma omp critical
       {
