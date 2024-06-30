@@ -207,7 +207,7 @@ let output_delay (out:out) outputs (elt : delay) =
   let at = add_out out in
   at (0, 0) (string_of_input elt.delay_from);
   at (0, 1) ">";
-  output_var_at out outputs (2, 0) elt.delay_to;
+  output_var_at out outputs (0, 2) elt.delay_to;
   out.acc <- out.last :: out.acc;
   out.last <- Space.empty
 
