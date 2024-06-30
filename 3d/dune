@@ -13,6 +13,11 @@
  (modules c3d)
  (libraries comp))
 
+(executable
+ (name c3d_9)
+ (modules c3d_9)
+ (libraries comp))
+
 (library
  (name comp)
  (modules compile layout run_comp)
