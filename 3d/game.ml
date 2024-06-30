@@ -1,5 +1,7 @@
 let () = Ocolor_format.prettify_formatter Format.std_formatter
 
+let print = true
+
 type cell =
   | Empty (* empty . *)
   | I of Z.t
@@ -257,7 +259,7 @@ let step n states (s : t) : int * t =
   assert (check_timewarps None !timewarps);
   if !timewarps <> [] then (
     let new_id, _, _ = List.hd !timewarps in
-    (* Format.printf "Timewarping to %d!@." new_id; *)
+    if print then Format.printf "Timewarping to %d!@." new_id;
     let new_state =
       match Hashtbl.find states new_id with
       | exception Not_found ->
@@ -277,8 +279,9 @@ let pp fmt m =
     | I x -> String.length (Z.to_string x)
     | _ -> 1
   in
-  Array.iter
-    (fun l ->
+  Array.iteri
+    (fun line l ->
+       Format.printf "%3i " line;
       Array.iteri (fun i ->
            let w =
              Array.fold_left (fun acc l ->
@@ -357,12 +360,15 @@ let main () =
   let h = Hashtbl.create 10 in
   Hashtbl.replace h 1 p;
   let rec loop pred_id i x states =
-    (* Format.printf "%s%d:@\n%a@." *)
-    (*   (match pred_id with *)
-    (*   | None -> "" *)
-    (*   | Some pred_id -> Printf.sprintf "%d -> " pred_id) *)
-    (*   i pp x; *)
-    (* let _ = read_line () in *)
+    if print then begin
+      Format.printf "%s%d:@\n%a@."
+        (match pred_id with
+         | None -> ""
+         | Some pred_id -> Printf.sprintf "%d -> " pred_id)
+        i pp x;
+      let _ = read_line () in
+      ()
+    end;
     let new_id, new_state = step i states x in
     Hashtbl.replace states new_id new_state;
     loop (Some i) new_id new_state states

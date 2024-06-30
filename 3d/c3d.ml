@@ -183,7 +183,7 @@ module M10 () = struct
   let () =
 
     (* T1 *)
-    p3 "Acc" ~i:"A" "Acc_1" "Acc_2" "Acc_tmp";
+    p "Acc" ~i:"A" "Acc_2" "Acc_tmp";
     p3 "St" ~i:"0" "St_1" "St_2" "St_tmp";
 
     (* T2 *)
@@ -200,6 +200,7 @@ module M10 () = struct
     a "St_pop" (v "St_3") '/' (c "10");
 
     a "Empty" (v "Acc_4") '=' (c "0");
+    a "Empty_2" (v "Acc_5") '=' (c "0");
     (* T3 // *)
 
     (* T4 *)
@@ -215,8 +216,7 @@ module M10 () = struct
     a "Ok" (v "Empty_st_2") '+' (c "1");
     a "OUT" (c "1") '=' (v "Ok");
 
-    (* TODO copy st *)
-    a "St_test" (v "Empty") '+' (v "St");
+    a "St_test" (v "Empty_2") '+' (v "St");
     a "OUT" (c "0") '%' (v "St_test");
 
     (* T5 *)
@@ -257,7 +257,7 @@ module M10 () = struct
   let () = make prog
 
   (* 31212124 *)
-  (* let () = Comp.Run_comp.run ~max:600 1112223344 42 prog *)
+  (* let () = Comp.Run_comp.run ~max:600 0 42 prog *)
 
 end
 
