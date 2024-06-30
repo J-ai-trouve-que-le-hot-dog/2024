@@ -14,10 +14,13 @@ type elt = { op : op; l : input; u : input; out : output }
 
 type copy = { outs : var list; copied : var * string }
 
+type init_from = { var_to_init : var; init_from : var }
+
 type program = {
     act : elt list;
     copies : copy list;
     outputs : var list;
+    to_init_from : init_from list;
   }
 
 
@@ -183,10 +186,23 @@ let output_copy (out:out) outputs elt =
   out.acc <- out.last :: out.acc;
   out.last <- Space.empty
 
+let output_init_from (out:out) outputs elt =
+  let at = add_out out in
+  at (0, 3) (var_label elt.init_from ^ ":");
+  at (0, 2) "<";
+  at (0, 4) ">";
+  at (1, 1) "@";
+  at (1, 0) "-3";
+  at (1, 2) "1";
+  at (2, 1) "1";
+  at (0, 1) ".";
+  output_var_at out outputs (0, 5) elt.var_to_init
+
 let output_prog prog =
   let out = { acc = [] ; last = Space.empty } in
   List.iter (output_elt out prog.outputs) prog.act;
   List.iter (output_copy out prog.outputs) prog.copies;
+  List.iter (output_init_from out prog.outputs) prog.to_init_from;
   List.map P.to_array out.acc
 
 let pad_left n s =

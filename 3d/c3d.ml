@@ -1,7 +1,7 @@
 open Stdlib
 open Comp.Compile
 
-let init_program = { act = []; copies = []; outputs = [] }
+let init_program = { act = []; copies = []; outputs = []; to_init_from  = [] }
 let program = ref init_program
 let count = ref 0
 let reset () =
@@ -9,6 +9,9 @@ let reset () =
   count := 0
 let v ?(i = "") s = Var (V s, i)
 let c s = Const s
+
+let init_from ~init ~from =
+  program := { !program with to_init_from = { var_to_init = V init; init_from = V from } :: !program.to_init_from }
 
 let add_act res a op b =
   program :=
