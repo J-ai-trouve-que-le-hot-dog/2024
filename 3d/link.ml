@@ -18,10 +18,17 @@ let resolve_labels t labels =
       if s <> "@" && String.contains s '@' then begin
         match String.split_on_char '@' s with
         | [label; "x"] ->
-          let (li, lj) = List.assoc label labels in
+          let (li, lj) =
+            try List.assoc label labels
+            with Not_found ->
+              failwith (Printf.sprintf "Missing %s" label)
+          in
           t.(i).(j) <- string_of_int (j - lj + 1)
         | [label; "y"] ->
-          let (li, lj) = List.assoc label labels in
+          let (li, lj) = try List.assoc label labels
+            with Not_found ->
+              failwith (Printf.sprintf "Missing %s" label)
+          in
           t.(i).(j) <- string_of_int (i - li)
         | _ -> failwith ("bad label: " ^ s)
       end

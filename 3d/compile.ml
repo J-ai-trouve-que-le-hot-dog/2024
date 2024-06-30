@@ -12,7 +12,7 @@ type output = var
 
 type elt = { op : op; l : input; u : input; out : output }
 
-type copy = { outs : var list; copied : var }
+type copy = { outs : var list; copied : var * string }
 
 type program = {
     act : elt list;
@@ -157,10 +157,24 @@ let output_elt (out:out) outputs elt =
 
 let output_copy (out:out) outputs elt =
   let at = add_out out in
-  let (out1, out2) = match elt.outs with [a;b] -> (a,b) | _ -> assert false in
-  at (0, 3) (var_label elt.copied ^ ":");
+  let (out1, out2) =
+    match elt.outs
+    with a ::b :: ( [] | [ _ ] ) -> (a,b)
+       | [] | [_] | _ -> assert false
+  in
+  at (0, 3) (var_label (fst elt.copied) ^ ":"  ^ (snd elt.copied));
   at (0, 2) "<";
   at (0, 4) ">";
+
+  let () =
+    match elt.outs
+    with [_; _; c] ->
+      at (1, 3) "v";
+      output_var_at out outputs (2, 3) c;
+      ()
+       | _ -> ()
+  in
+
   output_var_at out outputs (0, 1) out1;
   output_var_at out outputs (0, 5) out2;
   out.first_free_y <- out.first_free_y + 7
@@ -173,7 +187,7 @@ let output_prog prog =
 
 
 let pad_left n s =
-  let n = n - String.length s in
+  let n = (max 0 (n - String.length s)) in
   String.init n (fun _ -> ' ') ^ s
 
 let c_width = 5

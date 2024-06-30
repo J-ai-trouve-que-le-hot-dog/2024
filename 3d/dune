@@ -1,4 +1,19 @@
 (executable
  (name game)
  (public_name 3d)
+ (modules game)
  (libraries zarith ocolor))
+
+(executable
+ (name link)
+ (modules link))
+
+(executable
+ (name c3d)
+ (modules c3d)
+ (libraries compile))
+
+(library
+ (name compile)
+ (modules compile)
+ (libraries icfpc))

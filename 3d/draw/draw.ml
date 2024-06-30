@@ -1,5 +1,5 @@
 
-let c_width = 3
+let c_width = 5
 module Pos = struct
   type t = int * int
   let compare = compare
