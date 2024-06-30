@@ -19,7 +19,7 @@ void solve(problem const& pb) {
   auto best_score = score;
   auto best_perm = perm;
   
-  const i64 MAX_ITER = 5'000'000'000;
+  const i64 MAX_ITER = 20'000'000'000;
 
   f64 done;
   f64 temp0 = 16.0;

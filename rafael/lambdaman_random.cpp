@@ -43,7 +43,7 @@ struct state {
   
   bool operator<(state const& o) const { return value < o.value; }
   bool operator>(state const& o) const { return value > o.value; }
-
+  
   i64 calc_value(vector<vector<i64>> const& T) const {
     i64 ret = 0;
 
