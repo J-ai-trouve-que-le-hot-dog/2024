@@ -25,6 +25,7 @@ let solutions = [
 
     17, lambdaman17;
     18, lambdaman18;
+    19, lambdaman19;
     21, lambdaman21;
 ]
 
