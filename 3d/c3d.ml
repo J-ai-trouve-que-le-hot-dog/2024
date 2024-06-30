@@ -137,7 +137,7 @@ module M12 () = struct
     a "P3_2" (c "50") '*' (c "20");
     a "P3_3" (c "50") '*' (c "20");
     a "P6" (v "P3_1") '*' (v "P3_2");
-    a "P9" (v "P3_2") '*' (v "P6");
+    a "P9" (v "P3_3") '*' (v "P6");
     p3 "P9" "P9_1" "P9_2" "P9_3";
     a "P18" (v "P9_1") '*' (v "P9_2");
     a "P10" (v "P9_3") '*' (c "10");
@@ -165,7 +165,7 @@ module M12 () = struct
     a "SA" (v "S_2") '*' (c "A");
     a "SAR" (v "SA") '/' (v "P10_2");
     a "N1_t" (v "N_2") '=' (c "1");
-    delay_widget "N1" (v "N1_t") 6;
+    delay_widget "N1" (v "N1_t") 5;
 
     a "Out" (v "N1") '*' (v "SAR");
 
