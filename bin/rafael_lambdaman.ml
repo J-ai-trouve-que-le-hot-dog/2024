@@ -7,15 +7,16 @@ let () =
   (* let e = Miniterm.random_string seed in *)
   (* Format.printf "%a\n" Ast.print_ast Miniterm.(!~ "solve lambdaman7 " ^/ e); *)
 
-  let e = Miniterm.lambdaman12 in
+  let e = Miniterm.lambdaman11 in
   let VString(t) = Eval.eval Eval.EnvEmpty (Eval.term_from_expr e) in
   let t = Rope.to_string t in
   let s = Ast.Encoded_string.to_string (Ast.Encoded_string.from_raw_string t) in
   Format.eprintf "%d@.@." (String.length s);
   Format.printf "%s\n" s;
 
-  (* let t = Eval.term_from_expr Miniterm.lambdaman19 in *)
-  (* Format.printf "%a@." Ast.pp_expr Miniterm.lambdaman19; *)
+  let m = Format.asprintf "%a" Ast.print_ast e in
+  Format.printf "%s\n" m;
+  Format.printf "%d\n" (String.length m);
   
   (* let result = Api.communicate (Format.asprintf "%a" Ast.print_ast *)
   (*                                 Miniterm.(!~ "solve lambdaman11 " ^/ e)) in *)

@@ -17,11 +17,11 @@ let solutions = [
 
     10, lambdaman10;
 
-    11, !~ "solve lambdaman11 " ^/ lambdaman11;
-    12, !~ "solve lambdaman12 " ^/ lambdaman12;
-    13, !~ "solve lambdaman13 " ^/ lambdaman13;
-    14, !~ "solve lambdaman14 " ^/ lambdaman14;
-    15, !~ "solve lambdaman15 " ^/ lambdaman15;
+    11, lambdaman11;
+    12, lambdaman12;
+    13, lambdaman13;
+    14, lambdaman14;
+    15, lambdaman15;
 
     17, lambdaman17;
     18, lambdaman18;
