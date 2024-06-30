@@ -4,7 +4,7 @@ let read_file filename =
   close_in ic;
   r
 
-let positions =
+let positions , start_moves =
   assert(Array.length Sys.argv >= 2);
   let filename = Sys.argv.(1) in
   let _save_file =
@@ -15,7 +15,14 @@ let positions =
   in
   let stage = read_file filename in
   let positions = Spaceship.Parse.positions_from_string stage in
-  positions
+  let start_moves = match _save_file with
+    | Some(filename) -> begin
+        try read_file filename
+        with | Sys_error(_) -> ""
+      end
+    | None -> ""
+  in
+  positions , start_moves
 
 let lmin l = List.fold_left min max_int l
 let lmax l = List.fold_left max min_int l
@@ -230,8 +237,22 @@ let draw () =
   draw_ship ();
   ()
 
+let decode_char = function
+  | '5' -> (0,0)
+  | '1' -> (-1,-1)
+  | '2' -> (0,-1)
+  | '3' -> (1,-1)
+  | '6' -> (1,0)
+  | '9' -> (1,1)
+  | '8' -> (0,1)
+  | '7' -> (-1,1)
+  | '4' -> (-1,0)
 
 let () =
+  String.iter (fun c ->
+    set_action (decode_char c)
+  ) start_moves;
+  
   Graphics.auto_synchronize false;
   let rec loop () =
     draw ();
