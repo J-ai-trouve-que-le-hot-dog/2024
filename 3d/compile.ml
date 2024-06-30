@@ -211,7 +211,7 @@ let pad_left n s =
   let n = (max 0 (n - String.length s)) in
   String.init n (fun _ -> ' ') ^ s
 
-let c_width = 5
+let c_width = 10
 
 let output a =
   print_string "\n";
