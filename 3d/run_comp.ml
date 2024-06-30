@@ -6,7 +6,18 @@ type env = (var * value) list
 let pp_z ff z =
   let s = Z.to_string z in
   if String.length s > 20 then
-    Format.fprintf ff "%s[...]%s" (String.sub s 0 5) (String.sub s (String.length s - 5) 5)
+    begin
+      if Z.gt z Z.zero && Z.popcount z <= 8 then begin
+        let r = ref z in
+        while not (Z.equal !r Z.zero) do
+          let n = Z.trailing_zeros !r in
+          r := Z.sub !r (Z.shift_left Z.one n); 
+          Format.fprintf ff "2^%d" n;
+          if not (Z.equal !r Z.zero) then Format.fprintf ff "+" 
+        done;
+      end else
+        Format.fprintf ff "%s[...]%s" (String.sub s 0 5) (String.sub s (String.length s - 5) 5)
+    end
   else Format.fprintf ff "%s" s
 
 let string_value s a b =
@@ -41,7 +52,7 @@ let init_program a b program : env =
       acc)
     init_copy program.act
 
-let step a b values inited program =
+let step cur_step a b values inited program =
   let new_values =
     List.fold_left (fun new_values op ->
         let { op; l; u; out } = op in
@@ -112,6 +123,7 @@ let step a b values inited program =
   in
   let values =
   List.fold_left (fun acc (var, value) ->
+    if not (List.mem_assoc var acc) then Format.eprintf "VAR %s produced at %d@." (let (V v) = var in v) cur_step;
       let acc = List.remove_assoc var acc in
       (var, value) :: acc)
     values new_values
@@ -138,7 +150,7 @@ let run ?(max=max_int) a b program =
   let rec loop i values inited =
     if i > max then None
     else
-    let values, inited = step a b values inited program in
+    let values, inited = step i a b values inited program in
     display i values;
     match result values program with
     | [] -> loop (i+1) values inited

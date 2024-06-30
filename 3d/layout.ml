@@ -157,19 +157,16 @@ let layout_with_sizes n m (components : string option array array list)
           let v = vars.(c).(i).(j) in
           if Minisat.value solver (Minisat.Lit.make v) = Minisat.V_true then
             begin
-              match CCVector.pop (CCVector.get shape_components c) with
-              | Some(comp) -> begin
-                  for di = 0 to x-1 do
-                    for dj = 0 to y-1 do
-                      if dj < Array.length ((CCVector.get shapes c).(di)) 
-                      && ((CCVector.get shapes c).(di).(dj))
-                      then begin
-                        out.(i+di).(j+dj) <- comp.(di).(dj)
-                      end
-                    done;
-                  done;
-                end
-              | None -> ()
+              let comp = CCVector.pop_exn (CCVector.get shape_components c) in
+              for di = 0 to x-1 do
+                for dj = 0 to y-1 do
+                  if dj < Array.length ((CCVector.get shapes c).(di)) 
+                  && ((CCVector.get shapes c).(di).(dj))
+                  then begin
+                    out.(i+di).(j+dj) <- comp.(di).(dj)
+                  end
+                done;
+              done;
             end
         done;
       done;
@@ -179,15 +176,20 @@ let layout_with_sizes n m (components : string option array array list)
 
 let layout (components : string option array array list) : string option array array =
   Format.eprintf "Layout@.";
+  Format.eprintf "Num components: %d@." (List.length components);
+  Format.eprintf "Total component area: %d@."
+    (List.fold_left (fun acc comp ->
+      let cs = ref 0 in Array.iter (Array.iter (fun cc -> if cc <> None then cs := !cs + 1)) comp;
+      acc + !cs) 0 components);
   let exception Found of string option array array in
   let cx, cy =
     List.fold_left (fun (mx, my) c ->
         let mx',my' =  component_size c in
         max mx mx', max my my')
-      (0, 0) components
+      (20, 20) components
   in
   try 
-    for area = 1 to 100000 do
+    for area = 1500 to 10000 do
       Format.eprintf "Trying area %d@." area;
       for n = cx to area do
         for m = cy to area do
@@ -195,7 +197,7 @@ let layout (components : string option array array list) : string option array a
           then begin
             Format.eprintf "Trying %d = %d * %d@." area n m;
             match layout_with_sizes n m components with
-            | Some(x) -> raise (Found(x))
+            | Some(x) -> raise (Found(x)) (*Format.eprintf "FOUND@."*)
             | None -> ()
           end
         done;

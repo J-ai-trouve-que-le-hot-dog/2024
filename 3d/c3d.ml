@@ -112,78 +112,22 @@ end
 
 (* module R = M7() *)
 
-module M10 () = struct
+(* module M10 () = struct *)
 
-  let () =
+(*   let () = *)
 
-    (* let cycles = 6 in *)
-    (* Trigger: T0 *)
-    let acc = (v "Acc" ~i:"A") in
-    let st = (v "St" ~i:"0") in
+    
 
-    (* T1 *)
-    a "Ok_not" acc '+' st;
-    a "Top" acc '%' (c "10");
-    a "St_shift" st '*' (c "10");
-    a "St_top" st '%' (c "10");
-    a "St_pop" st '/' (c "10");
+(*     () *)
 
-    (* T1' *)
-    a "Ok_not_test" (v "Ok_not") '=' (c "0");
-    a "OK" (c "1") '+' (v "Ok_not_test");
-    delay_widget "OUT" (v "OK") 1;
+(*   let prog = !program *)
+(*   (\* let () = make prog *\) *)
 
-    (* T2 *)
-    a "Push_not" (v "Top") '%' (c "2");
-    a "Kind" (v "Top") '/' (c "3");
-    a "St_next_push" (v "St_shift") '+' (v "Top");
-    a "St_kind" (v "St_top") '/' (c "3");
-    delay_widget "St_pop_delay" (v "St_pop") 1;
+(*   let () = Comp.Run_comp.run ~max:200 50000000 20 prog *)
 
-    (* T3 *)
-    a "Push" (c "1") '-' (v "Push_not");
-    a "St_not_push" (v "St_pop_delay") '*' (v "Push_not");
+(* end *)
 
-    delay_widget "St_delay_bug" st 3;
-    delay_widget "St_next_push_delay" (v "St_next_push") 1;
-
-    (* T3' *)
-    a "Bug_pop_empty_not" (v "St_delay_bug") '+' (v "Push");
-    delay_widget "Bug_pop_empty_not_delay" (v "Bug_pop_empty_not") 3;
-    a "OUT" (c "0") '=' (v "Bug_pop_empty_not_delay");
-
-    (* T4 *)
-    a "St_if_push" (v "St_next_push_delay") '*' (v "Push");
-    delay_widget "St_not_push_delay" (v "St_not_push") 1;
-
-    delay_widget "Acc_delay" acc 4;
-
-
-    (* T5 *)
-    equal_widet "Not_same" (v "St_kind") (v "Kind");
-    delay_widget "Push_not_delay_bug" (v "Push_not") 3;
-
-    a "St" (v "St_if_push") '+' (v "St_not_push_delay");
-    a "Acc" (v "Acc_delay") '/' (c "10");
-
-    (* T6 *)
-    a "Bug" (v "Push_not_delay_bug") '*' (v "Not_same");
-
-    a "Bug_not" (c "1") '-' (v "Bug");
-    a "OUT" (c "0") '=' (v "Bug_not");
-
-    add_out "OUT";
-
-    ()
-
-  let prog = !program
-  (* let () = make prog *)
-
-  let () = Comp.Run_comp.run ~max:40 112342 42 prog
-
-end
-
-module R = M10()
+(* module R = M10() *)
 
 module M12 () = struct
   let () = reset ()
@@ -242,7 +186,104 @@ module M12 () = struct
   (* let () = Comp.Run_comp.run ~max:200 1047197551 10 prog *)
 end
 
-module R = M12()
+(* module R = M12() *)
+
+module M11 () = struct
+  let () = reset ()
+
+  let () =
+    (* TODO init with loop?? *)
+    a "P12_1" (c "64") '*' (c "64");
+    a "P12_2" (c "64") '*' (c "64");
+    a "P12_3" (c "64") '*' (c "64");
+    a "P12_4" (c "64") '*' (c "64");
+    a "P24_1" (v "P12_1") '*' (v "P12_2");
+    a "P24_2" (v "P12_3") '*' (v "P12_4");
+    a "P48" (v "P24_1") '*' (v "P24_2");
+    p "P48" "P48_1" "P48_2";
+    a "P96" (v "P48_1") '*' (v "P48_2");
+    p "P96" "P96_1" "P96_2";
+    a "P192" (v "P96_1") '*' (v "P96_2");
+    p3 "P192" "P192_1" "P192_2" "P192_3";
+    a "P384" (v "P192_1") '*' (v "P192_2");
+    p "P384" "P384_1" "P384_2";
+    a "P768" (v "P384_1") '*' (v "P384_2");
+    p "P768" "P768_1" "P768_2";
+    a "P1536" (v "P768_1") '*' (v "P768_2");
+    p "P1536" "P1536_1" "P1536_2";
+    a "P3072" (v "P1536_1") '*' (v "P1536_2");
+    p "P3072" "P3072_1" "P3072_2";
+    a "P6144" (v "P3072_1") '*' (v "P3072_2");
+    p "P6144" "P6144_1" "P6144_2";
+    a "P12288" (v "P6144_1") '*' (v "P6144_2");
+    p "P12288" "P12288_1" "P12288_2";
+    a "P24576" (v "P12288_1") '*' (v "P12288_2");
+    p3 "P24576" "P24576_1" "P24576_2" "init_done";
+    
+    a "init_done0" (v "init_done") '*' (c "0");
+    init_from ~init:"R" ~from:"P24576_1";
+    init_from ~init:"U" ~from:"P24576_2";
+    a "Y" (v "P192_3") '+' (c "-2");
+    
+    a "X" (v ~i:"A" "next_X") '+' (v "init_done0");   (*** 0 ***)
+    p3 "X" "X_1" "X_2" "X_c";                         (*** 1 ***)
+    p "X_c" "X_3" "X_4";                              (*** 2 ***)
+    
+    a "W2" (c "2") '+' (v "Y0");                      (*** 4 ***)
+    p "W2" "W2_1" "W2_2";                             (*** 5 ***)
+    a "Y0" (v "Y") '*' (v "Xmod2");                   (*** 3 ***)
+    a "Xmod2" (v "X_1") '%' (c "2");                  (*** 2 ***)
+ 
+    p3 "R" "R_1" "R_2" "R_c";                         (*** 0 ***)
+    delay_widget "R_cd" (v "R_c") 4;                  (*** 4 ***)
+    p "R_cd" "R_3" "R_4";                             (*** 5 ***)
+
+    a "Rmul" (v "R_3") '*' (v "W2_1");                (*** 6 ***)
+    a "Rdiv" (v "R_4") '/' (v "W2_2");                (*** 6 ***)
+    p "Rdiv" "Rdiv_1" "Rdiv_2";                       (*** 7 ***)
+    delay_widget "Rmuld" (v "Rmul") 1;                (*** 7 ***)
+    a "Rdiff" (v "Rmuld") '-' (v "Rdiv_1");           (*** 8 ***)
+    delay_widget "Rdiv_2d" (v "Rdiv_2") 2;            (*** 9 ***)
+    a "Xmod10" (v "X_2") '%' (c "10");                (*** 2 ***)
+    a "Xge3" (v "Xmod10") '/' (c "3");                (*** 3 ***)
+    delay_widget "Xge3d" (v "Xge3") 5;                (*** 8 ***)
+    a "Rcond" (v "Rdiff") '*' (v "Xge3d");            (*** 9 ***)
+    a "R" (v "Rcond") '+' (v "Rdiv_2d");              (*** 10 ***)
+    
+    a "Xdiv" (v "X_3") '/' (c "10");                  (*** 3 ***)
+    delay_widget "next_X" (v "Xdiv") 7;               (*** 10 ***)
+
+    p "U" "U_1" "U_2";                                (*** 0 ***)
+    a "Udiv" (v "U_1") '/' (v "R_1");                 (*** 1 ***)
+    a "wasin" (v "Udiv") '%' (c "2");                 (*** 2 ***)
+    a "wasnotin" (c "1") '-' (v "wasin");             (*** 3 ***)
+    p "wasnotin" "wasnotin_1" "wasnotin_2";           (*** 4 ***)
+    
+    p ~i:"1" "C" "C_1" "C_2";                         (*** 0 ***)
+    delay_widget "C_1d" (v "C_1") 4;                  (*** 4 ***)
+    a "Cz" (v "C_1d") '+' (v "wasnotin_1");           (*** 5 ***)
+    delay_widget "C" (v "Cz") 5;                      (*** 10 ***)
+    delay_widget "R_2d" (v "R_2") 4;                  (*** 4 ***)
+    a "Rm" (v "R_2d") '*' (v "wasnotin_2");           (*** 5 ***)
+    delay_widget "U_2d" (v "U_2") 5;                  (*** 5 ***)
+    a "Uz" (v "U_2d") '+' (v "Rm");                   (*** 6 ***)
+    delay_widget "U" (v "Uz") 4;                      (*** 10 ***)
+
+    delay_widget "X_4d" (v "X_4") 8;
+    a "Xzero" (v "X_4d") '=' (c "0");
+    a "S" (v "C_2") '+' (v "Xzero");
+
+    add_out "S";
+    ()
+
+
+  let prog = !program
+  let () = make prog
+
+  (* let () = Comp.Run_comp.run ~max:300 33321411 10 prog *)
+end
+
+module R2 = M11 ()
 
 
 module M_test () = struct
