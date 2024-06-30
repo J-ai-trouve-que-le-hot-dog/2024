@@ -165,7 +165,7 @@ module M12 () = struct
     a "SA" (v "S_2") '*' (c "A");
     a "SAR" (v "SA") '/' (v "P10_2");
     a "N1_t" (v "N_2") '=' (c "1");
-    delay_widget "N1" (v "N1_t") 6;
+    delay_widget "N1" (v "N1_t") 5;
 
     a "Out" (v "N1") '*' (v "SAR");
 
@@ -178,9 +178,9 @@ module M12 () = struct
     ()
 
   let prog = !program
-  let () = make prog
+  (* let () = make prog *)
 
-  (* let () = Comp.Run_comp.run ~max:200 1047197551 10 prog *)
+  let () = Comp.Run_comp.run ~max:200 1047197551 10 prog
 end
 
 module R = M12()
