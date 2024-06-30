@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
   runtime_assert(1 <= id && id <= 21);
 
   problem pb; pb.load(id);
-  i32 m = 830583;
+  i32 m = 500000;
   while(1) {
     if(m%10 == 0) debug(m, best, pb.sz);
 #pragma omp parallel for collapse(2)
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
         }
       }
     }
-    m -= 1;
+    m += 1;
   }
 
   return 0;
