@@ -58,7 +58,8 @@ let step a b values program =
                   Some (Z.div l u)
               end
             | '=' -> if Z.equal l u then Some l else None
-            | _ -> failwith "TODO"
+            | '#' -> if Z.equal l u then None else Some l
+            | _ -> failwith (Printf.sprintf "TODO %c" op)
           in
           match res with
           | None -> new_values
