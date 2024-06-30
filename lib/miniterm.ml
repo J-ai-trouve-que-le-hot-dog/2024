@@ -444,7 +444,25 @@ let random_strings_c rand_c rand_m seed1 seed2 =
         )
     )))
   in
-  let* ff = (y body) @/ !+ 250000 in
+  let* ff = (y body) @/ !+ 500000 in
+  (ff @/ !+ seed1)
+
+let random_strings_c seed1 seed2 =
+  let () = vars := 0 in
+  let y = (fun f ->
+      let* om = lambda (fun x -> f (x @/ x)) in
+      om @/ om
+    ) in
+  let get i = take (drop (!~ "URDL") (i )) (!+ 1) in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ 11) %/ !+ 78074891)) ^/
+          (get (s %/ !+ 4))
+        )
+    )))
+  in
+  let* ff = (y body) @/ !+ 500000 in
   (ff @/ !+ seed1) ^/ (ff @/ !+ seed2)
 
 let lambdaman11

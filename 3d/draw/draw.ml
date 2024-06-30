@@ -1,5 +1,5 @@
 
-let c_width = 5
+let c_width = 6
 module Pos = struct
   type t = int * int
   let compare = compare
@@ -234,8 +234,8 @@ let output state =
   for j = 0 to Array.length a - 1 do
     for i = 0 to Array.length a.(0) - 1 do
       match a.(j).(i) with
-      | None -> output_string oc (pad_left (1+c_width) ".")
-      | Some s -> output_string oc (pad_left (1+c_width) s)
+      | None -> output_string oc (" " ^ pad_left (c_width) ".")
+      | Some s -> output_string oc (" " ^ pad_left (c_width) s)
     done;
     output_string oc "\n";
   done;

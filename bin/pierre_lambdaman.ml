@@ -10,10 +10,15 @@ let () =
   (* let e = Miniterm.random_string seed in *)
   (* Format.printf "%a\n" Ast.print_ast Miniterm.(!~ "solve lambdaman7 " ^/ e); *)
 
+  let _x = 43 in
+
+  let best = ref (0, max_int) in
+
   for seed = 1 + offs to 1000 + offs do
 
-  let e = Miniterm.random_string'' seed 490_000 91 in
-  let term_s = Format.asprintf "%a" Ast.print_ast Miniterm.(!~ "solve lambdaman18 " ^/ e) in
+    (* let e = Miniterm.random_strings_c_one seed in *)
+    let e = Miniterm.random_strings_c 43 seed in
+  let term_s = Format.asprintf "%a" Ast.print_ast Miniterm.(!~ "solve lambdaman21 " ^/ e) in
   let len = String.length term_s in
   (* Format.eprintf "TERM@.%s@.@." term_s; *)
   Format.eprintf "SIZE: %d@.@." len;
@@ -27,6 +32,12 @@ let () =
 
      Format.printf "SEED: %i@." seed;
      Format.printf "Missing: %d@.@." game.Run_lambdaman.npills;
+
+     if game.Run_lambdaman.npills < snd !best then
+       best := seed, game.Run_lambdaman.npills;
+
+     Format.printf "Best: %d %d@.@." (fst !best) (snd !best);
+
      (* Format.printf "WIN ? %b@." (Run_lambdaman.is_win game); *)
      if (Run_lambdaman.is_win game) then
        exit 0;
