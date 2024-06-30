@@ -111,11 +111,11 @@ let step cur_step a b values inited program =
   in
   let new_values, inited =
     List.fold_left (fun (new_values, inited) { var_to_init; init_from } ->
-        if not (List.mem var_to_init inited) then
+        if not (List.mem init_from inited) then
           match List.assoc_opt init_from values with
           | None -> (new_values, inited)
           | Some value ->
-            ((var_to_init, value) :: new_values, var_to_init :: inited)
+            ((var_to_init, value) :: new_values, init_from :: inited)
         else
           (new_values, inited)
       ) (new_values, inited)
