@@ -196,7 +196,9 @@ let output_init_from (out:out) outputs elt =
   at (1, 2) "1";
   at (2, 1) "1";
   at (0, 1) ".";
-  output_var_at out outputs (0, 5) elt.var_to_init
+  output_var_at out outputs (0, 5) elt.var_to_init;
+  out.acc <- out.last :: out.acc;
+  out.last <- Space.empty
 
 let output_prog prog =
   let out = { acc = [] ; last = Space.empty } in
