@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
 #include <sys/time.h>
 #include <immintrin.h>
 #include <x86intrin.h>
@@ -19,6 +20,34 @@ using i64 = int64_t;
 using u64 = uint64_t;
 using f32 = float;
 using f64 = double;
+
+struct identity {
+  template<class T>
+  T operator() (const T& x) const {return x;}
+};
+
+struct uint64_hash {
+  static inline uint64_t rotr(uint64_t x, unsigned k) {
+    return (x >> k) | (x << (8U * sizeof(uint64_t) - k));
+  }
+
+  static inline uint64_t hash_int(uint64_t x) noexcept {
+    auto h1 = x * (uint64_t)(0xA24BAED4963EE407);
+    auto h2 = rotr(x, 32U) * (uint64_t)(0x9FB21C651E98DF25);
+    auto h = rotr(h1 + h2, 32U);
+    return h;
+  }
+
+  size_t operator()(uint64_t x) const {
+    static const uint64_t FIXED_RANDOM = std::chrono::steady_clock::now().time_since_epoch().count();
+    return hash_int(x + FIXED_RANDOM);
+  }
+};
+
+template <typename K, typename V, typename Hash = uint64_hash>
+using hash_map = __gnu_pbds::gp_hash_table<K, V, Hash>;
+template <typename K, typename Hash = uint64_hash>
+using hash_set = hash_map<K, __gnu_pbds::null_type, Hash>;
 
 #define FOR(i, n) for(i32 i = 0; i < (i32)(n); ++i)
 #define FORU(i, j, k) for(i32 i = (j); i <= (i32)(k); ++i)

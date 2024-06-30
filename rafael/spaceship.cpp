@@ -1,5 +1,6 @@
 #include "header.hpp"
 #include <filesystem>
+#include <memory>
 #include <numeric>
 
 #include <sys/mman.h>
@@ -20,6 +21,7 @@ struct pt {
   i64 dist2() const { return x*x+y*y; }
   
   bool operator==(pt const& o) const { return tie(x,y) == tie(o.x,o.y); }
+  bool operator!=(pt const& o) const { return tie(x,y) != tie(o.x,o.y); }
   bool operator<(pt const& o) const { return tie(x,y) < tie(o.x,o.y); }
 };
 
@@ -255,6 +257,7 @@ struct problem {
   i32 id;
   i32 n;
   vector<pt> A;
+  map<pt, i32> RA;
 
   i64 cost(i64 i, pt si, i64 j, pt sj) const {
     if(j == n) return 0;
@@ -293,19 +296,26 @@ struct problem {
 
     A.clear();
     A.eb(0,0);
-    { string line;
+    
+    { set<pt> B;
+      string line;
       while(getline(is,line)) {
         if(line.empty()) break;
         istringstream iline(line);
         i64 x,y; iline >> x >> y;
-        A.eb(x,y);
+        if(pt(x,y) != pt(0,0)) 
+          B.insert(pt(x,y));
       }
+      A.insert(end(A),all(B));
     }
 
     n = A.size();
+    FOR(i, n) {
+      RA[A[i]] = i;
+    }
   }
 
-  void save(string sol) {
+  void save(string sol) const {
     check_solution(sol);
     string filename = "solutions/spaceship" + to_string(id);
     
@@ -454,16 +464,7 @@ struct state {
   }
 };
 
-
-
-int main(int argc, char** argv) {
-  runtime_assert(argc >= 2);
-  i64 id = atoi(argv[1]);
-  runtime_assert(1 <= id && id <= 25);
-  do_precomputation();
-
-  problem pb; pb.read(id);
-
+void local_opt(problem const &pb) {
   state S; S.reset(pb);
   debug(S.score);
   S.solve_speeds(pb);
@@ -492,7 +493,7 @@ int main(int argc, char** argv) {
 #pragma omp critical
       {
         cerr
-          << "id = " << setw(2) << id << ", "
+          << "id = " << setw(2) << pb.id << ", "
           << "niter = " << setw(12) << niter << ", "
           << "done = " << fixed << setprecision(6) << done << ", "
           << "temp = " << fixed << setprecision(6) << temp << ", "
@@ -681,6 +682,174 @@ int main(int argc, char** argv) {
       S.solve_speeds(pb);
     }
   }
+}
+
+const i32 MAXN = 512;
+
+u64 hash_visited[MAXN];
+u64 hash_x[1'000'001];
+u64 hash_y[1'000'001];
+u64 hash_vx[1'000'001];
+u64 hash_vy[1'000'001];
+
+void init_hash() {
+  FOR(i, MAXN) hash_visited[i] = rng.randomInt64();
+  FOR(i, 1'000'001) hash_x[i] = rng.randomInt64();
+  FOR(i, 1'000'001) hash_y[i] = rng.randomInt64();
+  FOR(i, 2*MAXV+1) hash_vx[i] = rng.randomInt64();
+  FOR(i, 2*MAXV+1) hash_vy[i] = rng.randomInt64();
+}
+
+struct llist {
+  char              elem;
+  shared_ptr<llist> prev;
+};
+
+struct beam_state {
+  bitset<MAXN> visited;
+  i32 x,y,vx,vy;
+
+  i32 nvisited;
+  u64 hvisited;
+
+  shared_ptr<llist> history;
+  char last;
+
+  string reconstruct() const {
+    string s;
+    for(auto h = history; h; h = h->prev) {
+      s += h->elem;
+    }
+    reverse(all(s));
+    return s;
+  }
+  
+  void reset() {
+    visited = 0;
+    visited[0] = 1;
+    x = y = 0;
+    vx = vy = 0;
+    nvisited = 1;
+    hvisited = 0;
+    history = nullptr;
+  }
+
+  u64 get_hash() const {
+    return hvisited
+      ^ hash_x[x + 500'000]
+      ^ hash_y[y + 500'000]
+      ^ hash_vx[vx + 500'000]
+      ^ hash_vy[vy + 500'000];
+  }
+
+  void visit(problem const& pb) {
+    auto it = pb.RA.find(pt(x,y));
+    if(it != pb.RA.end()) {
+      auto i = it->second;
+      if(!visited[i]) {
+        visited[i] = 1;
+        nvisited += 1;
+        hvisited ^= hash_visited[i];
+      }
+    }
+  }
+};
+
+void solve_beam(problem const& pb) {
+  runtime_assert(pb.n <= MAXN);
+  init_hash();
+
+  vector<beam_state> BEAM;
+  BEAM.eb(); BEAM.back().reset();
+
+  const i32 WIDTH = 500'000;
+
+  auto cmp_states = [&](beam_state const& a, beam_state const& b) {
+    return a.nvisited > b.nvisited; };
+
+  vector<beam_state> NBEAM(WIDTH * 9);
+  vector<i32> BEAM_I;
+  hash_set<u64, ::identity> HS;
+  
+  i32 step = 0;
+  while(1) {
+    step += 1;
+    if(BEAM.empty()) break;
+    { auto best = min_element(begin(BEAM), end(BEAM), cmp_states);
+      debug(step, BEAM.size(), best->nvisited, pb.n);
+      if(best->nvisited == pb.n) {
+        auto s = best->reconstruct();
+        cout << s << endl;
+        pb.save(s);
+        break;
+      }
+    }
+
+    cerr << 1 << flush;
+
+    HS.clear();
+    
+    cerr << 2 << flush;
+    
+#pragma omp parallel for
+    FOR(ia, BEAM.size()) {
+      auto const& sa = BEAM[ia];
+      FOR(dx, 3) FOR(dy, 3) {
+        auto &sb = NBEAM[ia*9+dx*3+dy];
+        sb = sa;
+        sb.vx = sa.vx + (dx-1);
+        sb.vy = sa.vy + (dy-1);
+        sb.x = sa.x + sb.vx;
+        sb.y = sa.y + sb.vy;
+        sb.last = dc[dy][dx];
+        sb.visit(pb);
+      }
+    }
+    
+    cerr << 3 << flush;
+    
+    BEAM_I.clear();
+    FOR(i, NBEAM.size()) { 
+      auto const& sb = NBEAM[i];
+      auto h = sb.get_hash();
+      if(HS.insert(h).second) {
+        BEAM_I.eb(i);
+      }
+    }
+    
+    cerr << 4 << flush;
+    
+    if(BEAM_I.size() > WIDTH) {
+      nth_element(begin(BEAM_I), begin(BEAM_I) + WIDTH, end(BEAM_I),
+                  [&](i32 i, i32 j) { return NBEAM[i].nvisited > NBEAM[j].nvisited; });
+      BEAM_I.resize(WIDTH);
+    }
+
+    cerr << 5 << flush;
+    
+    BEAM.resize(BEAM_I.size());
+    FOR(i, BEAM_I.size()) BEAM[i] = NBEAM[BEAM_I[i]];
+
+    cerr << 6 << flush;
+
+    for(auto& sa : BEAM) {
+      sa.history = make_shared<llist>(llist {
+          .elem = sa.last,
+          .prev = sa.history
+        });
+    }
+  }
+}
+
+int main(int argc, char** argv) {
+  runtime_assert(argc >= 2);
+  i64 id = atoi(argv[1]);
+  runtime_assert(1 <= id && id <= 25);
+  // do_precomputation();
+
+  problem pb; pb.read(id);
+
+  solve_beam(pb);
   
   return 0;
 }
