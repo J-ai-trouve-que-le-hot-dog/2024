@@ -35,7 +35,7 @@ let init_program a b program : env =
       acc)
     init_copy program.act
 
-let step a b values program =
+let step a b values inited program =
   let new_values =
     List.fold_left (fun new_values op ->
         let { op; l; u; out } = op in
@@ -92,10 +92,25 @@ let step a b values program =
             new_values outs)
       new_values program.copies
   in
+  let new_values, inited =
+    List.fold_left (fun (new_values, inited) { var_to_init; init_from } ->
+        if not (List.mem var_to_init inited) then
+          match List.assoc_opt init_from values with
+          | None -> (new_values, inited)
+          | Some value ->
+            ((var_to_init, value) :: new_values, var_to_init :: inited)
+        else
+          (new_values, inited)
+      ) (new_values, inited)
+      program.to_init_from
+  in
+  let values =
   List.fold_left (fun acc (var, value) ->
       let acc = List.remove_assoc var acc in
       (var, value) :: acc)
     values new_values
+  in
+  values, inited
 
 let result values program =
   List.filter_map (fun var ->
@@ -105,7 +120,8 @@ let result values program =
 let display i values =
   Format.printf "STEP: %d@." i;
   List.iter (fun ((V var), value) ->
-      Format.printf "%5s: %a@." var Z.pp_print value)
+      if not (String.starts_with ~prefix:"Dm" var) then
+        Format.printf "%5s: %a@." var Z.pp_print value)
     values;
   Format.printf "@.@."
 
@@ -113,13 +129,13 @@ let run ?(max=max_int) a b program =
   let a = Z.of_int a in
   let b = Z.of_int b in
   let init = init_program a b program in
-  let rec loop i values =
+  let rec loop i values inited =
     if i > max then None
     else
-    let values = step a b values program in
+    let values, inited = step a b values inited program in
     display i values;
     match result values program with
-    | [] -> loop (i+1) values
+    | [] -> loop (i+1) values inited
     | [v] -> Some v
     | v :: t ->
       if List.for_all (fun v' -> Z.equal v v') t then
@@ -128,7 +144,7 @@ let run ?(max=max_int) a b program =
         failwith (Format.asprintf "Multiple outputs %a %a" Z.pp_print v Z.pp_print (List.hd t))
   in
   display 0 init;
-  let result = loop 1 init in
+  let result = loop 1 init [] in
   match result with
   | None -> Format.printf "STOPPED@."
   | Some result ->
