@@ -244,11 +244,9 @@ module M10 () = struct
     (* T9 // *)
     a "Bug_not" (c "1") '-' (v "Bug");
 
-    a "OUT_1" (c "0") '=' (vdelay "Bug_pop_empty_not" 0);
-    a "OUT_2" (c "0") '=' (v "Bug_not");
+    a "OUT" (c "0") '=' (vdelay "Bug_pop_empty_not" 0);
+    a "OUT" (c "0") '=' (v "Bug_not");
 
-    delay_widget "OUT" (v "OUT_1") 3;
-    delay_widget "OUT" (v "OUT_2") 3;
     (*****)
 
     add_out "OUT";
@@ -256,10 +254,10 @@ module M10 () = struct
     ()
 
   let prog = !program
-  (* let () = make prog *)
+  let () = make prog
 
   (* 31212124 *)
-  let () = Comp.Run_comp.run ~max:600 1112224 42 prog
+  (* let () = Comp.Run_comp.run ~max:600 1112223344 42 prog *)
 
 end
 
