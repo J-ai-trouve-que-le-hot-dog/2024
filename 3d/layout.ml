@@ -10,6 +10,7 @@ let layout_with_sizes n m (components : string option array array list)
 
   let shapes = CCVector.create () in
   let shape_count = CCVector.create () in
+  let shape_components = CCVector.create () in
   let components = Array.of_list components in
   
   Array.iter (fun c ->
@@ -20,9 +21,11 @@ let layout_with_sizes n m (components : string option array array list)
       if !i = CCVector.length shapes then
         begin
           CCVector.push shapes (shape c);
-          CCVector.push shape_count 0
+          CCVector.push shape_count 0;
+          CCVector.push shape_components (CCVector.create ())
         end;
-      CCVector.set shape_count !i (CCVector.get shape_count !i + 1)
+      CCVector.set shape_count !i (CCVector.get shape_count !i + 1);
+      CCVector.push (CCVector.get shape_components !i) c
     )
     components;
   
@@ -65,7 +68,7 @@ let layout_with_sizes n m (components : string option array array list)
       done;
     done;
   done;
-  Format.printf "Variables: %d@." !nv;
+  Format.eprintf "Variables: %d@." !nv;
   try
     let nclauses = ref 0 in
     let solver = Minisat.create () in
@@ -143,7 +146,7 @@ let layout_with_sizes n m (components : string option array array list)
         distinct at.(i).(j)
       done;
     done;
-    Format.printf "Clauses: %d@." !nclauses;
+    Format.eprintf "Clauses: %d@." !nclauses;
     Minisat.simplify solver;
     Minisat.solve solver;
     let out = Array.init n (fun _ -> Array.init m (fun _ -> None)) in
@@ -154,12 +157,13 @@ let layout_with_sizes n m (components : string option array array list)
           let v = vars.(c).(i).(j) in
           if Minisat.value solver (Minisat.Lit.make v) = Minisat.V_true then
             begin
+              let comp = CCVector.pop_exn (CCVector.get shape_components c) in
               for di = 0 to x-1 do
                 for dj = 0 to y-1 do
                   if dj < Array.length ((CCVector.get shapes c).(di)) 
                   && ((CCVector.get shapes c).(di).(dj))
                   then begin
-                    out.(i+di).(j+dj) <- Some("x")
+                    out.(i+di).(j+dj) <- comp.(di).(dj)
                   end
                 done;
               done;
@@ -171,7 +175,7 @@ let layout_with_sizes n m (components : string option array array list)
   with | Minisat.Unsat -> None
 
 let layout (components : string option array array list) : string option array array =
-  Format.printf "Layout@.";
+  Format.eprintf "Layout@.";
   let exception Found of string option array array in
   let cx, cy =
     List.fold_left (fun (mx, my) c ->
@@ -179,15 +183,14 @@ let layout (components : string option array array list) : string option array a
         max mx mx', max my my')
       (0, 0) components
   in
-  Format.printf "(cx,cy) = (%d,%d)" cx cy;
   try 
     for area = 1 to 100000 do
-      Format.printf "Trying area %d@." area;
+      Format.eprintf "Trying area %d@." area;
       for n = cx to area do
         for m = cy to area do
           if area = n * m
           then begin
-            Format.printf "Trying %d = %d * %d@." area n m;
+            Format.eprintf "Trying %d = %d * %d@." area n m;
             match layout_with_sizes n m components with
             | Some(x) -> raise (Found(x))
             | None -> ()
