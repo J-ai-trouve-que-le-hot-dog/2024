@@ -123,12 +123,12 @@ end
 
 
 type out = {
-    mutable acc : string Space.t;
-    mutable first_free_y : int;
+    mutable acc : string Space.t list;
+    mutable last : string Space.t;
   }
 
 let add_out out (i, j) s =
-  out.acc <- Space.add (i, j+out.first_free_y) s out.acc
+  out.last <- Space.add (i, j) s out.last
 
 let var_label (V v) = v
 
@@ -144,7 +144,8 @@ let output_var_at (out: out) outputs (i, j) v =
       at (i+1, j-1) (var_label v ^ "@x");
       at (i+1, j) "@";
       at (i+1, j+1) (var_label v ^ "@y");
-      at (i+2, j) "1"
+      at (i+2, j) "1";
+      at (i, j) ".";
     end
 
 let output_elt (out:out) outputs elt =
@@ -152,8 +153,10 @@ let output_elt (out:out) outputs elt =
   at (0, 1) (string_of_input elt.u);
   at (1, 0) (string_of_input elt.l);
   at (1, 1) (String.make 1 elt.op);
+  at (1, 2) ".";
   output_var_at out outputs (2, 1) elt.out;
-  out.first_free_y <- out.first_free_y + 3
+  out.acc <- out.last :: out.acc;
+  out.last <- Space.empty
 
 let output_copy (out:out) outputs elt =
   let at = add_out out in
@@ -177,14 +180,14 @@ let output_copy (out:out) outputs elt =
 
   output_var_at out outputs (0, 1) out1;
   output_var_at out outputs (0, 5) out2;
-  out.first_free_y <- out.first_free_y + 7
+  out.acc <- out.last :: out.acc;
+  out.last <- Space.empty
 
 let output_prog prog =
-  let out = { acc = Space.empty ; first_free_y = 0 } in
+  let out = { acc = [] ; last = Space.empty } in
   List.iter (output_elt out prog.outputs) prog.act;
   List.iter (output_copy out prog.outputs) prog.copies;
-  P.to_array out.acc
-
+  List.map P.to_array out.acc
 
 let pad_left n s =
   let n = (max 0 (n - String.length s)) in
@@ -203,16 +206,18 @@ let output a =
     print_string "\n";
   done
 
-let () = 
-  let out = Layout.layout
-    [ [|
-      [| Some "x" |] ;
-      [| Some "x" |]
-    |]
-    ;
-    [|
-      [| Some "y" ; Some "y" |] 
-    |]
-    ] in
-  output out;
-  ()
+let make prog = output @@ Layout.layout (output_prog prog)
+
+(* let () =  *)
+(*   let out = Layout.layout *)
+(*     [ [| *)
+(*       [| Some "x" |] ; *)
+(*       [| Some "x" |] *)
+(*     |] *)
+(*     ; *)
+(*     [| *)
+(*       [| Some "y" ; Some "y" |]  *)
+(*     |] *)
+(*     ] in *)
+(*   output out; *)
+(*   () *)

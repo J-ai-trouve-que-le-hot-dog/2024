@@ -87,8 +87,10 @@ module M7 () = struct
     add_out "S"
 
   let prog = !program
-  let () = output (output_prog prog)
+  let () = make prog
 end
+
+module R = M7()
 
 module M12 () = struct
   let () = reset ()
@@ -159,7 +161,7 @@ module M12 () = struct
   let () = Comp.Run_comp.run ~max:5 10 20 prog
 end
 
-module R = M12()
+(* module R = M12() *)
 
 
 module M_test () = struct
@@ -173,7 +175,7 @@ module M_test () = struct
   ;;
 
   let prog = !program
-  let () = output (output_prog prog)
+  let () = make prog
 
   let () = Comp.Run_comp.run 10 10 prog
 end
