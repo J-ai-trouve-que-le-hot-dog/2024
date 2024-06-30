@@ -429,20 +429,23 @@ let lambdaman21 =
   random_string'' 2 490_000 91
 
 
-let random_strings_c seed1 seed2 =
+let random_strings_c rand_c rand_m seed1 seed2 =
   let () = vars := 0 in
   let y = (fun f ->
       let* om = lambda (fun x -> f (x @/ x)) in
       om @/ om
     ) in
-  let get i = take (drop (!~ "UURRDDLL") (i */ !+ 2)) (!+ 2) in
+  let get i = take (drop (!~ "UUDDLLRR") (i */ !+ 2)) (!+ 2) in
   let body call = lambda (fun i -> (lambda (fun s ->
       if_ (i =/ !+ 0)
         (!~ "")
-        ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ 11) %/ !+ 78074891)) ^/
-          (get (s %/ !+ 4))
+        ( (get (s %/ !+ 4)) ^/
+          ((call @/ (i -/ !+ 1)) @/ ((s */ !+ rand_c) %/ !+ rand_m)) 
         )
     )))
   in
   let* ff = (y body) @/ !+ 250000 in
   (ff @/ !+ seed1) ^/ (ff @/ !+ seed2)
+
+let lambdaman11
+  = random_strings_c 48271 2147483647 341105879 2106507128
