@@ -260,6 +260,23 @@ let lambdaman21 =
   ^/ s_l ^/ d64 ^/ d8 ^/ r256 ^/ s_l ^/ d64 ^/ d64 ^/ u8 ^/ r256 ^/ s_l ^/ s_r2
   ^/ u64 ^/ u64 ^/ d8 ^/ d8 ^/ d8 ^/ !~ "DLLLLLLLLLLLLLLLLLLLLLLLLLL" ^/ s_l
 
+let random_string_2 seed =
+  let () = vars := 0 in
+  let y = lambda (fun f ->
+      let* om = lambda (fun x -> f @/ (x @/ x)) in
+      om @/ om
+    ) in
+  let get i = take (drop (!~ "UURRDDLL") (i */ !+ 2)) (!+ 2) in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ 48271) %/ !+ 2147483647)) ^/
+          (get (s %/ !+ 4))
+        )
+    )))
+  in
+  ((y @/ lambda body) @/ !+ 500000) @/ !+ seed
+
 let random_string seed =
   let () = vars := 0 in
   let y = lambda (fun f ->
@@ -276,7 +293,6 @@ let random_string seed =
     )))
   in
   ((y @/ lambda body) @/ !+ 1000000) @/ !+ seed
-
 
 let compute_params l =
   let mx = List.fold_left max 0 l in

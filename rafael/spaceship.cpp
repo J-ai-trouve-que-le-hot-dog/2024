@@ -325,6 +325,7 @@ struct problem {
     if(check_solution(sol)) {
       string filename = "solutions/spaceship" + to_string(id);
     
+      filesystem::create_directory("solutions/");
       if(filesystem::exists(filename)) {
         string previous_best; 
         { ifstream file(filename);
@@ -367,11 +368,13 @@ struct state {
         auto it = pb.RA.find(pt(x,y));
         if(it != pb.RA.end()) {
           auto i = it->second;
-          vis[i] = 1;
-          perm.eb(i);
-          runtime_assert(-MAXV<=vx&&vx<=MAXV);
-          runtime_assert(-MAXV<=vy&&vy<=MAXV);
-          speed[i] = pt(vx+MAXV, vy+MAXV);
+          if(!vis[i]) {
+            vis[i] = 1;
+            perm.eb(i);
+            runtime_assert(-MAXV<=vx&&vx<=MAXV);
+            runtime_assert(-MAXV<=vy&&vy<=MAXV);
+            speed[i] = pt(vx+MAXV, vy+MAXV);
+          }
         }
       }
     }
@@ -508,9 +511,6 @@ void local_opt(problem const &pb, string init_sol) {
  
   i64 niter = 0;
   f64 done  = 0;
-  f64 temp0 = 0.1;
-  f64 temp1 = 0.05;
-  f64 temp  = temp0;
 
   i64 last_improvement = 0;
   
@@ -524,7 +524,6 @@ void local_opt(problem const &pb, string init_sol) {
     if(niter % 1024 == 0) {
       done = (f64) niter / MAX_ITER;
       done = min(done, 1.0);
-      temp = temp0 * pow(temp1 / temp0, done);
     }
     if(niter % (1<<20) == 0) {
 #pragma omp critical
@@ -533,7 +532,6 @@ void local_opt(problem const &pb, string init_sol) {
           << "id = " << setw(2) << pb.id << ", "
           << "niter = " << setw(12) << niter << ", "
           << "done = " << fixed << setprecision(6) << done << ", "
-          << "temp = " << fixed << setprecision(6) << temp << ", "
           << "score = " << setw(9) << S.score << ", "
           << "best_score = " << setw(9) << best_score << ", "
           << endl;
@@ -544,8 +542,7 @@ void local_opt(problem const &pb, string init_sol) {
     }
 
     auto accept = [&](i64 delta) -> bool {
-      if(delta <= 0) return true;
-      return delta <= temp * rng.randomDouble();
+      return delta <= 0;
     };
 
     auto get_new_speed = [&](pt s) {
@@ -962,7 +959,7 @@ struct beam_state {
   }
 };
 
-const i32 TREE_SIZE  = 500'000;
+const i32 TREE_SIZE  = 1'000'000;
 const i32 LIMIT_SIZE = TREE_SIZE - 100'000; // need 2 times the beam width
 
 using euler_tour_edge = u8;
