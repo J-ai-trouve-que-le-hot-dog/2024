@@ -147,6 +147,7 @@ void print_collection(ostream& out, T const& x) {
 
 // Random
 
+thread_local static inline
 struct RNG {
   uint64_t s[2];
 

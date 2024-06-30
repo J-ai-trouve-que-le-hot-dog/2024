@@ -1,6 +1,5 @@
 #include "header.hpp"
 #include <filesystem>
-#include <numeric>
 
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -31,12 +30,18 @@ struct pt {
   bool operator<(pt const& o) const { return tie(x,y) < tie(o.x,o.y); }
 };
 
+pt operator+(pt const& a, pt const& b) {
+  return pt(a.x+b.x,a.y+b.y);
+}
+
 ostream& operator<<(ostream& os, pt const &p) {
   return os << mt(p.x,p.y);
 }
 
 const i64 MAXD = 20'000;
 const i64 MAXV = 300;
+
+pt negate_speed(pt x) { return pt(2*MAXV-x.x, 2*MAXV-x.y); }
 
 using pre_inner = array<array<u64,2*MAXV+1>,2*MAXV+1>;
 pre_inner *pre = 0;
@@ -272,6 +277,13 @@ struct problem {
     return ::cost(dx,dy,si.x,si.y,sj.x,sj.y);
   }
 
+  i64 cost_delta(i64 i, pt si, i64 j, pt sj, pt deltai) const {
+    if(j == n) return 0;
+    i64 dx = A[j].x-(A[i].x + deltai.x-MAXV);
+    i64 dy = A[j].y-(A[i].y + deltai.y-MAXV);
+    return ::cost(dx,dy,si.x,si.y,sj.x,sj.y);
+  }
+
   void reconstruct(string& out, i64 i, pt si, i64 j, pt sj) const {
     i64 dx = A[j].x-A[i].x;
     i64 dy = A[j].y-A[i].y;
@@ -381,9 +393,10 @@ struct state {
 
     vector<i32> points;
     FORU(i, 1, pb.n-1) points.eb(i);
-    sort(all(points), [&](i32 i, i32 j) {
-      return pb.A[i].dist2() < pb.A[j].dist2();
-    });
+    rng.shuffle(points);
+    // sort(all(points), [&](i32 i, i32 j) {
+    //   return pb.A[i].x < pb.A[j].x;
+    // });
 
     perm.eb(pb.n);
     FOR(i0, points.size()) {
@@ -446,7 +459,7 @@ struct state {
   }
 
   void solve_speeds(problem const& pb) {
-    const i32 width = 128;
+    const i32 width = 1024;
     cerr << "Solving speeds, width = " << width << endl;
     struct beam_entry {
       i64 score;
@@ -460,7 +473,7 @@ struct state {
         .from = -1
       });
     FOR(i, pb.n-1) {
-      if(i % 1000 == 0) cerr << i << "/" << pb.n << endl;
+      if(i % 1 == 0) cerr << i << "/" << pb.n << endl;
       auto a = perm[i], b = perm[i+1];
       FORU(vx, speed[a].x - 32, speed[a].x + 32) {
         if(vx < 0 || vx >= 2*MAXV) continue;
@@ -486,6 +499,14 @@ struct state {
             });
         }
         sort(all(beam[i+1]), [&](auto const& a, auto const& b) { return a.score < b.score; });
+        set<pt> seen;
+        FOR(j, beam[i+1].size()) {
+          while(j < (i32)beam[i+1].size() && seen.count(beam[i+1][j].speed)) {
+            beam[i+1].erase(begin(beam[i+1]) + j);
+          }
+          if(j < (i32)beam[i+1].size()) seen.insert(beam[i][j].speed);
+        }
+        
         if(beam[i+1].size() > width) {
           beam[i+1].resize(width);
         }
@@ -518,6 +539,8 @@ void local_opt(problem const &pb, string init_sol) {
   auto best_state = S;
 
   const i32 MAX_ITER = 100'000'000;
+
+  auto nspeeds = S.speed;
   
   while(1) {
     niter += 1;
@@ -558,7 +581,7 @@ void local_opt(problem const &pb, string init_sol) {
       }
     };
 
-    i64 ty = rng.random32(3);
+    i64 ty = rng.random32(4);
     if(ty == 0) {
       i64 i = rng.random32(pb.n);
       i64 j = rng.random32(pb.n);
@@ -695,14 +718,70 @@ void local_opt(problem const &pb, string init_sol) {
         S.score += delta;
         S.speed[b] = nsb;
       }
+    }else if(ty == 3) {
+      i64 i = rng.random32(pb.n);
+      i64 j = rng.random32(pb.n);
+      if(i > j) swap(i,j);
+      if(i == j) continue;
+      if(i+1 == j) continue;
+
+      auto departure_speed = [&](i32 i) {
+        auto a1 = S.perm[i], a2 = S.perm[i+1];
+        auto sa1 = S.speed[a1], sa2 = S.speed[a2];
+        i32 c = 0;
+        pt b = sa1;
+        bool ok = 0;
+        FOR(dx, 3) FOR(dy, 3) {
+          auto nspeed = sa1+pt(dx-1,dy-1);
+          if(i+1 == pb.n ||
+             pb.cost(a1,sa1,a2,sa2) == 1+pb.cost_delta(a1,nspeed,a2,sa2, nspeed)) {
+            c += 1;
+            ok = 1;
+            if(rng.random32(c) == 0) {
+              b = nspeed;
+            }
+          }
+        }
+        runtime_assert(ok);
+        return b;
+      };
+      
+      auto a1 = S.perm[i], a2 = S.perm[i+1];
+      auto sa1 = S.speed[a1], sa2 = S.speed[a2];
+      auto b1 = S.perm[j], b2 = S.perm[j+1];
+      auto sb1 = S.speed[b1], sb2 = S.speed[b2];
+     
+
+      FORU(k, i+1, j) nspeeds[S.perm[k]] = negate_speed(departure_speed(k));
+
+      auto nsa2 = nspeeds[a2];
+      auto nsb1 = nspeeds[b1];
+      
+      i64 delta = 0;
+      delta -= pb.cost(a1,sa1, a2,sa2);
+      delta -= pb.cost(b1,sb1, b2,sb2);
+      delta += pb.cost(a1,sa1, b1,nsb1);
+      delta += pb.cost(a2,nsa2, b2,sb2);
+
+      FORU(k, i+1, j-1) {
+        auto a = S.perm[k], b = S.perm[k+1];
+        delta -= pb.cost(a,S.speed[a], b,S.speed[b]);
+        delta += pb.cost(b,nspeeds[b], a,nspeeds[a]);
+      }
+
+      if(accept(delta)) {
+        S.score += delta;
+        FORU(k, i+1, j) S.speed[S.perm[k]] = nspeeds[S.perm[k]];
+        reverse(begin(S.perm)+i+1, begin(S.perm)+j+1);
+       
+        // S.check_score(pb);
+      }
     }
 
     if(niter % 100'000'000 == 0) {
       S.solve_speeds(pb);
     }
     
-    // S.check_score();
-
     if(S.score < best_score) {
       last_improvement = niter;
       best_score = S.score;
@@ -888,7 +967,7 @@ struct beam_state {
     x = y = 0;
     vx = vy = 0;
     nvisited = 1;
-    hvisited = 1;
+    hvisited = 1; // TODO different seed for every iter
   }
 
   bool do_move(problem const& pb, i32 dx, i32 dy) {
@@ -1196,15 +1275,13 @@ int main(int argc, char** argv) {
   runtime_assert(1 <= id && id <= 25);
   i64 width = atoi(argv[2]);
   runtime_assert(1 <= width && width < 1'000'000'000);
+  do_precomputation();
 
   debug(upper_bounds[id]);
   
   problem pb; pb.read(id);
-
+  
   auto sol = beam_search(pb, width);
-  pb.save(sol);
-
-  do_precomputation();
   local_opt(pb, sol);
   
   return 0;
