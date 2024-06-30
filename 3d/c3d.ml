@@ -129,32 +129,24 @@ end
 module M12 () = struct
   let () = reset ()
 
-  let rounds = 10
+  let rounds = 20
   let srounds = string_of_int rounds
   let () =
 
-    a "P3" (c "50") '*' (c "20");
-    a "P3'" (c "50") '*' (c "20");
-    a "P3''" (c "50") '*' (c "20");
-    a "P6" (v "P3") '*' (v "P3'");
-    a "P9" (v "P6") '*' (v "P3''");
+    a "P3_1" (c "50") '*' (c "20");
+    a "P3_2" (c "50") '*' (c "20");
+    a "P3_3" (c "50") '*' (c "20");
+    a "P6" (v "P3_1") '*' (v "P3_2");
+    a "P9" (v "P3_2") '*' (v "P6");
+    p3 "P9" "P9_1" "P9_2" "P9_3";
     a "P18" (v "P9_1") '*' (v "P9_2");
+    a "P10" (v "P9_3") '*' (c "10");
+    p "P10" "P10_1" "P10_2";
 
-    p3 ~i:srounds "N" "N_1" "N_2" "N'";
-    p "N'" "N_3" "N_4";
+    p3 ~i:srounds "N" "N_1" "N_2" "N_3";
 
-    equal_widet "N10" (v "N_2") (c srounds);
-    p "N10" "N_not_Init" "N_10'";
-    a "N_is_Init" (c "1") '-' (v "N_10'");
-    a "S_Init" (v "P9") '*' (v "N_is_Init");
-
-    a "S_d" (v "S_Init") '+' (v "S_loop" ~i:"0");
-
-    a "S" (v "S_d") '#' (c "0");
-
-    a "P" (v "A2S") '/' (v "FSS");
-
-    a "S_loop" (v "P9") '-' (v "P");
+    a "S" (v "P10_1") '-' (v "P");
+    p ~i:"0" "S" "S_1" "S_2";
 
     a "2N" (v "N_1") '*' (c "2");
     p "2N" "2N_1" "2N_2";
@@ -163,39 +155,32 @@ module M12 () = struct
 
     a "F" (v "2NS1") '*' (v "2NS2");
 
-    a "FSS'" (v "F") '*' (v "P18");
-
-    a "FSS''" (v "FSS'") '*' (c "10");
-    a "FSS" (v "FSS''") '*' (c "10");
+    a "FSS" (v "F") '*' (v "P18");
 
     a "A2" (c "A") '*' (c "A");
-    a "A2S'" (v "A2") '*' (v "S_1");
-    a "A2S" (v "A2S'") '*' (c "10");
+    a "A2S" (v "A2") '*' (v "S_1");
 
-    p "S" "S_1" "S_2";
+    a "P" (v "A2S") '/' (v "FSS");
 
     a "SA" (v "S_2") '*' (c "A");
+    a "SAR" (v "SA") '/' (v "P10_2");
+    a "N1_t" (v "N_2") '=' (c "1");
+    delay_widget "N1" (v "N1_t") 6;
 
-    a "N1_t" (v "N_3") '=' (c "1");
+    a "Out" (v "N1") '*' (v "SAR");
 
-    delay_widget "N1" (v "N1_t") 3;
+    a "N_t" (v "N_3") '-' (c "1");
 
-    a "Out'" (v "N1") '*' (v "SA");
-
-    a "Out" (v "Out'") '/' (v "P9");
-
-    a "N_t" (v "N_4") '-' (c "1");
-
-    delay_widget "N" (v "N_t") 5;
+    delay_widget "N" (v "N_t") 2;
 
     add_out "Out";
 
     ()
 
   let prog = !program
-  (* let () = make prog *)
+  let () = make prog
 
-  let () = Comp.Run_comp.run ~max:200 50000000 20 prog
+  (* let () = Comp.Run_comp.run ~max:200 1047197551 10 prog *)
 end
 
 module R = M12()

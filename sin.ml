@@ -103,6 +103,33 @@ let _ =
   Format.printf "RES: %a@." Z.pp_print r
 
 
+let p9 = Z.of_string "1_000_000_000"
+let p10 = Z.of_string "10_000_000_000"
+let p18 = Z.of_string "1_000_000_000_000_000_000"
+let rec isin2 a n s =
+
+  Format.printf "n: %d@.x: %a@.s: %a@.@."
+    n Z.pp_print x Z.pp_print s;
+
+  if n = 1 then Z.div (Z.mul s a) p9
+  else
+    let f = (Z.mul (Z.of_int (2*n-1)) (Z.of_int (2*n-2))) in
+    let fss = (Z.mul p18 f) in
+    let a2s = (Z.mul s (Z.mul a a)) in
+
+    let p = Z.div a2s fss in
+    let s = Z.sub p10 p
+    in
+    Format.printf "f: %a@.fss: %a@.a2s: %a@.p: %a@.s_loop: %a@.@."
+      Z.pp_print f Z.pp_print fss Z.pp_print a2s Z.pp_print p Z.pp_print s;
+
+    isin2 a (n-1) s
+
+let visin2 a = isin2 a 15 p10
+let () = print_endline (Z.to_string (visin2 (Z.of_string "1047197551")))
+
+
+
 (* let l = List.init 160 (fun i -> let x = 0.01 *. float i in diff_sin x) *)
 
 (* let v = visin 0.5 *)
