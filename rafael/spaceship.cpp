@@ -684,160 +684,453 @@ void local_opt(problem const &pb) {
   }
 }
 
-const i32 MAXN = 512;
+const i32 MAXN   = 10'000;
+const i32 OFFSET = 500'000;
 
 u64 hash_visited[MAXN];
-u64 hash_x[1'000'001];
-u64 hash_y[1'000'001];
-u64 hash_vx[1'000'001];
-u64 hash_vy[1'000'001];
+u64 hash_x[2*OFFSET+1];
+u64 hash_y[2*OFFSET+1];
+u64 hash_vx[2*OFFSET+1];
+u64 hash_vy[2*OFFSET+1];
 
 void init_hash() {
   FOR(i, MAXN) hash_visited[i] = rng.randomInt64();
-  FOR(i, 1'000'001) hash_x[i] = rng.randomInt64();
-  FOR(i, 1'000'001) hash_y[i] = rng.randomInt64();
-  FOR(i, 2*MAXV+1) hash_vx[i] = rng.randomInt64();
-  FOR(i, 2*MAXV+1) hash_vy[i] = rng.randomInt64();
+  FOR(i, 2*OFFSET+1) hash_x[i] = rng.randomInt64();
+  FOR(i, 2*OFFSET+1) hash_y[i] = rng.randomInt64();
+  FOR(i, 2*OFFSET+1) hash_vx[i] = rng.randomInt64();
+  FOR(i, 2*OFFSET+1) hash_vy[i] = rng.randomInt64();
 }
 
-struct llist {
-  char              elem;
-  shared_ptr<llist> prev;
-};
+// struct llist {
+//   char              elem;
+//   shared_ptr<llist> prev;
+// };
+
+// struct beam_state {
+//   bitset<MAXN> visited;
+//   i32 x,y,vx,vy;
+
+//   i32 nvisited;
+//   u64 hvisited;
+
+//   shared_ptr<llist> history;
+//   char last;
+
+//   string reconstruct() const {
+//     string s;
+//     for(auto h = history; h; h = h->prev) {
+//       s += h->elem;
+//     }
+//     reverse(all(s));
+//     return s;
+//   }
+  
+//   void reset() {
+//     visited = 0;
+//     visited[0] = 1;
+//     x = y = 0;
+//     vx = vy = 0;
+//     nvisited = 1;
+//     hvisited = 0;
+//     history = nullptr;
+//   }
+
+//   u64 get_hash() const {
+//     return hvisited
+//       ^ hash_x[x + 500'000]
+//       ^ hash_y[y + 500'000]
+//       ^ hash_vx[vx + 500'000]
+//       ^ hash_vy[vy + 500'000];
+//   }
+
+//   void visit(problem const& pb) {
+//     auto it = pb.RA.find(pt(x,y));
+//     if(it != pb.RA.end()) {
+//       auto i = it->second;
+//       if(!visited[i]) {
+//         visited[i] = 1;
+//         nvisited += 1;
+//         hvisited ^= hash_visited[i];
+//       }
+//     }
+//   }
+// };
+
+// void solve_beam_old(problem const& pb) {
+//   runtime_assert(pb.n <= MAXN);
+//   init_hash();
+
+//   vector<beam_state> BEAM;
+//   BEAM.eb(); BEAM.back().reset();
+
+//   const i32 WIDTH = 500'000;
+
+//   auto cmp_states = [&](beam_state const& a, beam_state const& b) {
+//     return a.nvisited > b.nvisited; };
+
+//   vector<beam_state> NBEAM(WIDTH * 9);
+//   vector<i32> BEAM_I;
+//   hash_set<u64, ::identity> HS;
+  
+//   i32 step = 0;
+//   while(1) {
+//     step += 1;
+//     if(BEAM.empty()) break;
+//     { auto best = min_element(begin(BEAM), end(BEAM), cmp_states);
+//       debug(step, BEAM.size(), best->nvisited, pb.n);
+//       if(best->nvisited == pb.n) {
+//         auto s = best->reconstruct();
+//         cout << s << endl;
+//         pb.save(s);
+//         break;
+//       }
+//     }
+
+//     cerr << 1 << flush;
+
+//     HS.clear();
+    
+//     cerr << 2 << flush;
+    
+// #pragma omp parallel for
+//     FOR(ia, BEAM.size()) {
+//       auto const& sa = BEAM[ia];
+//       FOR(dx, 3) FOR(dy, 3) {
+//         auto &sb = NBEAM[ia*9+dx*3+dy];
+//         sb = sa;
+//         sb.vx = sa.vx + (dx-1);
+//         sb.vy = sa.vy + (dy-1);
+//         sb.x = sa.x + sb.vx;
+//         sb.y = sa.y + sb.vy;
+//         sb.last = dc[dy][dx];
+//         sb.visit(pb);
+//       }
+//     }
+    
+//     cerr << 3 << flush;
+    
+//     BEAM_I.clear();
+//     FOR(i, NBEAM.size()) { 
+//       auto const& sb = NBEAM[i];
+//       auto h = sb.get_hash();
+//       if(HS.insert(h).second) {
+//         BEAM_I.eb(i);
+//       }
+//     }
+    
+//     cerr << 4 << flush;
+    
+//     if(BEAM_I.size() > WIDTH) {
+//       nth_element(begin(BEAM_I), begin(BEAM_I) + WIDTH, end(BEAM_I),
+//                   [&](i32 i, i32 j) { return NBEAM[i].nvisited > NBEAM[j].nvisited; });
+//       BEAM_I.resize(WIDTH);
+//     }
+
+//     cerr << 5 << flush;
+    
+//     BEAM.resize(BEAM_I.size());
+//     FOR(i, BEAM_I.size()) BEAM[i] = NBEAM[BEAM_I[i]];
+
+//     cerr << 6 << flush;
+
+//     for(auto& sa : BEAM) {
+//       sa.history = make_shared<llist>(llist {
+//           .elem = sa.last,
+//           .prev = sa.history
+//         });
+//     }
+//   }
+// }
 
 struct beam_state {
-  bitset<MAXN> visited;
+  i32 time;
+  i32 visit_at[MAXN];
   i32 x,y,vx,vy;
 
   i32 nvisited;
   u64 hvisited;
 
-  shared_ptr<llist> history;
-  char last;
-
-  string reconstruct() const {
-    string s;
-    for(auto h = history; h; h = h->prev) {
-      s += h->elem;
-    }
-    reverse(all(s));
-    return s;
-  }
-  
   void reset() {
-    visited = 0;
-    visited[0] = 1;
+    time = 0;
+    FOR(i, MAXN) visit_at[i] = -1;
+    visit_at[0] = 0;
     x = y = 0;
     vx = vy = 0;
     nvisited = 1;
-    hvisited = 0;
-    history = nullptr;
+    hvisited = 1;
   }
 
-  u64 get_hash() const {
-    return hvisited
-      ^ hash_x[x + 500'000]
-      ^ hash_y[y + 500'000]
-      ^ hash_vx[vx + 500'000]
-      ^ hash_vy[vy + 500'000];
-  }
+  bool do_move(problem const& pb, i32 dx, i32 dy) {
+    vx += (dx-1);
+    vy += (dy-1);
+    x += vx;
+    y += vy;
+    if(x < -OFFSET || x > OFFSET || y < -OFFSET || y > OFFSET ||
+       vx < -OFFSET || vx > OFFSET || vy < -OFFSET || vy > OFFSET)
+      {
+        x -= vx;
+        y -= vy;
+        vy -= (dy-1);
+        vx -= (dx-1);
+        return false;
+      }
 
-  void visit(problem const& pb) {
+    time += 1;
     auto it = pb.RA.find(pt(x,y));
     if(it != pb.RA.end()) {
       auto i = it->second;
-      if(!visited[i]) {
-        visited[i] = 1;
+      if(visit_at[i] == -1) {
+        visit_at[i] = time;
         nvisited += 1;
         hvisited ^= hash_visited[i];
       }
     }
+
+    return true;
+  }
+  
+  bool do_move(problem const& pb, i32 m) {
+    return do_move(pb,m/3,m%3);
+  }
+
+  void undo_move(problem const& pb, i32 dx, i32 dy) {
+    auto it = pb.RA.find(pt(x,y));
+    if(it != pb.RA.end()) {
+      auto i = it->second;
+      if(visit_at[i] == time) {
+        visit_at[i] = -1;
+        nvisited -= 1;
+        hvisited ^= hash_visited[i];
+      }
+    }
+    time -= 1;
+    
+    x -= vx;
+    y -= vy;
+    vy -= (dy-1);
+    vx -= (dx-1);
+  }
+  
+  void undo_move(problem const& pb, i32 m) {
+    return undo_move(pb,m/3,m%3);
+  }
+
+  i32 value() const {
+    return nvisited;
+  }
+  
+  u64 get_hash() const {
+    return hvisited
+      ^ hash_x[x + OFFSET]
+      ^ hash_y[y + OFFSET]
+      ^ hash_vx[vx + OFFSET]
+      ^ hash_vy[vy + OFFSET];
   }
 };
 
-void solve_beam(problem const& pb) {
-  runtime_assert(pb.n <= MAXN);
+using euler_tour_edge = u8;
+struct euler_tour {
+  i32              size;
+  euler_tour_edge* data;
+
+  FORCE_INLINE void reset() { size = 0; }
+  FORCE_INLINE void push(i32 x) { data[size++] = x; }
+  FORCE_INLINE u8& operator[](i32 ix) { return data[ix]; }
+};
+const i32 TREE_SIZE = 100'000;
+const i32 LIMIT_SIZE = TREE_SIZE - 2000;
+
+vector<euler_tour> tree_pool;
+euler_tour get_new_tree(){
+  euler_tour tour;
+#pragma omp critical
+  {
+    if(tree_pool.empty()) {
+      tour.size = 0;
+      tour.data = new u8[TREE_SIZE];
+    }else{
+      tour = tree_pool.back();
+      tour.size = 0;
+      tree_pool.pop_back();
+    }
+  }
+  return tour;
+}
+
+const i64 HASH_SIZE = 1ull<<25;
+const i64 HASH_MASK = HASH_SIZE-1;
+atomic<uint64_t> *HS = nullptr; 
+
+void traverse_euler_tour
+(problem const& pb,
+ i32 istep,
+ euler_tour tour_current,
+ vector<euler_tour> &tours_next,
+ i64* histogram,
+ i32 cutoff, float cutoff_keep_probability)
+{
+  beam_state S; S.reset();
+
+  vector<i32> stack_moves(istep+1);
+  i32 nstack_moves = 0;
+
+  i32 ncommit = 0;
+  if(tours_next.empty()) tours_next.eb(get_new_tree());
+  auto *tour_next = &tours_next.back(); 
+
+  FOR(iedge, tour_current.size) {
+    auto const& edge = tour_current[iedge];
+    if(edge > 0) {
+      stack_moves[nstack_moves] = edge - 1;
+      S.do_move(pb, stack_moves[nstack_moves]);
+      nstack_moves += 1;
+    }else{
+      if(nstack_moves == istep) {
+        if(S.value() > cutoff || (S.value() == cutoff && rng.randomFloat() < cutoff_keep_probability)) {
+          while(ncommit < nstack_moves) {
+            tour_next->push(1+stack_moves[ncommit]);
+            ncommit += 1;
+          }
+
+          if(S.nvisited == pb.n) {
+#pragma omp critical
+            {
+              debug("FOUND", istep);
+              exit(0);
+            }
+          }
+
+          FOR(m, 9) {
+            if(S.do_move(pb,m)) {
+              auto h = S.get_hash();
+              auto prev = HS[h&HASH_MASK].exchange(h, std::memory_order_relaxed);
+              if(prev != h) {
+                histogram[S.value()] += 1;
+                tour_next->push(1+m);
+                tour_next->push(0);
+              }
+              S.undo_move(pb,m);
+            }
+          }
+        }
+      }
+
+      if(nstack_moves == 0) {
+        runtime_assert(S.nvisited == 1);
+        return;
+      }
+
+      if(ncommit == nstack_moves) {
+        tour_next->push(0);
+        ncommit -= 1;
+      }
+				
+      nstack_moves -= 1;
+      S.undo_move(pb,stack_moves[nstack_moves]);
+
+      if(tour_next->size > LIMIT_SIZE) {
+        FORD(i,ncommit-1,0) tour_next->push(0);
+        tour_next->push(0);
+        tours_next.eb(get_new_tree());
+        tour_next = &tours_next.back();
+        ncommit = 0;
+      }
+    }
+  }
+
+  runtime_assert(false);
+}
+
+void beam_search(problem const& pb) {
   init_hash();
-
-  vector<beam_state> BEAM;
-  BEAM.eb(); BEAM.back().reset();
-
-  const i32 WIDTH = 500'000;
-
-  auto cmp_states = [&](beam_state const& a, beam_state const& b) {
-    return a.nvisited > b.nvisited; };
-
-  vector<beam_state> NBEAM(WIDTH * 9);
-  vector<i32> BEAM_I;
-  hash_set<u64, ::identity> HS;
+  if(!HS) {
+    auto ptr = new atomic<uint64_t>[HASH_SIZE];
+    HS = ptr;
+  }
   
-  i32 step = 0;
-  while(1) {
-    step += 1;
-    if(BEAM.empty()) break;
-    { auto best = min_element(begin(BEAM), end(BEAM), cmp_states);
-      debug(step, BEAM.size(), best->nvisited, pb.n);
-      if(best->nvisited == pb.n) {
-        auto s = best->reconstruct();
-        cout << s << endl;
-        pb.save(s);
-        break;
+  const i32 width = 100'000;
+  i32 max_score = pb.n;
+  vector<i64> histogram(max_score+1, 0);
+  
+  vector<euler_tour> tours_current;
+  tours_current.eb(get_new_tree());
+  tours_current.back().push(0);
+	
+  i32   cutoff = 0;
+  float cutoff_keep_probability = 1.0;
+
+  for(i32 istep = 0;; ++istep) {
+    timer timer_s;
+    vector<euler_tour> tours_next;
+    histogram.assign(max_score+1,0);
+
+#pragma omp parallel
+    {
+      vector<euler_tour> L_tours_next;
+      vector<i64> L_histogram(max_score+1,0);
+      while(1) {
+        euler_tour tour_current;
+#pragma omp critical
+        { if(!tours_current.empty()) {
+            tour_current = tours_current.back();
+            tours_current.pop_back();
+          }else{
+            tour_current.size = 0;
+          }
+        }
+        if(tour_current.size == 0) break;
+        
+        traverse_euler_tour
+          (pb,
+           istep,
+           tour_current, 
+           L_tours_next, 
+           L_histogram.data(),
+           cutoff, cutoff_keep_probability);
+        
+#pragma omp critical
+        {
+          tree_pool.eb(tour_current);
+        }
+      }
+#pragma omp critical
+      { if(!L_tours_next.empty()) {
+          L_tours_next.back().push(0);
+        }
+        while(!L_tours_next.empty()) {
+          tours_next.eb(L_tours_next.back());
+          L_tours_next.pop_back();
+        }
+        FOR(i,max_score+1) histogram[i] += L_histogram[i];
       }
     }
 
-    cerr << 1 << flush;
-
-    HS.clear();
-    
-    cerr << 2 << flush;
-    
-#pragma omp parallel for
-    FOR(ia, BEAM.size()) {
-      auto const& sa = BEAM[ia];
-      FOR(dx, 3) FOR(dy, 3) {
-        auto &sb = NBEAM[ia*9+dx*3+dy];
-        sb = sa;
-        sb.vx = sa.vx + (dx-1);
-        sb.vy = sa.vy + (dy-1);
-        sb.x = sa.x + sb.vx;
-        sb.y = sa.y + sb.vy;
-        sb.last = dc[dy][dx];
-        sb.visit(pb);
+    { i64 total_count = 0;
+      cutoff = 0;
+      cutoff_keep_probability = 1.0;
+      FORD(i,max_score,0) {
+        if(total_count+histogram[i] > width) {
+          cutoff = i;
+          cutoff_keep_probability = (float)(width-total_count) / (float)(histogram[i]);
+          break;
+        }
+        total_count += histogram[i];
       }
     }
-    
-    cerr << 3 << flush;
-    
-    BEAM_I.clear();
-    FOR(i, NBEAM.size()) { 
-      auto const& sb = NBEAM[i];
-      auto h = sb.get_hash();
-      if(HS.insert(h).second) {
-        BEAM_I.eb(i);
-      }
-    }
-    
-    cerr << 4 << flush;
-    
-    if(BEAM_I.size() > WIDTH) {
-      nth_element(begin(BEAM_I), begin(BEAM_I) + WIDTH, end(BEAM_I),
-                  [&](i32 i, i32 j) { return NBEAM[i].nvisited > NBEAM[j].nvisited; });
-      BEAM_I.resize(WIDTH);
-    }
 
-    cerr << 5 << flush;
+    i64 total_size = 0;
+    for(auto const& t : tours_next) total_size += t.size;
     
-    BEAM.resize(BEAM_I.size());
-    FOR(i, BEAM_I.size()) BEAM[i] = NBEAM[BEAM_I[i]];
+    i32 high = 0;
+    FOR(i, max_score+1) if(histogram[i]) high = i;
+    cerr << setw(3) << istep << ": " <<
+      "nvisited = " << setw(3) << cutoff << ".." << setw(3) << high <<
+      ", tree size = " << setw(12) << total_size <<
+      ", num trees = " << setw(6) << tours_next.size() <<
+      ", elapsed = " << setw(10) << timer_s.elapsed() << "s" <<
+      endl;
 
-    cerr << 6 << flush;
-
-    for(auto& sa : BEAM) {
-      sa.history = make_shared<llist>(llist {
-          .elem = sa.last,
-          .prev = sa.history
-        });
-    }
+    tours_current = tours_next;
   }
 }
 
@@ -849,7 +1142,7 @@ int main(int argc, char** argv) {
 
   problem pb; pb.read(id);
 
-  solve_beam(pb);
+  beam_search(pb);
   
   return 0;
 }
