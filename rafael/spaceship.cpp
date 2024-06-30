@@ -459,7 +459,7 @@ struct state {
   }
 
   void solve_speeds(problem const& pb) {
-    const i32 width = 1024;
+    const i32 width = 128;
     cerr << "Solving speeds, width = " << width << endl;
     struct beam_entry {
       i64 score;
@@ -504,7 +504,7 @@ struct state {
           while(j < (i32)beam[i+1].size() && seen.count(beam[i+1][j].speed)) {
             beam[i+1].erase(begin(beam[i+1]) + j);
           }
-          if(j < (i32)beam[i+1].size()) seen.insert(beam[i][j].speed);
+          if(j < (i32)beam[i+1].size()) seen.insert(beam[i+1][j].speed);
         }
         
         if(beam[i+1].size() > width) {
@@ -1038,8 +1038,8 @@ struct beam_state {
   }
 };
 
-const i32 TREE_SIZE  = 1'000'000;
-const i32 LIMIT_SIZE = TREE_SIZE - 100'000; // need 2 times the beam width
+const i32 TREE_SIZE  = 500'000;
+const i32 LIMIT_SIZE = TREE_SIZE - 100'000; // need 2 times the number of cities
 
 using euler_tour_edge = u8;
 struct euler_tour {
@@ -1236,7 +1236,7 @@ string beam_search(problem const& pb, i32 width) {
       }
     }
 
-    if(best == pb.n || istep + 8 == upper_bounds[pb.id]) {
+    if(best == pb.n || istep == upper_bounds[pb.id] + 4) {
       return sol;
     }
 
