@@ -106,7 +106,7 @@ let right (i, j) = i, j + 1
 let get s (i, j) = s.(i).(j)
 
 let set s (i, j) c =
-  Format.printf "s.(%d).(%d) <- %s@." i j (to_string c);
+  (* Format.printf "s.(%d).(%d) <- %s@." i j (to_string c); *)
   s.(i).(j) <- c
 
 let set_empty s (i, j) = s.(i).(j) <- Empty
@@ -200,7 +200,7 @@ let eval n (h : (int * int, cell) Hashtbl.t) ((i, j) as co) s s' =
           raise (Timewarp (n - Z.to_int dt, c, v))
         with
         | Timewarp _ as e ->
-          Format.printf "%s@." __LOC__;
+          (* Format.printf "%s@." __LOC__; *)
           raise e
         | _ ->
           Format.ksprintf failwith
@@ -257,7 +257,7 @@ let step n states (s : t) : int * t =
   assert (check_timewarps None !timewarps);
   if !timewarps <> [] then (
     let new_id, _, _ = List.hd !timewarps in
-    Format.printf "Timewarping to %d!@." new_id;
+    (* Format.printf "Timewarping to %d!@." new_id; *)
     let new_state =
       match Hashtbl.find states new_id with
       | exception Not_found ->
@@ -357,12 +357,12 @@ let main () =
   let h = Hashtbl.create 10 in
   Hashtbl.replace h 1 p;
   let rec loop pred_id i x states =
-    Format.printf "%s%d:@\n%a@."
-      (match pred_id with
-      | None -> ""
-      | Some pred_id -> Printf.sprintf "%d -> " pred_id)
-      i pp x;
-    let _ = read_line () in
+    (* Format.printf "%s%d:@\n%a@." *)
+    (*   (match pred_id with *)
+    (*   | None -> "" *)
+    (*   | Some pred_id -> Printf.sprintf "%d -> " pred_id) *)
+    (*   i pp x; *)
+    (* let _ = read_line () in *)
     let new_id, new_state = step i states x in
     Hashtbl.replace states new_id new_state;
     loop (Some i) new_id new_state states
