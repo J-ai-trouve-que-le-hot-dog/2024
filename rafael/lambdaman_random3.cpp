@@ -3,9 +3,18 @@
 const i32 MAXN = 100'000;
 
 const i32 B = 94;
-const i32 MAXM = 1'000'000;
+const i32 MAXM = 2'000'000;
 
 i32 random_next(i32 x, i32 c, i32 m) { return (x * c) % m; }
+
+bool isprime(i32 m) {
+  FORU(i, 2, m) {
+    if(i*i > m) break;
+    if(m%i==0) return 0;
+  }
+  return 1;
+}
+
 
 thread_local i32 xs[MAXM];
 thread_local i32 ds[MAXM];
@@ -35,7 +44,7 @@ bool test(problem const& pb, i32 m, i32 c, i32 x0) {
 
   FORD(i, sz-2, 0) {
     i32 d = xs[i]%4;
-    i32 nr = xs[i]%8 < 4 ? 1 : 3;
+    i32 nr = xs[i]%8 < 4 ? 3 : 1;
     FOR(k, nr) {
       i64 nposition = pb.graph[position][d];
       if(nposition != -1) {
@@ -48,6 +57,14 @@ bool test(problem const& pb, i32 m, i32 c, i32 x0) {
     }
   }
 
+  if(nvisited >= 4000) {
+    #pragma omp critical
+    {
+      debug(m, c, x0, xs[sz-1], nvisited);
+    }
+  }
+  
+ 
   if(nvisited > best) {
 #pragma omp critical
     {
@@ -79,19 +96,23 @@ int main(int argc, char** argv) {
   runtime_assert(1 <= id && id <= 21);
 
   problem pb; pb.load(id);
-  i32 m = 500000;
-  while(1) {
-    if(m%10 == 0) debug(m, best, pb.sz);
+
+  { i32 m = 500'000;
+    while(1) {
+      if(!isprime(m)) { m -= 1; continue; }
+      debug(m, best, pb.sz);
 #pragma omp parallel for collapse(2)
-    FORU(c, 91, 91) {
-      FORU(start, 1, B-1) {
-        if(test(pb,m,c,start)) {
-          exit(0);
+      FORU(c, 2, B-1) {
+        FORU(start, 1, B-1) {
+          if(test(pb,m,c,start)) {
+            exit(0);
+          }
         }
       }
+      m -= 1;
     }
-    m += 1;
   }
-
+ 
+  
   return 0;
 }

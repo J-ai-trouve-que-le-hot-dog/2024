@@ -3,7 +3,7 @@
 const i32 MAXN = 100'000;
 
 const i32 B = 94;
-const i32 MAXM = 1'000'000;
+const i32 MAXM = 2'000'000;
 
 i32 random_next(i32 x, i32 c, i32 m) { return (x * c) % m; }
 
@@ -13,6 +13,14 @@ thread_local i64 last[MAXM];
 
 thread_local i32 visited[MAXN];
 thread_local i64 date = 0;
+
+bool isprime(i32 m) {
+  FORU(i, 2, m) {
+    if(i*i > m) break;
+    if(m%i==0) return 0;
+  }
+  return 1;
+}
 
 i32 best = 0;
 
@@ -45,6 +53,13 @@ bool test(problem const& pb, i32 m, i32 c, i32 x0) {
     }
   }
 
+  if(nvisited >= 2000) {
+    #pragma omp critical
+    {
+      debug(m, c, x0, xs[sz-1], nvisited);
+    }
+  }
+  
   if(nvisited > best) {
 #pragma omp critical
     {
@@ -76,19 +91,22 @@ int main(int argc, char** argv) {
   runtime_assert(1 <= id && id <= 21);
 
   problem pb; pb.load(id);
-  i32 m = 1;
-  while(1) {
-    if(m%10 == 0) debug(m, best, pb.sz);
+  
+  { i32 m = 999'999;
+    while(1) {
+      if(!isprime(m)) { m -= 1; continue; }
+      debug(m, best, pb.sz);
 #pragma omp parallel for collapse(2)
-    FORU(c, 91, 91) {
-      FORU(start, 1, B-1) {
-        if(test(pb,m,c,start)) {
-          exit(0);
+      FORU(c, 2, B-1) {
+        FORU(start, 1, B-1) {
+          if(test(pb,m,c,start)) {
+            exit(0);
+          }
         }
       }
+      m -= 1;
     }
-    m += 1;
   }
-
+  
   return 0;
 }

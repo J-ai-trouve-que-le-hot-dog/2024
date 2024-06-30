@@ -377,6 +377,9 @@ let lambdaman10 =
 let lambdaman17 =
   random_string' "solve lambdaman17 " 37 13 91 200671
 
+let lambdaman21 =
+  random_string' "solve lambdaman21 " 5 91 3 999773
+
 let random_string'' name seed stop c m =
  let () = vars := 0 in
  let y f =
@@ -399,10 +402,6 @@ let random_string'' name seed stop c m =
 
 let lambdaman18 =
   random_string'' "solve lambdaman18 " 69 56 91 500153
-
-let lambdaman21 =
-  random_string'' "solve lambdaman21 " 9 64 91 500029
-
 
 let random_strings_c name rand_c rand_m seed1 seed2 =
  let next s = (s * rand_c) mod rand_m in

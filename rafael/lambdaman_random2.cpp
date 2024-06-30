@@ -1,101 +1,181 @@
 #include "header.hpp"
+#include "lambdaman.hpp"
 #include <omp.h>
 
-struct union_find {
-  vector<int> A;
 
-  union_find(int n = 0) : A(n) {
-    iota(all(A), 0);
+const i64 MAXN = 100'000;
+
+const i64 B = 94;
+const i64 MAXM = 2'000'000;
+
+i64 random_next(i64 x, i64 c, i64 m) { return (x * c) % m; }
+
+thread_local i64 xs[MAXM];
+thread_local i64 last[MAXM];
+
+thread_local i64 visited[MAXN];
+thread_local i64 visited2[MAXN];
+thread_local i64 date = 0;
+
+i64 best = 0;
+
+bool isprime(i64 m) {
+  FORU(i, 2, m) {
+    if(i*i > m) break;
+    if(m%i==0) return 0;
   }
+  return 1;
+}
 
-  int find(int a) {
-    return A[a] == a ? a : A[a] = find(A[a]);
-  }
-
-  bool unite(int a, int b) {
-    a = find(a);
-    b = find(b);
-    if(a == b) {
-      return false;
+void step(problem const& pb, i64& position, i64& nvisited, i64* visited, i64 d){
+  i64 nr = 2;
+  FOR(k, nr) {
+    i64 nposition = pb.graph[position][d];
+    if(nposition != -1) {
+      position = nposition;
+      if(!visited[position]) {
+        visited[position] = 1;
+        nvisited += 1;
+      }
     }
-    A[a] = b;
-    return true;
   }
-};
+}
 
-
-using f64 = double;
-using f32 = float;
-
-const i64 dx[4] = {-1,1,0,0};
-const i64 dy[4] = {0, 0, -1, 1};
-const char* dc = "UDLR";
-
-// ( ((call @/ (i -/ !+ 1)) @/ ((s */ !+ 11) %/ !+ 78074891)) ^/
-// i64 random_next(i64 x) { return (x * 17) % 78074891; }
-i64 random_next(i64 x) { return (x * 48271) % 2147483647; }
-
-struct state {
-  bitset<20000> visited;
-  i64           position;
-  i64           nvisited;
-  
-  void reset(i32 start) {
-    visited = 0;
-    visited[start] = 1;
-    nvisited = 1;
-    position = start;
+bool test(problem const& pb, i64 m, i64 c, i64 x0) {
+  date += 1;
+  i64 x = x0;
+  i64 sz = 0;
+  while(sz < 250'000) {
+    xs[sz] = x;
+    // last[x] = date;
+    sz += 1;
+    x = random_next(x,c,m);
+    // if(last[x] == date) break;
   }
 
-  i64 calc_value(vector<vector<i64>> const& T) const {
-    i64 ret = 0;
+  // while(xs[sz-1] >= B) sz -= 1;
+  i64 x1 = xs[sz-1];
 
+  FOR(i, pb.sz) visited[i] = 0;
+  i64 nvisited = 0;
+
+  i64 position = pb.start;
+  FORD(i, sz-2, 0) {
+    step(pb, position, nvisited, visited, xs[i]%4);
+  }
+
+  i64 value = 0;
+ 
+  {
     auto dfs = letrec([&](auto dfs, i64 i, i64 p) -> bool {
       bool r = !visited[i];
-      for(auto j : T[i]) if(j != p) {
+      for(auto j : pb.T[i]) if(j != p) {
           if(dfs(j,i)) r = 1;
         }
-      if(r) ret += 1;
+      if(r) value += 1;
       return r;
     });
     
-    FOR(i, T.size()) if(!visited[i]) {
+    FOR(i, pb.T.size()) if(!visited[i]) {
       dfs(i, -1);
-      return ret;
+      break;
     }
-    return ret;
+  }
+
+  if(value > 1800) return false;
+
+#pragma omp critical
+  {
+    debug(value);
   }
   
-  void step(vector<array<i64,4>> const& graph, i32 seed) {
-    FOR(i, 250'000) {
-      i32 d = (seed % 4);
-      FOR(k, 2) {
-        i64 nposition = graph[position][d];
-        if(nposition != -1) {
-          position = nposition;
-          if(!visited[position]) {
-            visited[position] = 1;
-            nvisited += 1;
-          }
+  FOR(iter, 1024) {
+    FOR(j, pb.sz) visited2[j] = visited[j];
+    i64 position2 = position;
+    i64 nvisited2 = nvisited;
+
+    i64 y0 = 1+rng.random32(m-1);
+    
+    date += 1;
+    i64 y = y0;
+    i64 sz2 = 0;
+    while(sz2 < 250'000) {
+      xs[sz2] = y;
+      // last[y] = date;
+      sz2 += 1;
+      y = random_next(y,c,m);
+      // if(last[y] == date) break;
+    }
+    i64 y1 = xs[sz2-1];
+
+    FORD(i, sz2-2, 0) {
+      step(pb, position2, nvisited2, visited2, xs[i]%4);
+    }
+
+    if(nvisited2 >= 4500) {
+#pragma omp critical
+      {
+        debug(m, c, x0, xs[sz-1], nvisited2);
+      }
+    }
+  
+    if(nvisited2 > best) {
+#pragma omp critical
+      {
+        if(nvisited2 > best) {
+          best = nvisited2;
         }
       }
-      seed = random_next(seed);
+    }
+  
+    if(nvisited2 == pb.sz) {
+#pragma omp critical
+      {
+        cout << "Found: " 
+             << "m = " << m << ", "
+             << "c = " << c << ", "
+             << "start1 = " << x0 << ", "
+             << "stop1 = " << x1 << ", "
+             << "start2 = " << y0 << ", "
+             << "stop2 = " << y1 << ", "
+             << endl;
+      }
+      return true;
     }
   }
 
-
-};
-
-void print_string(i64 seed) {
-  string s;
-  FOR(i, 25000) {
-    i64 d = seed % 4;
-    s += dc[d];
-    s += dc[d];
-    seed = random_next(seed);
-  }
-  s.resize(1000);
-  cout << s << endl;
+  return false;
+  
+//   if(nvisited >= 8100) {
+//     #pragma omp critical
+//     {
+//       debug(m, c, x0, xs[sz-1], nvisited, total);
+//     }
+//   }
+  
+//   if(nvisited > best) {
+// #pragma omp critical
+//     {
+//       if(nvisited > best) {
+//         best = nvisited;
+//       }
+//     }
+//   }
+  
+//   if(nvisited == pb.sz) {
+// #pragma omp critical
+//     {
+//       cout << "Found: " 
+//            << "m = " << m << ", "
+//            << "c = " << c << ", "
+//            << "start = " << x0 << ", "
+//            << "stop = " << xs[sz-1] << ", "
+//            << endl;
+//     }
+//     return true;
+//   }else{
+//     return false;
+//   }
 }
 
 int main(int argc, char** argv) {
@@ -103,98 +183,24 @@ int main(int argc, char** argv) {
   i64 id = atoi(argv[1]);
   runtime_assert(1 <= id && id <= 21);
 
-  ifstream is("inputs/lambdaman" + to_string(id));
-  runtime_assert(is.good());
-  vector<string> grid;
-  string line;
-  while(getline(is, line)) {
-    if(line.empty()) break;
-    grid.eb(line);
-    debug(line);
-  }
-
-  i64 n = grid.size(), m = grid[0].size();
-  vector<array<i64,2>> points;
-  vector<vector<i64>> unpoint(n, vector<i64>(m));
-  FOR(i, n) FOR(j, m) if(grid[i][j] != '#') {
-    unpoint[i][j] = points.size();
-    points.pb({i,j});
-  }
-  i64 sz = points.size();
-  debug(sz);
-  runtime_assert(sz <= 20000);
-  i64 start = 0;
-  FOR(i, n) FOR(j, m) if(grid[i][j] == 'L') {
-    start = unpoint[i][j];
-  }
-
-  vector<array<i64,4>> graph(sz);
-  FOR(i, sz) {
-    auto p = points[i];
-    FOR(d, 4) {
-      i64 x = p[0] + dx[d];
-      i64 y = p[1] + dy[d];
-      if(x<0||x>=n||y<0||y>=m||grid[x][y]=='#') {
-        graph[i][d] = -1;
-      }else{
-        graph[i][d] = unpoint[x][y];
-      }
-    }
-  }
-
-  vector<vector<i64>> T(sz);
-  union_find uf(sz);
-  FOR(i, sz) FOR(d, 4) if(i64 j = graph[i][d]; j != -1) {
-    if(uf.unite(i,j)) {
-      T[i].eb(j);
-      T[j].eb(i);
-    }
-  }
-
-  i64 maxvisited = 0;
-  i32 iter = 0;
-
-  u64 base = rng.randomInt64();
-
-#pragma omp parallel
-  {
-#pragma omp critical
-    {
-      debug(omp_get_thread_num(), base + 42 + omp_get_thread_num(), &rng);
-      rng.reset(base + 42 + omp_get_thread_num());
-    }
-    state S;
+  problem pb; pb.load(id);
+  
+  { i64 m = 1'000'000'000;
     while(1) {
-      S.reset(start);
-      auto seed1 = rng.random64(2147483647);
-      S.step(graph, seed1);
-      auto value = S.calc_value(T);
-      if(value < 1800) {
-        #pragma omp critical
-        {
-          debug("here");
-        }
-        FOR(i, 1024) {
-          auto T = S;
-          auto seed2 = rng.random64(2147483647);
-          T.step(graph, seed2);
-#pragma omp critical
-          {
-            maxvisited = max(maxvisited, T.nvisited);
-            if(T.nvisited == sz) {
-              debug(seed1,seed2);
-              exit(0);
-            }
+      if(!isprime(m)) { m -= 1; continue; }
+      debug(m, best, pb.sz);
+#pragma omp parallel for collapse(2)
+      FORU(c, 2, B-1) {
+        FORU(start1, 1, B-1) {
+          if(test(pb,m,c,start1)) {
+            exit(0);
           }
         }
       }
-#pragma omp critical
-      {
-        iter += 1;
-        if(iter % 100 == 0) debug(iter, maxvisited, sz);
-      }
+      m -= 1;
     }
   }
   
   return 0;
 }
+
