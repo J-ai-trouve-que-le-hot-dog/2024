@@ -342,17 +342,13 @@ let lambdaman21 =
 (*   let mx, encoded = compute_params data in *)
 (*   random_strings_64 nsteps mx encoded *)
 
-let random_string' name seed n c m =
-  let next s = (s * c) mod m in
-  let rec next_n n s = if n = 0 then s else next_n (n-1) (next s) in
-  let stop = next_n n seed in
-  
+let random_string' name seed stop c m =
   let () = vars := 0 in
   let y f =
       let* om = lambda (fun x -> f (x @/ x)) in
       om @/ om
   in
-  let get i = take (drop (!~ "URDL") i) (!+ 1) in
+  let get i = take (drop (!~ "UDLR") i) (!+ 1) in
   let body call = lambda (fun s ->
       if_ (s =/ !+ stop)
         (!~ name)
@@ -363,20 +359,20 @@ let random_string' name seed n c m =
   in
   (y body) @/ !+ seed
 
-let lambdaman5 =
-  random_string' "solve lambdaman5 " 1 10000 91 3851
-
 let lambdaman4 =
-  random_string' "solve lambdaman4 " 1 10000 91 40721
+  random_string' "solve lambdaman4 " 10 58 91 12553
+
+let lambdaman5 =
+  random_string' "solve lambdaman5 " 5 17 92 1873
 
 let lambdaman7 =
-  random_string' "solve lambdaman7 " 1 15015 91 15017
-
-let lambdaman17 =
-  random_string' "solve lambdaman17 " 1 500007 91 500009
+  random_string' "solve lambdaman7 " 89 19 46 6899
 
 let lambdaman10 =
-  random_string' "solve lambdaman10 " 1 52815 91 52817
+  random_string' "solve lambdaman10 " 30 9 91 42557
+
+let lambdaman17 =
+  random_string' "solve lambdaman17 " 37 13 91 200671
 
 let random_string'' name seed n c =
  let next s = (s * c) mod 1000000009 in
@@ -394,7 +390,7 @@ let random_string'' name seed n c =
  in
  let body call = lambda (fun s ->
      if_ (s =/ !+ stop)
-       (!~ ("solve " ^ name ^ " "))
+       (!~ name)
        ( (call  @/ ((s */ !+ c) %/ !+ 1000000009)) ^/
          (get (s %/ !+ 8))
        )
@@ -403,10 +399,10 @@ let random_string'' name seed n c =
  (y body) @/ !+ seed
 
 let lambdaman18 =
-  random_string'' "lambdaman18" 2173 490_000 91
+  random_string'' "solve lambdaman18 " 2173 490_000 91
 
 let lambdaman21 =
-  random_string'' "lambdaman21" 2 490_000 91
+  random_string'' "solve lambdaman21 " 2 490_000 91
 
 
 let random_strings_c name rand_c rand_m seed1 seed2 =

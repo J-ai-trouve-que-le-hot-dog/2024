@@ -1,36 +1,6 @@
-#include "header.hpp"
-
-struct union_find {
-  vector<int> A;
-
-  union_find(int n = 0) : A(n) {
-    iota(all(A), 0);
-  }
-
-  int find(int a) {
-    return A[a] == a ? a : A[a] = find(A[a]);
-  }
-
-  bool unite(int a, int b) {
-    a = find(a);
-    b = find(b);
-    if(a == b) {
-      return false;
-    }
-    A[a] = b;
-    return true;
-  }
-};
-
-using f64 = double;
-using f32 = float;
-
-const i64 dx[4] = {-1,1,0,0};
-const i64 dy[4] = {0, 0, -1, 1};
-const char* dc = "UDLR";
+#include "lambdaman.hpp"
 
 i64 random_next(i64 x) { return (x * 48271) % 2147483647; }
-
 const i64 RANDOM_SIZE = 62'500;
 
 struct state {
@@ -86,88 +56,28 @@ struct state {
 
     value = 100000 * calc_value(T) - maxseed;
   }
-
-
 };
-
-// void print_string(vector<i64> const& seeds) {
-//   string s; 
-//   for(auto seed : seeds){
-//     FOR(i, RANDOM_SIZE) {
-//       i64 d = seed % 4;
-//       s += dc[d];
-//       seed = random_next(seed);
-//     }
-//   }
-//   s.resize(1000);
-// }
 
 int main(int argc, char** argv) {
   runtime_assert(argc >= 2);
   i64 id = atoi(argv[1]);
   runtime_assert(1 <= id && id <= 21);
 
-  ifstream is("inputs/lambdaman" + to_string(id));
-  runtime_assert(is.good());
-  vector<string> grid;
-  string line;
-  while(getline(is, line)) {
-    if(line.empty()) break;
-    grid.eb(line);
-    debug(line);
-  }
-
-  i64 n = grid.size(), m = grid[0].size();
-  vector<array<i64,2>> points;
-  vector<vector<i64>> unpoint(n, vector<i64>(m));
-  FOR(i, n) FOR(j, m) if(grid[i][j] != '#') {
-    unpoint[i][j] = points.size();
-    points.pb({i,j});
-  }
-  i64 sz = points.size();
-  debug(sz);
-  runtime_assert(sz <= 20000);
-  i64 start = 0;
-  FOR(i, n) FOR(j, m) if(grid[i][j] == 'L') {
-    start = unpoint[i][j];
-  }
-
-  vector<array<i64,4>> graph(sz);
-  FOR(i, sz) {
-    auto p = points[i];
-    FOR(d, 4) {
-      i64 x = p[0] + dx[d];
-      i64 y = p[1] + dy[d];
-      if(x<0||x>=n||y<0||y>=m||grid[x][y]=='#') {
-        graph[i][d] = -1;
-      }else{
-        graph[i][d] = unpoint[x][y];
-      }
-    }
-  }
-
-  vector<vector<i64>> T(sz);
-  union_find uf(sz);
-  FOR(i, sz) FOR(d, 4) if(i64 j = graph[i][d]; j != -1) {
-    if(uf.unite(i,j)) {
-      T[i].eb(j);
-      T[j].eb(i);
-    }
-  }
-
+  problem pb; pb.load(id);
+  
   vector<state> BEAM;
   BEAM.eb();
   BEAM.back().visited = 0;
-  BEAM.back().visited[start] = 1;
+  BEAM.back().visited[pb.start] = 1;
   BEAM.back().nvisited = 1;
-  BEAM.back().position = start;
+  BEAM.back().position = pb.start;
 
   const i64 BRANCH = 128;
   const i64 WIDTH  = 1'000;
   
   FOR(step, 1'000'000 / RANDOM_SIZE) {  
     debug(BEAM.size());
-    vector<min_queue<state> > NBEAM(sz);
+    vector<min_queue<state> > NBEAM(pb.sz);
 
     i64 branch = BRANCH;
     if(step == 0) branch *= WIDTH;
@@ -180,7 +90,7 @@ int main(int argc, char** argv) {
 #pragma omp parallel for
       FOR(i, branch) {
         children[i] = sa;
-        children[i].step(graph, T);
+        children[i].step(pb.graph, pb.T);
       }
       FOR(i, branch) {
         auto const& sb = children[i];
@@ -195,7 +105,7 @@ int main(int argc, char** argv) {
     }
 
     BEAM.clear();
-    FOR(i, sz) while(!NBEAM[i].empty()){
+    FOR(i, pb.sz) while(!NBEAM[i].empty()){
       BEAM.eb(NBEAM[i].top());
       NBEAM[i].pop();
     }
@@ -203,7 +113,7 @@ int main(int argc, char** argv) {
     sort(all(BEAM), greater<>());
 
     for(auto const& sa : BEAM) {
-      if(sa.nvisited == sz) {
+      if(sa.nvisited == pb.sz) {
         debug(sa.history);
         auto seeds = sa.history;
         // print_string(seeds);
@@ -218,7 +128,7 @@ int main(int argc, char** argv) {
     
     i64 best = 0;
     for(auto const& sa : BEAM) best = max(best, sa.value);
-    debug((step+1) * RANDOM_SIZE, best, sz);
+    debug((step+1) * RANDOM_SIZE, best, pb.sz);
   }
   
   return 0;
