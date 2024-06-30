@@ -1,5 +1,5 @@
 open Stdlib
-open Compile
+open Comp.Compile
 
 let init_program = { act = []; copies = []; outputs = [] }
 let program = ref init_program
@@ -150,8 +150,11 @@ module M12 () = struct
 
   let prog = !program
   let () = output (output_prog prog)
+
+  let () = Comp.Run_comp.run 10 20 prog
 end
 
+(* module R = M12() *)
 
 
 module M_test () = struct
@@ -159,12 +162,15 @@ module M_test () = struct
   let () = reset ()
 
   let () =
-    equal_widet "S" (c "A") (c "B");
+    equal_widet "U" (c "A") (c "B");
+    a "S" (v "U") '-' (c "12");
     add_out "S"
   ;;
 
   let prog = !program
   let () = output (output_prog prog)
+
+  let () = Comp.Run_comp.run 10 10 prog
 end
 
-module R = M12()
+module R = M_test()

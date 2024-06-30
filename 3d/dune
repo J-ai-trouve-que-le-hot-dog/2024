@@ -11,9 +11,9 @@
 (executable
  (name c3d)
  (modules c3d)
- (libraries compile))
+ (libraries comp))
 
 (library
- (name compile)
- (modules compile)
+ (name comp)
+ (modules compile run_comp)
  (libraries icfpc))
