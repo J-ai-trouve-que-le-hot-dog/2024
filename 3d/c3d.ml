@@ -123,7 +123,11 @@ module M12 () = struct
 
     a "S" (v "P10") '-' (v "P");
 
-    a "N10" (v "N_2") '=' (c "10");
+    equal_widet "N10" (v "N_2") (c "10");
+
+    (* a "N10" (v "N_2") '=' (c "10"); *)
+
+    a "S_I" (v "") '*' (v "")
 
     a "S" (v "P9_5") '*' (v "N10");
 
@@ -142,9 +146,7 @@ module M12 () = struct
     p "N'" "N_3" "N_4-";
 
     a "N_4'" (v "N_4-") '+' (c "0");
-    a "N_4''" (v "N_4'") '+' (c "0");
-    a "N_4'''" (v "N_4''") '+' (c "0");
-    a "N_4" (v "N_4'''") '+' (c "0");
+    a "N_4" (v "N_4'") '+' (c "0");
 
     add_out "Out"
 
@@ -154,7 +156,7 @@ module M12 () = struct
   let () = Comp.Run_comp.run 10 20 prog
 end
 
-(* module R = M12() *)
+module R = M12()
 
 
 module M_test () = struct
@@ -173,4 +175,4 @@ module M_test () = struct
   let () = Comp.Run_comp.run 10 10 prog
 end
 
-module R = M_test()
+(* module R = M_test() *)

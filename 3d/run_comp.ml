@@ -64,9 +64,9 @@ let step a b values program =
           | None -> new_values
           | Some res -> (
             match List.assoc_opt out new_values with
-            | Some _ ->
+            | Some value ->
               let (V out) = out in
-              failwith (Printf.sprintf "Writing twice in %s" out)
+              failwith (Format.asprintf "Writing twice in %s %a %a" out Z.pp_print value Z.pp_print res)
             | None -> (out, res) :: new_values)))
       [] program.act
   in
@@ -78,9 +78,9 @@ let step a b values program =
         | Some res ->
           List.fold_left (fun new_values out ->
               match List.assoc_opt out new_values with
-              | Some _ ->
+              | Some value ->
                 let (V out) = out in
-                failwith (Printf.sprintf "Writing twice in %s (copy)" out)
+                failwith (Format.asprintf "Writing twice in %s %a %a (copy)" out Z.pp_print value Z.pp_print res)
               | None -> (out, res) :: new_values)
             new_values outs)
       new_values program.copies
