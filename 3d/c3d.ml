@@ -112,22 +112,78 @@ end
 
 (* module R = M7() *)
 
-(* module M10 () = struct *)
+module M10 () = struct
 
-(*   let () = *)
+  let () =
 
-    
+    (* let cycles = 6 in *)
+    (* Trigger: T0 *)
+    let acc = (v "Acc" ~i:"A") in
+    let st = (v "St" ~i:"0") in
 
-(*     () *)
+    (* T1 *)
+    a "Ok_not" acc '+' st;
+    a "Top" acc '%' (c "10");
+    a "St_shift" st '*' (c "10");
+    a "St_top" st '%' (c "10");
+    a "St_pop" st '/' (c "10");
 
-(*   let prog = !program *)
-(*   (\* let () = make prog *\) *)
+    (* T1' *)
+    a "Ok_not_test" (v "Ok_not") '=' (c "0");
+    a "OK" (c "1") '+' (v "Ok_not_test");
+    delay_widget "OUT" (v "OK") 1;
 
-(*   let () = Comp.Run_comp.run ~max:200 50000000 20 prog *)
+    (* T2 *)
+    a "Push_not" (v "Top") '%' (c "2");
+    a "Kind" (v "Top") '/' (c "3");
+    a "St_next_push" (v "St_shift") '+' (v "Top");
+    a "St_kind" (v "St_top") '/' (c "3");
+    delay_widget "St_pop_delay" (v "St_pop") 1;
 
-(* end *)
+    (* T3 *)
+    a "Push" (c "1") '-' (v "Push_not");
+    a "St_not_push" (v "St_pop_delay") '*' (v "Push_not");
 
-(* module R = M10() *)
+    delay_widget "St_delay_bug" st 3;
+    delay_widget "St_next_push_delay" (v "St_next_push") 1;
+
+    (* T3' *)
+    a "Bug_pop_empty_not" (v "St_delay_bug") '+' (v "Push");
+    delay_widget "Bug_pop_empty_not_delay" (v "Bug_pop_empty_not") 3;
+    a "OUT" (c "0") '=' (v "Bug_pop_empty_not_delay");
+
+    (* T4 *)
+    a "St_if_push" (v "St_next_push_delay") '*' (v "Push");
+    delay_widget "St_not_push_delay" (v "St_not_push") 1;
+
+    delay_widget "Acc_delay" acc 4;
+
+
+    (* T5 *)
+    equal_widet "Not_same" (v "St_kind") (v "Kind");
+    delay_widget "Push_not_delay_bug" (v "Push_not") 3;
+
+    a "St" (v "St_if_push") '+' (v "St_not_push_delay");
+    a "Acc" (v "Acc_delay") '/' (c "10");
+
+    (* T6 *)
+    a "Bug" (v "Push_not_delay_bug") '*' (v "Not_same");
+
+    a "Bug_not" (c "1") '-' (v "Bug");
+    a "OUT" (c "0") '=' (v "Bug_not");
+
+    add_out "OUT";
+
+    ()
+
+  let prog = !program
+  (* let () = make prog *)
+
+  let () = Comp.Run_comp.run ~max:40 112342 42 prog
+
+end
+
+module R = M10()
 
 module M12 () = struct
   let () = reset ()
