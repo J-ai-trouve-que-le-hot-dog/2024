@@ -157,16 +157,18 @@ let layout_with_sizes n m (components : string option array array list)
           let v = vars.(c).(i).(j) in
           if Minisat.value solver (Minisat.Lit.make v) = Minisat.V_true then
             begin
-              let comp = CCVector.pop_exn (CCVector.get shape_components c) in
-              for di = 0 to x-1 do
-                for dj = 0 to y-1 do
-                  if dj < Array.length ((CCVector.get shapes c).(di)) 
-                  && ((CCVector.get shapes c).(di).(dj))
-                  then begin
-                    out.(i+di).(j+dj) <- comp.(di).(dj)
-                  end
+              match CCVector.pop (CCVector.get shape_components c) with
+              | Some(comp) ->
+                for di = 0 to x-1 do
+                  for dj = 0 to y-1 do
+                    if dj < Array.length ((CCVector.get shapes c).(di)) 
+                    && ((CCVector.get shapes c).(di).(dj))
+                    then begin
+                      out.(i+di).(j+dj) <- comp.(di).(dj)
+                    end
+                  done;
                 done;
-              done;
+              | None -> ()
             end
         done;
       done;
@@ -189,7 +191,7 @@ let layout (components : string option array array list) : string option array a
       (20, 20) components
   in
   try 
-    for area = 1500 to 10000 do
+    for area = 2000 to 10000 do
       Format.eprintf "Trying area %d@." area;
       for n = cx to area do
         for m = cy to area do
