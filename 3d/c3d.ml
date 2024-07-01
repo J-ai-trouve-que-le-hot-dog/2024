@@ -33,6 +33,13 @@ let add_copy_3 inv ?(i = "") out1 out2 out3 =
         :: !program.copies;
     }
 
+let add_delay delay_to delay_from =
+  program :=
+    {
+      !program with
+      delay = { delay_from; delay_to = V delay_to } :: !program.delay;
+    }
+
 let add_out out =
   program := { !program with outputs = V out :: !program.outputs }
 
@@ -263,7 +270,7 @@ module M10 () = struct
 
 end
 
-(* module R = M10() *)
+module R = M10()
 
 module M12 () = struct
   let () = reset ()

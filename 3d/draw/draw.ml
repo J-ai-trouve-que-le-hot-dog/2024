@@ -268,7 +268,7 @@ let del_char state =
   | None -> state
   | Some s ->
      let space =
-       let s = String.sub s 1 (String.length s - 1) in
+       let s = String.sub s 0 (String.length s - 1) in
        if s = "" then
          Space.remove state.cursor state.space
        else

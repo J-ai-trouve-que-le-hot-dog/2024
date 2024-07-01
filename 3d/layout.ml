@@ -164,6 +164,7 @@ let layout_with_sizes n m (components : string option array array list)
                     if dj < Array.length ((CCVector.get shapes c).(di)) 
                     && ((CCVector.get shapes c).(di).(dj))
                     then begin
+                      if out.(i+di).(j+dj) <> None && comp.(di).(dj) <> None then Format.eprintf "OVERLAPPING TILES@.";
                       out.(i+di).(j+dj) <- comp.(di).(dj)
                     end
                   done;

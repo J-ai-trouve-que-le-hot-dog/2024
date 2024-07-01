@@ -2,6 +2,24 @@ let () = Ocolor_format.prettify_formatter Format.std_formatter
 
 let print = true
 
+let pp_z ff z =
+  let s = Z.to_string z in
+  if String.length s > 20 then
+    begin
+      if Z.gt z Z.zero && Z.popcount z <= 8 then begin
+        let r = ref z in
+        while not (Z.equal !r Z.zero) do
+          let n = Z.trailing_zeros !r in
+          r := Z.sub !r (Z.shift_left Z.one n); 
+          Format.fprintf ff "2^%d" n;
+          if not (Z.equal !r Z.zero) then Format.fprintf ff "+" 
+        done;
+      end else
+        Format.fprintf ff "%s[...]%s" (String.sub s 0 5) (String.sub s (String.length s - 5) 5)
+    end
+  else Format.fprintf ff "%s" s
+
+
 type cell =
   | Empty (* empty . *)
   | I of Z.t
@@ -24,7 +42,7 @@ type cell =
 
 let to_string = function
   | Empty -> "."
-  | I i -> Format.asprintf "%a" Z.pp_print i
+  | I i -> Format.asprintf "%a" pp_z i
   | Left -> "<"
   | Right -> ">"
   | Up -> "^"
@@ -45,7 +63,7 @@ let to_string = function
 
 let format ppf = function
   | Empty -> Format.fprintf ppf "@{<black;bold>.@}"
-  | I i -> Format.fprintf ppf "@{<yellow>%a@}" Z.pp_print i
+  | I i -> Format.fprintf ppf "@{<yellow>%a@}" pp_z i
   | Left -> Format.fprintf ppf "@{<cyan><@}"
   | Right -> Format.fprintf ppf "@{<cyan>>@}"
   | Up -> Format.fprintf ppf "@{<cyan>^@}"
@@ -197,7 +215,7 @@ let eval n (h : (int * int, cell) Hashtbl.t) ((i, j) as co) s s' =
           let v = get u in
           let open Z.Compare in
           if dt < Z.one then
-            Format.kasprintf failwith "timewarp bad dt: %a" Z.pp_print dt;
+            Format.kasprintf failwith "timewarp bad dt: %a" pp_z dt;
           let c = i - Z.to_int dy, j - Z.to_int dx in
           raise (Timewarp (n - Z.to_int dt, c, v))
         with
@@ -276,7 +294,7 @@ let step n states (s : t) : int * t =
 
 let pp fmt m =
   let width = function
-    | I x -> String.length (Z.to_string x)
+    | I x -> String.length (Format.asprintf "%a" pp_z x)
     | _ -> 1
   in
   Array.iteri
@@ -291,7 +309,7 @@ let pp fmt m =
                m
            in
            function
-           | I x -> Format.fprintf fmt "@{<yellow>%*s@} " w (Z.to_string x)
+           | I x -> Format.fprintf fmt "@{<yellow>%*s@} " w (Format.asprintf "%a" pp_z x)
            | c -> Format.fprintf fmt "%*s%a " (w-1) "" format c)
         l;
       Format.fprintf fmt "@\n")
