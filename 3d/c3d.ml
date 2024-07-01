@@ -281,14 +281,17 @@ module M12 () = struct
     a "P18" (v "P9_1") '*' (v "P9_2");
     a "P10" (v "P9_3") '*' (c "10");
     p "P10" "P10_1" "P10_2";
+    a "A2" (c "A") '*' (c "A");
 
-    p3 ~i:srounds "N" "N_1" "N_2" "N_3";
-
-    a "S" (v "P10_1") '-' (v "P");
+    p3 ~i:srounds "N" "N_1" "N_2" "N_c";
     p ~i:"0" "S" "S_1" "S_2";
 
-    a "2N" (v "N_1") '*' (c "2");
-    p "2N" "2N_1" "2N_2";
+    p "N_c" "N_3" "N_4";
+    a "2N_1" (v "N_1") '*' (c "2");
+    a "2N_2" (v "N_2") '*' (c "2");
+
+    a "S" (v "P10_1") '-' (v "P");
+
     a "2NS1" (v "2N_1") '-' (c "1");
     a "2NS2" (v "2N_2") '-' (c "2");
 
@@ -296,29 +299,28 @@ module M12 () = struct
 
     a "FSS" (v "F") '*' (v "P18");
 
-    a "A2" (c "A") '*' (c "A");
     a "A2S" (v "A2") '*' (v "S_1");
 
     a "P" (v "A2S") '/' (v "FSS");
 
-    a "N1_t" (v "N_2") '=' (c "1");
-    delay_widget "N1" (v "N1_t") 3;
+    a "N1_t" (v "N_4") '=' (c "1");
+    delay_widget "N1" (v "N1_t") 1;
     a "S2N" (v "S_2") '*' (v "N1");
     a "SA" (v "S2N") '*' (c "A");
     a "Out" (v "SA") '/' (v "P10_2");
 
     a "N_t" (v "N_3") '-' (c "1");
 
-    delay_widget "N" (v "N_t") 2;
+    delay_widget "N" (v "N_t") 1;
 
     add_out "Out";
 
     ()
 
   let prog = !program
-  (* let () = make prog *)
+  let () = make prog
 
-  let () = Comp.Run_comp.run ~max:200 1047197551 10 prog
+  (* let () = Comp.Run_comp.run ~max:200 1047197551 10 prog *)
 end
 
 module R = M12()
