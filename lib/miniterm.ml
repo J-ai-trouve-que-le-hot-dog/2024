@@ -119,6 +119,24 @@ let lambdaman8 =
   in
   (y body) @/ !+ 10000
 
+let lambdaman9 =
+  let () = vars := 0 in
+  let y f =
+      let* om = lambda (fun x -> f (x @/ x)) in
+      om @/ om
+  in
+  let get i = take (drop (!~ "RLD") i) (!+ 1) in
+  let body call = lambda (fun s ->
+      if_ (s =/ !+ 0)
+        (!~ "solve lambdaman9 ")
+        ( (call @/ (s -/ !+ 1)) ^/
+          (get ((s %/ !+ 101) // !+ 50))
+        )
+    )
+  in
+  (y body) @/ !+ 5000
+
+
 (* let lambdaman9 = *)
 (*   let* conc3 = lambda (fun s -> s ^/ (s ^/ s) ^/ s) in *)
 (*   let* conc81 = lambda (fun s -> conc3 @/ (conc3 @/ (conc3 @/ s))) in *)
@@ -380,8 +398,8 @@ let lambdaman5 =
 let lambdaman7 =
   random_string' "solve lambdaman7 " 89 19 46 6899
 
-let lambdaman9 =
-  random_string' "solve lambdaman9 " 49 81 91 33641
+(* let lambdaman9 = *)
+(*   random_string' "solve lambdaman9 " 49 81 91 33641 *)
 
 let lambdaman10 =
   random_string' "solve lambdaman10 " 30 9 91 42557
@@ -437,7 +455,7 @@ let random_strings_c name c m seed1 stop1 seed2 stop2 =
  ((y body) @/ !+ (2*seed2))
 
 let lambdaman11
-  = random_strings_c "solve lambdaman11 " 15 7795961 24 38 17 3666
+  = random_strings_c "solve lambdaman11 " 36 3740197 26 19 1 14
 
 let lambdaman12
   = random_strings_c "solve lambdaman12 " 7 3847469 10 43 34 41
@@ -449,7 +467,7 @@ let lambdaman14
   = random_strings_c "solve lambdaman14 " 28 3854449 40 41 5 13
 
 let lambdaman15
-  = random_strings_c "solve lambdaman15 " 10 7785571 17 15 9 2914
+  = random_strings_c "solve lambdaman15 " 15 3765367 44 19 40 45
 
 let random_strings_c seed1 seed2 =
   let () = vars := 0 in
