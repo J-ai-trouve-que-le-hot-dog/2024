@@ -473,7 +473,7 @@ let random_strings_c name c m seed1 stop1 seed2 stop2 =
  ((y body) @/ !+ (2*seed2))
 
 let lambdaman11
-  = random_strings_c "solve lambdaman11 " 15 7795961 24 38 17 3666
+  = random_strings_c "solve lambdaman11 " 47 5128213 3 12 7 28
 
 let lambdaman12
   = random_strings_c "solve lambdaman12 " 7 3847469 10 43 34 41
