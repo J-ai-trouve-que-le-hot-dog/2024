@@ -10,13 +10,6 @@ const i64 MAXM = 2'000'000;
 
 i64 random_next(i64 x, i64 c, i64 m) { return (x * c) % m; }
 
-thread_local i64 xs[MAXM];
-thread_local i64 last[MAXM];
-
-thread_local i64 visited[MAXN];
-thread_local i64 visited2[MAXN];
-thread_local i64 date = 0;
-
 i64 best = 0;
 
 bool isprime(i64 m) {
@@ -27,11 +20,11 @@ bool isprime(i64 m) {
   return 1;
 }
 
-const i32 NBLOCK = 30;
+const i32 NBLOCK = 13;
 const i32 BLOCK_SIZE = 1'000'000 / NBLOCK - 128;
 
 struct state {
-  bitset<10000> visited;
+  bitset<15000> visited;
   i32 position;
   i32 nvisited;
   i32 value;
@@ -62,6 +55,30 @@ struct state {
       }
     }
   }
+  
+  void step(i32 c,i32 m,problem const& pb, i64 x, i32 SIZE){
+    FOR(i, SIZE) {
+      step(pb, x);
+      x = random_next(x,c,m);
+    }
+    // static i32 date = 0;
+    // static thread_local i32 SEEDS[1000000];
+    // static thread_local i32 seen[4000000];
+    // date += 1;
+    // FOR(i, SIZE) {
+    //   runtime_assert(seen[x] != date);
+    //   seen[x] = date;
+    //   SEEDS[i] = x;
+    //   x = random_next(x,c,m);
+    // }
+    // FORU(i, 0, SIZE) {
+    //   step(pb, SEEDS[i]);
+    // }
+
+    // FORD(i, SIZE, 0) {
+    //   step(pb, SEEDS[i]);
+    // }
+  }
 
   void calc_value(problem const& pb) {
     value = 0;
@@ -81,12 +98,10 @@ struct state {
       break;
     }
   }
-
-
 };
 
-const i32 WIDTH    = 8000;
-const i32 MAX_SEED = 110;
+const i32 WIDTH    = 2000;
+const i32 MAX_SEED = 64;
 
 bool test(problem const& pb, i64 m, i64 c) {
   vector<state> BEAM;
@@ -104,10 +119,7 @@ bool test(problem const& pb, i64 m, i64 c) {
         state t = s;
         t.history[iter] = x0;
         auto x = x0;
-        FOR(i, BLOCK_SIZE) {
-          t.step(pb,x);
-          x = random_next(x, c, m);
-        }
+        t.step(c,m,pb,x,BLOCK_SIZE);
         t.calc_value(pb);
         if(t.value == 0) runtime_assert(t.nvisited == pb.sz);
 #pragma omp critical
@@ -141,14 +153,15 @@ bool test(problem const& pb, i64 m, i64 c) {
   }
   cout << endl;
 
+  ofstream os("check");
   FOR(i, NBLOCK) {
     auto x = s.history[i];
     FOR(j, BLOCK_SIZE) {
-      i64 nr = x%8<4?3:1;
-      FOR(k, nr) cout << dc[x%4];
+      os << dc[x%4];
       x = random_next(x, c, m);
     }
   }
+  os << endl;
 
   return false;
 }

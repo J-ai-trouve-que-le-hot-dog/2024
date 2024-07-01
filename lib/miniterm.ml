@@ -211,40 +211,40 @@ let lambdaman9 =
 (*   (f @/ !+ 2) ^/ *)
 (*   (f @/ !+ 3) *)
 
-let lambdaman20 =
-  let* p1 = lambda (fun i -> (i +/ !+ 1) %/ (!+ 4)) in
-  let* p2 = lambda (fun i -> (i +/ !+ 2) %/ (!+ 4)) in
-  let* p3 = lambda (fun i -> (i +/ !+ 3) %/ (!+ 4)) in
-  let* get = lambda (fun i -> take (drop (!~ "URDL") i) (!+ 1)) in
-  let* y = lambda (fun f ->
-      let om = lambda (fun x -> f @/ (x @/ x)) in
-      om @/ om
-    ) in
-  let pow2_body call = lambda (fun i -> lambda (fun s -> 
-      if_ (i =/ !+ 0)
-        s
-        ((call @/ (i -/ !+ 1)) @/ (s ^/ s))))
-  in
-  let* pow2 = (y @/ lambda pow2_body) in
-  let body call = lambda (fun i -> lambda (fun d ->
-      if_ ((i -/ !+ 0) </ !+ 0)
-        (!~ "")
-        (((pow2 @/ i) @/ (get @/ d))
-         ^/ ((call @/ (i -/ !+ 2)) @/ (p1 @/ d))
-         ^/ ((pow2 @/ i) @/ (get @/ d))
-         ^/ ((call @/ (i -/ !+ 1)) @/ (p3 @/ d)) ^/ (get @/ (p1 @/ d)) (* ^/ (if_ (i </ !+ 1) (!~ "") (get @/ (p1 @/ d))) *)
-         ^/ ((call @/ (i -/ !+ 1)) @/ d) ^/ (get @/ (p2 @/ d)) (* ^/ (if_ (i </ !+ 1) (!~ "") (get @/ (p2 @/ d))) *)
-         ^/ ((call @/ (i -/ !+ 1)) @/ (p1 @/ d)) ^/ (get @/ (p3 @/ d)) (* ^/ (if_ (i </ !+ 1) (!~ "") (get @/ (p3 @/ d))) *)
-         ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d)))
-         ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d)))
-         (* ^/ (get @/ (p2 @/ d)) *)
-        )
-    )) in
-  let* f = (y @/ (lambda body)) @/ !+ 5 in
-  (f @/ !+ 0)(* ^/ (get @/ !+ 2) ^/
-  (f @/ !+ 1) ^/ (get @/ !+ 3) ^/
-  (f @/ !+ 2) ^/ (get @/ !+ 0) ^/
-  (f @/ !+ 3) *)
+(* let lambdaman20 = *)
+(*   let* p1 = lambda (fun i -> (i +/ !+ 1) %/ (!+ 4)) in *)
+(*   let* p2 = lambda (fun i -> (i +/ !+ 2) %/ (!+ 4)) in *)
+(*   let* p3 = lambda (fun i -> (i +/ !+ 3) %/ (!+ 4)) in *)
+(*   let* get = lambda (fun i -> take (drop (!~ "URDL") i) (!+ 1)) in *)
+(*   let* y = lambda (fun f -> *)
+(*       let om = lambda (fun x -> f @/ (x @/ x)) in *)
+(*       om @/ om *)
+(*     ) in *)
+(*   let pow2_body call = lambda (fun i -> lambda (fun s ->  *)
+(*       if_ (i =/ !+ 0) *)
+(*         s *)
+(*         ((call @/ (i -/ !+ 1)) @/ (s ^/ s)))) *)
+(*   in *)
+(*   let* pow2 = (y @/ lambda pow2_body) in *)
+(*   let body call = lambda (fun i -> lambda (fun d -> *)
+(*       if_ ((i -/ !+ 0) </ !+ 0) *)
+(*         (!~ "") *)
+(*         (((pow2 @/ i) @/ (get @/ d)) *)
+(*          ^/ ((call @/ (i -/ !+ 2)) @/ (p1 @/ d)) *)
+(*          ^/ ((pow2 @/ i) @/ (get @/ d)) *)
+(*          ^/ ((call @/ (i -/ !+ 1)) @/ (p3 @/ d)) ^/ (get @/ (p1 @/ d)) (\* ^/ (if_ (i </ !+ 1) (!~ "") (get @/ (p1 @/ d))) *\) *)
+(*          ^/ ((call @/ (i -/ !+ 1)) @/ d) ^/ (get @/ (p2 @/ d)) (\* ^/ (if_ (i </ !+ 1) (!~ "") (get @/ (p2 @/ d))) *\) *)
+(*          ^/ ((call @/ (i -/ !+ 1)) @/ (p1 @/ d)) ^/ (get @/ (p3 @/ d)) (\* ^/ (if_ (i </ !+ 1) (!~ "") (get @/ (p3 @/ d))) *\) *)
+(*          ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d))) *)
+(*          ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d))) *)
+(*          (\* ^/ (get @/ (p2 @/ d)) *\) *)
+(*         ) *)
+(*     )) in *)
+(*   let* f = (y @/ (lambda body)) @/ !+ 5 in *)
+(*   (f @/ !+ 0)(\* ^/ (get @/ !+ 2) ^/ *)
+(*   (f @/ !+ 1) ^/ (get @/ !+ 3) ^/ *)
+(*   (f @/ !+ 2) ^/ (get @/ !+ 0) ^/ *)
+(*   (f @/ !+ 3) *\) *)
 
 let lambdaman21 =
   let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in
@@ -395,9 +395,17 @@ let random_strings_bias name m c nsteps data =
   let mx, encoded = compute_params data in
   random_strings_bias name m c nsteps mx encoded
 
+let lambdaman16 =
+  random_strings "solve lambdaman16 " 3903689 3
+    62372
+    (List.rev [ 56 ; 61 ; 50 ; 53 ; 31 ; 56 ; 56 ; 33 ; 61 ; 56 ; 56 ; 28 ; 47 ; 56 ; 25 ; 41 ])
 
 let lambdaman19 = random_strings "solve lambdaman19 " 3903689 3 31122
     (List.rev [ 91 ; 98 ; 37 ; 7 ; 49 ; 61 ; 30 ; 3 ; 81 ; 109 ; 2 ; 47 ; 92 ; 100 ; 30 ; 47 ; 30 ; 45 ; 20 ; 50 ; 49 ; 18 ; 76 ; 105 ; 61 ; 39 ; 30 ; 64 ; 60 ; 88
+              ])
+
+let lambdaman20 = random_strings "solve lambdaman20 " 3903689 3 333205
+    (List.rev [ 54 ; 37 ; 32
               ])
 
 
@@ -436,8 +444,11 @@ let lambdaman10 =
 let lambdaman17 =
   random_string' "UDLR" "solve lambdaman17 " 37 13 91 200671
 
+let lambdaman18 =
+  random_string' "UDLR" "solve lambdaman18 " 9 3 3 812381
+
 let lambdaman21 =
-  random_string' "UDLR" "solve lambdaman21 " 5 91 3 999773
+  random_string' "UDLR" "solve lambdaman21 " 42 14 3 830237
 
 let random_string'' name seed stop c m =
  let () = vars := 0 in
@@ -478,8 +489,44 @@ let random_strings_18 name c m seed1 stop1 seed2 stop2 =
  in
  ((y body) @/ !+ seed2)
 
-let lambdaman18 =
-  random_strings_18 "solve lambdaman18 " 3 3903689 4 58 16 44
+(* let lambdaman18 = *)
+(*   random_strings_18 "solve lambdaman18 " 3 3903689 4 58 16 44 *)
+
+let random_strings_20 name c m seed1 stop1 seed2 stop2 seed3 stop3 =
+ let () = vars := 0 in
+ let y = (fun f ->
+     let* om = lambda (fun x -> f (x @/ x)) in
+     om @/ om
+   ) in
+ let get i = take (drop (!~ "UDLR") i) (!+ 1) in
+ let body call = lambda (fun s ->
+     let next_seed =
+       if_ (s =/ !+ stop2) (!+ seed1)
+         (if_ (s =/ !+ stop3) (!+ seed2)
+            ((s */ !+ c) %/ !+ m)) in
+     (if_ (s =/ !+ stop1)
+        (!~ name)
+        ( (call @/ next_seed) ^/
+          (get (s %/ !+ 4))
+        )
+     )
+   )
+ in
+ ((y body) @/ !+ seed3)
+
+let lambdaman20 =
+  let m = 3903689 in
+  let c = 3 in
+  let next x = (x*c) mod m in
+  let rec nextn x n = if n = 0 then x else nextn (next x) (n-1) in
+  let stop x = nextn x 333205 in
+  let seed1 = 1 in
+  let seed2 = 25 in
+  let seed3 = 28 in
+  random_strings_20 "solve lambdaman20 " c m
+    seed1 (stop seed1)
+    seed2 (stop seed2)
+    seed3 (stop seed3)
 
 let random_strings_c name c m seed1 stop1 seed2 stop2 =
  let () = vars := 0 in
@@ -515,6 +562,7 @@ let lambdaman14
 
 let lambdaman15
   = random_strings_c "solve lambdaman15 " 15 3765367 44 19 40 45
+
 
 let random_strings_c seed1 seed2 =
   let () = vars := 0 in

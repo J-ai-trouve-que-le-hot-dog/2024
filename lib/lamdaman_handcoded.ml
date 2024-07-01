@@ -22,10 +22,11 @@ let solutions = [
     13, lambdaman13;
     14, lambdaman14;
     15, lambdaman15;
-
+    16, lambdaman16;
     17, lambdaman17;
     18, lambdaman18;
     19, lambdaman19;
+    20, lambdaman20;
     21, lambdaman21;
 ]
 

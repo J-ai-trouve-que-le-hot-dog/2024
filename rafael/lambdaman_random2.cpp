@@ -6,12 +6,12 @@
 const i64 MAXN = 250'000;
 
 const i64 B = 94;
-const i64 MAXM = 2'000'000;
+const i64 MAXM = 4'000'000;
 
 i64 random_next(i64 x, i64 c, i64 m) { return (x * c) % m; }
 
 thread_local i64 xs[MAXM];
-thread_local i64 last[MAXM];
+thread_local i32 last[MAXM];
 
 thread_local i64 visited[MAXN];
 thread_local i64 visited2[MAXN];
@@ -48,10 +48,10 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
   i64 sz = 0;
   while(sz < 250'000) {
     xs[sz] = x;
-    // last[x] = date;
+    last[x] = date;
     sz += 1;
     x = random_next(x,c,m);
-    // if(last[x] == date) break;
+    if(last[x] == date) break;
   }
 
   while(xs[sz-1] >= B/2) sz -= 1;
@@ -102,10 +102,10 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
     i64 sz2 = 0;
     while(sz2 < 250'000) {
       xs[sz2] = y;
-      // last[y] = date;
+      last[y] = date;
       sz2 += 1;
       y = random_next(y,c,m);
-      // if(last[y] == date) break;
+      if(last[y] == date) break;
     }
     
     while(sz2 - 1 >= 0 && xs[sz2-1] >= B/2) {
@@ -193,12 +193,12 @@ int main(int argc, char** argv) {
 
   problem pb; pb.load(id);
   
-  { i64 m = 78'074'896 / 15;
+  { i64 m = 3'903'689;
     while(1) {
       if(!isprime(m)) { m -= 1; continue; }
       debug(m, best, pb.sz);
 #pragma omp parallel for collapse(2) schedule(dynamic)
-      FORU(c, 2, B-1) {
+      FORU(c, 3, 3) {
         FORU(start1, 1, (B-1)/2) {
           if(test(pb,m,c,start1)) {
             exit(0);
