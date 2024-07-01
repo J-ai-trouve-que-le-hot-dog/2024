@@ -20,8 +20,8 @@ bool isprime(i64 m) {
   return 1;
 }
 
-const i32 NBLOCK = 13;
-const i32 BLOCK_SIZE = 1'000'000 / NBLOCK - 128;
+const i32 NBLOCK = 29;
+const i32 BLOCK_SIZE = 1'000'000 / NBLOCK;
 
 struct state {
   bitset<15000> visited;
@@ -100,8 +100,8 @@ struct state {
   }
 };
 
-const i32 WIDTH    = 2000;
-const i32 MAX_SEED = 64;
+const i32 WIDTH    = 1000;
+const i32 MAX_SEED = 92;
 
 bool test(problem const& pb, i64 m, i64 c) {
   vector<state> BEAM;

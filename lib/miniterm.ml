@@ -397,12 +397,15 @@ let random_strings_bias name m c nsteps data =
 
 let lambdaman16 =
   random_strings "solve lambdaman16 " 3903689 3
-    62372
-    (List.rev [ 56 ; 61 ; 50 ; 53 ; 31 ; 56 ; 56 ; 33 ; 61 ; 56 ; 56 ; 28 ; 47 ; 56 ; 25 ; 41 ])
+    66666
+    (List.rev [ 56 ; 48 ; 54 ; 48 ; 23 ; 56 ; 50 ; 16 ; 56 ; 56 ; 28 ; 47 ; 56 ; 26 ; 9 ])
 
-let lambdaman19 = random_strings "solve lambdaman19 " 3903689 3 31122
-    (List.rev [ 91 ; 98 ; 37 ; 7 ; 49 ; 61 ; 30 ; 3 ; 81 ; 109 ; 2 ; 47 ; 92 ; 100 ; 30 ; 47 ; 30 ; 45 ; 20 ; 50 ; 49 ; 18 ; 76 ; 105 ; 61 ; 39 ; 30 ; 64 ; 60 ; 88
-              ])
+
+let lambdaman19 = random_strings "solve lambdaman19 " 3903689 3
+    34482
+    (List.rev [
+        91 ; 38 ; 85 ; 49 ; 47 ; 98 ; 47 ; 39 ; 99 ; 22 ; 61 ; 50 ; 49 ; 18 ; 28 ; 75 ; 100 ; 24 ; 71 ; 66 ; 96 ; 51 ; 100 ; 58 ; 80 ; 6 ; 55 ; 25
+      ])
 
 let lambdaman20 = random_strings "solve lambdaman20 " 3903689 3 333205
     (List.rev [ 54 ; 37 ; 32

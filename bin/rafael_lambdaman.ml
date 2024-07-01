@@ -17,12 +17,12 @@ let () =
   (*     Format.printf "NOK@." *)
   (* done; *)
   
-  let e = Miniterm.lambdaman13 in
+  let e = Miniterm.lambdaman16 in
   let VString(t) = Eval.eval Eval.EnvEmpty (Eval.term_from_expr e) in
   let t = Rope.to_string t in
   let s = Ast.Encoded_string.to_string (Ast.Encoded_string.from_raw_string t) in
   (* Format.eprintf "%d@.@." (String.length s); *)
-  (* Format.printf "%s\n" s; *)
+  Format.printf "%s\n" s;
 
   (* let game = Run_lambdaman.(decode (read_file "inputs/lambdaman11")) in *)
   (* if Run_lambdaman.(check game (str_sol s)) *)
@@ -30,7 +30,6 @@ let () =
   (*   Format.printf "OK@." *)
   (* else *)
   (*   Format.printf "NOK@."; *)
-
 
   let m = Format.asprintf "%a" Ast.print_ast e in
   Format.printf "%s\n" m;
