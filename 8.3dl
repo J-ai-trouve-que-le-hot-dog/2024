@@ -1,0 +1,26 @@
+
+          .         R:          .          .          .          .          .          .          .          .          <        U:A          >          .          .          .
+        Z4:          #          .          .          <        U4:          >          .       U1@x          @       U1@y          v       U3@x          @       U3@y          .
+          .          S     U0_1@x          @     U0_1@y          v     U0_2@x          @     U0_2@y          1          .          .          .          1        V2:          .
+        Zx:          >          .          1          .          .          .          1     U0a_1:          .       U4@x          @       U4@y          A          =          .
+          .        Z@x          @        Z@y     U0_3@x          @     U0_3@y       Vm2:          -          .          0          1          .          .          .          .
+          .          .          1          .          .          1          .          .          .      U0_1:          =          .      Umod:        R@x          @        R@y
+        Vx:          >          .        NZ:          >          .          .       Zx@x          @       Zx@y          .       V10:          +          .          1          .
+          .        V@x          @        V@y      Vm2@x          @      Vm2@y          .          1      U0a@x          @      U0a@y          .          .          .          .
+          .          .          1          .          .          1          .        U3:          >          .          1       Vt@x          @       Vt@y        Z2:          .
+          .          .          .          <       U0a:          >          .          .      Vm1@x          @      Vm1@y          .          1        U1:          %          .
+          .    U0a_1@x          @    U0a_1@y          v    U0a_2@x          @    U0a_2@y          .          1          .          .          .          .          .          .
+          .          .          1          .          .          .          1          .          .          <        Z:2          >          .     Umod@x          @     Umod@y
+        Ut:          >          .    U0a_3@x          @    U0a_3@y          .       Z1@x          @       Z1@y          v       Z2@x          @       Z2@y          1          .
+          .      Vm4@x          @      Vm4@y          1          .          .          .          1          .          .          .          1        Z3:          .          .
+          .     U0a_A:          1          .          .          <       Z_c:          >          .      Z_c@x          @      Z_c@y       Vm1:          /          .          .
+       Utx:          -          .       Z3@x          @       Z3@y          v       Z4@x          @       Z4@y          1          .          .          .          .          .
+          .          .          .          .          1          .          .          .          1          .          .          .       Ut@x          @       Ut@y          .
+        U@x          @        U@y          A          .       Z5@x          @       Z5@y          .          .          .          1          .          1        Z1:          .
+          .          1       Vm4:          +          .          A          1          .          .      U0_3:        Z5:          +          .        V1:          *          .
+          .          .          .          .     U0a_3:          *          .     U0a_2:      U0_2:          /          .          .          .          .          .          .
+          .          .      Utx@x          @      Utx@y          .       Vm3:          *          .          .       NZ@x          @       NZ@y      V10@x          @      V10@y
+          .          .          .          1    U0a_A@x          @    U0a_A@y          .      U0a@x          @      U0a@y          1          .          .          1          .
+        Vt:          >          .          .          .          1       Vx@x          @       Vx@y          1          .          <        V:0          >          .          .
+          .      Vm3@x          @      Vm3@y          .          .          .          1          .       V1@x          @       V1@y          .       V2@x          @       V2@y
+          .          .          1          .          .          .          .          .          .          .          1          .          .          .          1          .
