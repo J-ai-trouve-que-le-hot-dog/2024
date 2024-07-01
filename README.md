@@ -47,3 +47,22 @@ We wrote the small examples by hand (using only the linked and the editor), usin
 compiler for the larger examples. Unfortunately, our compiled solutions hit the time
 limit for both 3d8 and 3d11, but we believe they would have beat the high score at the
 end of the competition if they had not.
+
+## Efficiency
+
+We already had written an interpreter with call-by-need, so it did not require many
+changes to adapt it. For small efficiency problems, we solved them by hand,
+recognizing the function that was being computed. For SAT and sudoku, we recognized
+that this was what was being computed, and we used a solver. We lost some time
+trying to debug the SAT solver before seeing that our solution was actually correct.
+
+
+## Lightning round
+
+At the end of the lightning round, we had:
+
+- all efficiency problems solved
+- problems 3d1-9 handwritten, using the editor for some (but no linker nor compiler),
+  as well as a simulator to be able to test
+- [TODO Rafael: spaceship?]
+- handcoded and compressed solutions to lambdaman, but no random walks yet.
