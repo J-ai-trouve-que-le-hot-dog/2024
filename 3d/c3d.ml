@@ -1,7 +1,7 @@
 open Stdlib
 open Comp.Compile
 
-let init_program = { act = []; copies = []; outputs = []; to_init_from  = [] }
+let init_program = { act = []; copies = []; outputs = []; to_init_from  = []; delay = [] }
 let program = ref init_program
 let count = ref 0
 let reset () =
@@ -36,6 +36,8 @@ let add_copy_3 inv ?(i = "") out1 out2 out3 =
 let add_out out =
   program := { !program with outputs = V out :: !program.outputs }
 
+let add_delay res from = program := { !program with delay = { delay_to = V res; delay_from = from } :: !program.delay }
+
 let equal_widet =
   let var () =
     incr count;
@@ -61,10 +63,10 @@ let delay_widget =
   let rec loop out in_ n =
     assert(n > 0);
     if n = 1 then
-      add_act out in_ '+' (c "0")
+      add_delay out in_
     else
       let var = var () in
-      add_act var in_ '+' (c "0");
+      add_delay var in_;
       loop out (v var) (n-1)
   in
   loop
@@ -183,7 +185,7 @@ module M10 () = struct
   let () =
 
     (* T1 *)
-    p "Acc" ~i:"A" "Acc_2" "Acc_tmp";
+    p3 "Acc" ~i:"A" "Acc_1" "Acc_2" "Acc_tmp";
     p3 "St" ~i:"0" "St_1" "St_2" "St_tmp";
 
     (* T2 *)
@@ -200,7 +202,6 @@ module M10 () = struct
     a "St_pop" (v "St_3") '/' (c "10");
 
     a "Empty" (v "Acc_4") '=' (c "0");
-    a "Empty_2" (v "Acc_5") '=' (c "0");
     (* T3 // *)
 
     (* T4 *)
@@ -216,7 +217,8 @@ module M10 () = struct
     a "Ok" (v "Empty_st_2") '+' (c "1");
     a "OUT" (c "1") '=' (v "Ok");
 
-    a "St_test" (v "Empty_2") '+' (v "St");
+    (* TODO copy st *)
+    a "St_test" (v "Empty") '+' (v "St");
     a "OUT" (c "0") '%' (v "St_test");
 
     (* T5 *)
@@ -257,7 +259,7 @@ module M10 () = struct
   let () = make prog
 
   (* 31212124 *)
-  (* let () = Comp.Run_comp.run ~max:600 0 42 prog *)
+  (* let () = Comp.Run_comp.run ~max:600 1112223344 42 prog *)
 
 end
 
@@ -279,14 +281,17 @@ module M12 () = struct
     a "P18" (v "P9_1") '*' (v "P9_2");
     a "P10" (v "P9_3") '*' (c "10");
     p "P10" "P10_1" "P10_2";
+    a "A2" (c "A") '*' (c "A");
 
-    p3 ~i:srounds "N" "N_1" "N_2" "N_3";
-
-    a "S" (v "P10_1") '-' (v "P");
+    p3 ~i:srounds "N" "N_1" "N_2" "N_c";
     p ~i:"0" "S" "S_1" "S_2";
 
-    a "2N" (v "N_1") '*' (c "2");
-    p "2N" "2N_1" "2N_2";
+    p "N_c" "N_3" "N_4";
+    a "2N_1" (v "N_1") '*' (c "2");
+    a "2N_2" (v "N_2") '*' (c "2");
+
+    a "S" (v "P10_1") '-' (v "P");
+
     a "2NS1" (v "2N_1") '-' (c "1");
     a "2NS2" (v "2N_2") '-' (c "2");
 
@@ -294,21 +299,19 @@ module M12 () = struct
 
     a "FSS" (v "F") '*' (v "P18");
 
-    a "A2" (c "A") '*' (c "A");
     a "A2S" (v "A2") '*' (v "S_1");
 
     a "P" (v "A2S") '/' (v "FSS");
 
-    a "SA" (v "S_2") '*' (c "A");
-    a "SAR" (v "SA") '/' (v "P10_2");
-    a "N1_t" (v "N_2") '=' (c "1");
-    delay_widget "N1" (v "N1_t") 5;
-
-    a "Out" (v "N1") '*' (v "SAR");
+    a "N1_t" (v "N_4") '=' (c "1");
+    delay_widget "N1" (v "N1_t") 1;
+    a "S2N" (v "S_2") '*' (v "N1");
+    a "SA" (v "S2N") '*' (c "A");
+    a "Out" (v "SA") '/' (v "P10_2");
 
     a "N_t" (v "N_3") '-' (c "1");
 
-    delay_widget "N" (v "N_t") 2;
+    delay_widget "N" (v "N_t") 1;
 
     add_out "Out";
 
@@ -320,7 +323,7 @@ module M12 () = struct
   (* let () = Comp.Run_comp.run ~max:200 1047197551 10 prog *)
 end
 
-(* module R = M12() *)
+module R = M12()
 
 module M11 () = struct
   let () = reset ()
@@ -429,7 +432,7 @@ module M11 () = struct
   (* let () = Comp.Run_comp.run ~max:300 111 10 prog *)
 end
 
-module R2 = M11 ()
+(* module R2 = M11 () *)
 
 
 module M_test () = struct
