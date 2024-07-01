@@ -438,14 +438,13 @@ let random_strings_18 name c m seed1 stop1 seed2 stop2 =
    ) in
  let get i = take (drop (!~ "UDLR") i) (!+ 1) in
  let body call = lambda (fun s ->
-     if_ (s =/ !+ stop2)
-       (call @/ !+ seed1)
-       (if_ (s =/ !+ stop1)
-          (!~ name)
-          ( (call @/ ((s */ !+ c) %/ !+ m)) ^/
-            (get (s %/ !+ 4))
-          )
-       )
+     let next_seed = if_ (s =/ !+ stop2) (!+ seed1) ((s */ !+ c) %/ !+ m) in
+     (if_ (s =/ !+ stop1)
+        (!~ name)
+        ( (call @/ next_seed) ^/
+          (get (s %/ !+ 4))
+        )
+     )
    )
  in
  ((y body) @/ !+ seed2)
@@ -461,21 +460,20 @@ let random_strings_c name c m seed1 stop1 seed2 stop2 =
    ) in
  let get i = take (drop (!~ "UUDDLLRR") i) (!+ 2) in
  let body call = lambda (fun s ->
-     if_ (s =/ !+ (2 * stop2))
-       (call @/ !+ (2 * seed1))
-       (if_ (s =/ !+ (2 * stop1))
-          (!~ name)
-          ( (call @/ ((s */ !+ c) %/ !+ (2*m))) ^/
-            (get (s %/ !+ 8))
-          )
-       )
+     let next_seed = if_ (s =/ !+ (2*stop2)) (!+ (2*seed1)) ((s */ !+ c) %/ !+ (2*m)) in
+     (if_ (s =/ !+ (2*stop1))
+        (!~ name)
+        ( (call @/ next_seed) ^/
+          (get (s %/ !+ 8))
+        )
+     )
    )
  in
  (* !~ ("solve " ^ name ^ " ") ^/ *)
  ((y body) @/ !+ (2*seed2))
 
 let lambdaman11
-  = random_strings_c "solve lambdaman11 " 36 3740197 26 19 1 14
+  = random_strings_c "solve lambdaman11 " 15 7795961 24 38 17 3666
 
 let lambdaman12
   = random_strings_c "solve lambdaman12 " 7 3847469 10 43 34 41
