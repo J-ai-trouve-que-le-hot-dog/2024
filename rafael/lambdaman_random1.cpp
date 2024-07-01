@@ -92,9 +92,9 @@ int main(int argc, char** argv) {
 
   problem pb; pb.load(id);
   
-  { i32 m = 999'999;
+  { i32 m = 1;
     while(1) {
-      if(!isprime(m)) { m -= 1; continue; }
+      if(!isprime(m)) { m += 1; continue; }
       debug(m, best, pb.sz);
 #pragma omp parallel for collapse(2)
       FORU(c, 2, B-1) {
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
           }
         }
       }
-      m -= 1;
+      m += 1;
     }
   }
   

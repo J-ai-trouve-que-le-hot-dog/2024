@@ -430,8 +430,28 @@ let random_string'' name seed stop c m =
  in
  (y body) @/ !+ seed
 
+let random_strings_18 name c m seed1 stop1 seed2 stop2 =
+ let () = vars := 0 in
+ let y = (fun f ->
+     let* om = lambda (fun x -> f (x @/ x)) in
+     om @/ om
+   ) in
+ let get i = take (drop (!~ "UDLR") i) (!+ 1) in
+ let body call = lambda (fun s ->
+     if_ (s =/ !+ stop2)
+       (call @/ !+ seed1)
+       (if_ (s =/ !+ stop1)
+          (!~ name)
+          ( (call @/ ((s */ !+ c) %/ !+ m)) ^/
+            (get (s %/ !+ 4))
+          )
+       )
+   )
+ in
+ ((y body) @/ !+ seed2)
+
 let lambdaman18 =
-  random_string'' "solve lambdaman18 " 69 56 91 500153
+  random_strings_18 "solve lambdaman18 " 3 3903689 4 58 16 44
 
 let random_strings_c name c m seed1 stop1 seed2 stop2 =
  let () = vars := 0 in

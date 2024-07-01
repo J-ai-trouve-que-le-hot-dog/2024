@@ -28,7 +28,7 @@ bool isprime(i64 m) {
 }
 
 void step(problem const& pb, i64& position, i64& nvisited, i64* visited, i64 d){
-  i64 nr = 2;
+  i64 nr = 1;
   FOR(k, nr) {
     i64 nposition = pb.graph[position][d];
     if(nposition != -1) {
@@ -44,9 +44,9 @@ void step(problem const& pb, i64& position, i64& nvisited, i64* visited, i64 d){
 bool test(problem const& pb, i64 m, i64 c, i64 x0) {
   date += 1;
   i64 x = x0;
-  runtime_assert(x0 < B/2);
+  runtime_assert(x0 < B);
   i64 sz = 0;
-  while(sz < 250'000) {
+  while(sz < 500'000) {
     xs[sz] = x;
     // last[x] = date;
     sz += 1;
@@ -54,7 +54,7 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
     // if(last[x] == date) break;
   }
 
-  while(xs[sz-1] >= B/2) sz -= 1;
+  while(xs[sz-1] >= B) sz -= 1;
   i64 x1 = xs[sz-1];
 
   FOR(i, pb.sz) visited[i] = 0;
@@ -83,15 +83,15 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
     }
   }
 
-  if(value > 1800) return false;
+  if(value > 2000) return false;
 
 #pragma omp critical
   {
     debug(value);
   }
   
-  FORU(y0, 1, (B-1)/2) if(y0 != x0) {
-    runtime_assert(y0 < B/2);
+  FORU(y0, 1, (B-1)) if(y0 != x0) {
+    runtime_assert(y0 < B);
 
     FOR(j, pb.sz) visited2[j] = visited[j];
     i64 position2 = position;
@@ -100,7 +100,7 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
     date += 1;
     i64 y = y0;
     i64 sz2 = 0;
-    while(sz2 < 250'000) {
+    while(sz2 < 500'000) {
       xs[sz2] = y;
       // last[y] = date;
       sz2 += 1;
@@ -108,7 +108,7 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
       // if(last[y] == date) break;
     }
     
-    while(sz2 - 1 >= 0 && xs[sz2-1] >= B/2) {
+    while(sz2 - 1 >= 0 && xs[sz2-1] >= B) {
       sz2 -= 1;
     }
     if(sz2 == 0) continue;
@@ -118,7 +118,7 @@ bool test(problem const& pb, i64 m, i64 c, i64 x0) {
       step(pb, position2, nvisited2, visited2, xs[i]%4);
     }
 
-    if(nvisited2 >= 4950) {
+    if(nvisited2 >= 9900) {
 #pragma omp critical
       {
         debug(m, c, x0, xs[sz-1], nvisited2);
@@ -198,8 +198,8 @@ int main(int argc, char** argv) {
       if(!isprime(m)) { m -= 1; continue; }
       debug(m, best, pb.sz);
 #pragma omp parallel for collapse(2) schedule(dynamic)
-      FORU(c, 2, (B-1)/2) {
-        FORU(start1, 1, (B-1)/2) {
+      FORU(c, 2, (B-1)) {
+        FORU(start1, 1, (B-1)) {
           if(test(pb,m,c,start1)) {
             exit(0);
           }
