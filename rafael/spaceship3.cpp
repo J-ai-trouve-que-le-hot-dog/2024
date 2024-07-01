@@ -10,7 +10,7 @@ u64 hash_vy[2*OFFSET+1];
 
 void init_hash() {
   FOR(i, MAXN) hash_visited[i] = rng.randomInt64();
-  FOR(i, 2*OFFSET+1) hash_city[i] = rng.randomInt64();
+  FOR(i, MAXN) hash_city[i] = rng.randomInt64();
   FOR(i, 2*OFFSET+1) hash_vx[i] = rng.randomInt64();
   FOR(i, 2*OFFSET+1) hash_vy[i] = rng.randomInt64();
 }
@@ -18,7 +18,7 @@ void init_hash() {
 vector<i64> neighbors[MAXN];
 
 const i64 MAXNEI = 8;
-const i64 MAXDV  = 1;
+const i64 MAXDV  = 32;
 
 struct beam_state {
   bool visited[MAXN];
@@ -49,6 +49,7 @@ struct beam_state {
     if(nspeed.x < 0 || nspeed.x > 2*MAXV) return false;
     if(nspeed.y < 0 || nspeed.y > 2*MAXV) return false;
 
+    visited[i] = 1;
     cost += pb.cost(city, speed, i, nspeed);
     city = i;
     time += 1;
@@ -67,6 +68,7 @@ struct beam_state {
   void undo_move(problem const& pb, i64 i, i64 dvx, i64 dvy) {
     pt ospeed = speed - pt(dvx-MAXDV, dvy-MAXDV);
 
+    visited[i] = 0;
     city = history[time-1];
     cost -= pb.cost(city, ospeed, i, speed);
     speed = ospeed;
@@ -89,6 +91,17 @@ struct beam_state {
       ^ hash_vy[speed.y - MAXV + OFFSET];
   }
 
+  // void check(problem const& pb, i32) const {
+  //   i64 total_cost = 0;
+  //   FOR(i, time) {
+  //     auto a = history[i], b = history[i+1];
+  //     auto sa = history_speed[a], sb = history_speed[b];
+  //     total_cost += pb.cost(a,sa,b,sb);
+  //   }
+  //   debug(total_cost, cost);
+  //   runtime_assert(total_cost == cost);
+  // }
+  
   string reconstruct(problem const& pb) const {
     string out;
 
@@ -96,7 +109,7 @@ struct beam_state {
     
     FOR(i, pb.n-1) {
       auto a = history[i], b = history[i+1];
-      auto sa = history_speed[a], sb = history_speed[b];
+      auto sa = history_speed[i], sb = history_speed[i+1];
       pb.reconstruct(out,a,sa,b,sb);
       total_cost += pb.cost(a,sa,b,sb);
     }
@@ -365,8 +378,8 @@ string beam_search(problem const& pb, i64 width) {
   debug(best_state.cost);
   auto sol = best_state.reconstruct(pb);
   debug(sol.size());
-  
-  return "";
+
+  return sol;
 }
 
 int main(int argc, char** argv) {
@@ -394,12 +407,12 @@ int main(int argc, char** argv) {
   }
   
   auto sol = argc == 3 ? beam_search(pb, width) : "";
-  // if(argc > 3) {
-  //   auto filename = argv[3];
-  //   ifstream is(filename);
-  //   is>>sol;
-  // }
-  // local_opt(pb, sol);
+  if(argc > 3) {
+    auto filename = argv[3];
+    ifstream is(filename);
+    is>>sol;
+  }
+  local_opt(pb, sol);
   
   return 0;
 }

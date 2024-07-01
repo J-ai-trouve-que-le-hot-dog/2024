@@ -119,6 +119,7 @@ let lambdaman8 =
   in
   (y body) @/ !+ 10000
 
+
 let lambdaman9 =
   let () = vars := 0 in
   let y f =
@@ -135,6 +136,25 @@ let lambdaman9 =
     )
   in
   (y body) @/ !+ 5000
+
+
+
+(* let lambdaman9 = *)
+(*   let () = vars := 0 in *)
+(*   let y f = *)
+(*       let* om = lambda (fun x -> f (x @/ x)) in *)
+(*       om @/ om *)
+(*   in *)
+(*   let get i = take (drop (!~ "RLD") i) (!+ 1) in *)
+(*   let body call = lambda (fun s -> *)
+(*       if_ (s =/ !+ 0) *)
+(*         (!~ "solve lambdaman9 ") *)
+(*         ( (call @/ (s -/ !+ 1)) ^/ *)
+(*           (get ((s %/ !+ 101) // !+ 50)) *)
+(*         ) *)
+(*     ) *)
+(*   in *)
+(*   (y body) @/ !+ 5000 *)
 
 
 (* let lambdaman9 = *)
@@ -160,36 +180,36 @@ let lambdaman9 =
 (*   let* f = (y @/ (lambda body)) @/ !+ 2 in *)
 (*   (f @/ !+ 0) @/ !+ 1 *)
 
-let lambdaman19 =
-  let* p1 = lambda (fun i -> (i +/ !+ 1) %/ (!+ 4)) in
-  let* p2 = lambda (fun i -> (i +/ !+ 2) %/ (!+ 4)) in
-  let* p3 = lambda (fun i -> (i +/ !+ 3) %/ (!+ 4)) in
-  let* get = lambda (fun i -> take (drop (!~ "URDL") i) (!+ 1)) in
-  let* y = lambda (fun f ->
-      let om = lambda (fun x -> f @/ (x @/ x)) in
-      om @/ om
-    ) in
-  let pow2_body call = lambda (fun i -> lambda (fun s -> 
-      if_ (i =/ !+ 0)
-        s
-        ((call @/ (i -/ !+ 1)) @/ (s ^/ s))))
-  in
-  let* pow2 = (y @/ lambda pow2_body) in
-  let body call = lambda (fun i -> lambda (fun d ->
-      if_ ((i +/ !+ 1) =/ !+ 0)
-        (!~ "")
-        (((pow2 @/ i) @/ (get @/ d))
-         ^/ ((call @/ (i -/ !+ 1)) @/ (p1 @/ d))
-         ^/ ((call @/ (i -/ !+ 1)) @/ d)
-         ^/ ((call @/ (i -/ !+ 1)) @/ (p3 @/ d))
-         ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d)))
-        )
-    )) in
-  let* f = (y @/ (lambda body)) @/ !+ 6 in
-  (f @/ !+ 0) ^/
-  (f @/ !+ 1) ^/
-  (f @/ !+ 2) ^/
-  (f @/ !+ 3)
+(* let lambdaman19 = *)
+(*   let* p1 = lambda (fun i -> (i +/ !+ 1) %/ (!+ 4)) in *)
+(*   let* p2 = lambda (fun i -> (i +/ !+ 2) %/ (!+ 4)) in *)
+(*   let* p3 = lambda (fun i -> (i +/ !+ 3) %/ (!+ 4)) in *)
+(*   let* get = lambda (fun i -> take (drop (!~ "URDL") i) (!+ 1)) in *)
+(*   let* y = lambda (fun f -> *)
+(*       let om = lambda (fun x -> f @/ (x @/ x)) in *)
+(*       om @/ om *)
+(*     ) in *)
+(*   let pow2_body call = lambda (fun i -> lambda (fun s ->  *)
+(*       if_ (i =/ !+ 0) *)
+(*         s *)
+(*         ((call @/ (i -/ !+ 1)) @/ (s ^/ s)))) *)
+(*   in *)
+(*   let* pow2 = (y @/ lambda pow2_body) in *)
+(*   let body call = lambda (fun i -> lambda (fun d -> *)
+(*       if_ ((i +/ !+ 1) =/ !+ 0) *)
+(*         (!~ "") *)
+(*         (((pow2 @/ i) @/ (get @/ d)) *)
+(*          ^/ ((call @/ (i -/ !+ 1)) @/ (p1 @/ d)) *)
+(*          ^/ ((call @/ (i -/ !+ 1)) @/ d) *)
+(*          ^/ ((call @/ (i -/ !+ 1)) @/ (p3 @/ d)) *)
+(*          ^/ ((pow2 @/ i) @/ (get @/ (p2 @/ d))) *)
+(*         ) *)
+(*     )) in *)
+(*   let* f = (y @/ (lambda body)) @/ !+ 6 in *)
+(*   (f @/ !+ 0) ^/ *)
+(*   (f @/ !+ 1) ^/ *)
+(*   (f @/ !+ 2) ^/ *)
+(*   (f @/ !+ 3) *)
 
 let lambdaman20 =
   let* p1 = lambda (fun i -> (i +/ !+ 1) %/ (!+ 4)) in
@@ -307,78 +327,87 @@ let lambdaman21 =
 (*   in *)
 (*   ((y @/ lambda body) @/ !+ 1000000) @/ !+ seed *)
 
-(* let compute_params l = *)
-(*   let mx = List.fold_left max 0 l in *)
-(*   let l = List.rev l in *)
-(*   mx+1, List.fold_left (fun acc x -> Z.add (Z.mul (Z.of_int (mx + 1)) acc) (Z.of_int x)) Z.zero l *)
+let compute_params l =
+  let mx = List.fold_left max 0 l in
+  let l = List.rev l in
+  mx+1, List.fold_left (fun acc x -> Z.add (Z.mul (Z.of_int (mx + 1)) acc) (Z.of_int x)) Z.zero l
 
-(* let random_strings nsteps maxseed encoded_data = *)
-(*   let () = vars := 0 in *)
-(*   let y f = *)
-(*       let* om = lambda (fun x -> f (x @/ x)) in *)
-(*       om @/ om *)
-(*   in *)
-(*   let get i = take (drop (!~ "UDLR") i) (!+ 1) in *)
-(*   let body call = lambda (fun i -> (lambda (fun s -> *)
-(*       if_ (i =/ !+ 0) *)
-(*         (!~ "") *)
-(*         ( (get (s %/ !+ 4)) ^/ *)
-(*           ((call @/ (i -/ !+ 1)) @/ ((s */ !+ 48271) %/ !+ 2147483647))  *)
-(*         ) *)
-(*     ))) *)
-(*   in *)
-(*   let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in *)
-(*   let _4 = two @/ two in *)
-(*   let _16 = _4 @/ two in *)
-(*   ((_16 @/ lambda (fun f -> lambda (fun encoded -> *)
-(*     (((y body) @/ !+ nsteps) @/ (encoded %/ !+ maxseed)) *)
-(*     ^/ (f @/ (encoded // !+ maxseed)) *)
-(*      ))) *)
-(*    @/ (lambda (fun _ -> !~ ""))) *)
-(*   @/ (Int encoded_data) *)
+let random_strings name m c nsteps maxseed encoded_data =
+  let () = vars := 0 in
+  let y f =
+    let* om = lambda (fun x -> f (x @/ x)) in
+    om @/ om
+  in
+  let get i =
+    take (drop (!~ "UDLR") i) (!+ 1)
+  in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( (get (s %/ !+ 4)) ^/
+          ((call @/ (i -/ !+ 1)) @/ ((s */ !+ c) %/ !+ m))
+        )
+    )))
+  in
+  let f1 = y body in
+  let body call = lambda (fun encoded ->
+      if_ (encoded =/ !+ 0)
+        (!~ name)
+        ((call @/ (encoded // !+ maxseed)) ^/
+         ((f1 @/ !+ nsteps) @/ (encoded %/ !+ maxseed)))
+    )
+  in
+  (y body) @/ (Int encoded_data)
 
-(* let random_strings nsteps data = *)
-(*   let mx, encoded = compute_params data in *)
-(*   random_strings nsteps mx encoded *)
+let random_strings name m c nsteps data =
+  let mx, encoded = compute_params data in
+  random_strings name m c nsteps mx encoded
+
+let random_strings_bias name m c nsteps maxseed encoded_data =
+  let () = vars := 0 in
+  let y f =
+    let* om = lambda (fun x -> f (x @/ x)) in
+    om @/ om
+  in
+  let get i =
+    let* c = take (drop (!~ "UDLRUDLR") i) (!+ 1) in
+    if_ (i </ !+ 4) (c ^/ c ^/ c) c
+  in
+  let body call = lambda (fun i -> (lambda (fun s ->
+      if_ (i =/ !+ 0)
+        (!~ "")
+        ( (get (s %/ !+ 8)) ^/
+          ((call @/ (i -/ !+ 1)) @/ ((s */ !+ c) %/ !+ m))
+        )
+    )))
+  in
+  let f1 = y body in
+  let body call = lambda (fun encoded ->
+      if_ (encoded =/ !+ 0)
+        (!~ name)
+        ((call @/ (encoded // !+ maxseed)) ^/
+         ((f1 @/ !+ nsteps) @/ (encoded %/ !+ maxseed)))
+    )
+  in
+  (y body) @/ (Int encoded_data)
+
+let random_strings_bias name m c nsteps data =
+  let mx, encoded = compute_params data in
+  random_strings_bias name m c nsteps mx encoded
 
 
-(* let random_strings_64 nsteps maxseed encoded_data = *)
-(*   let () = vars := 0 in *)
-(*   let y f = *)
-(*       let* om = lambda (fun x -> f (x @/ x)) in *)
-(*       om @/ om *)
-(*   in *)
-(*   let get i = take (drop (!~ "UDLR") i) (!+ 1) in *)
-(*   let body call = lambda (fun i -> (lambda (fun s -> *)
-(*       if_ (i =/ !+ 0) *)
-(*         (!~ "") *)
-(*         ( (get (s %/ !+ 4)) ^/ *)
-(*           ((call @/ (i -/ !+ 1)) @/ ((s */ !+ 48271) %/ !+ 2147483647))  *)
-(*         ) *)
-(*     ))) *)
-(*   in *)
-(*   let* two = lambda (fun f -> lambda (fun x -> f @/ (f @/ x))) in *)
-(*   let* _4 = two @/ two in *)
-(*   let _16 = _4 @/ two in *)
-(*   let _64 = mult _16 _4 in *)
-(*   ((_64 @/ lambda (fun f -> lambda (fun encoded -> *)
-(*     (((y body) @/ !+ nsteps) @/ (encoded %/ !+ maxseed)) *)
-(*     ^/ (f @/ (encoded // !+ maxseed)) *)
-(*      ))) *)
-(*    @/ (lambda (fun _ -> !~ ""))) *)
-(*   @/ (Int encoded_data) *)
+let lambdaman19 = random_strings "solve lambdaman19 " 3903689 3 31122
+    (List.rev [ 91 ; 98 ; 37 ; 7 ; 49 ; 61 ; 30 ; 3 ; 81 ; 109 ; 2 ; 47 ; 92 ; 100 ; 30 ; 47 ; 30 ; 45 ; 20 ; 50 ; 49 ; 18 ; 76 ; 105 ; 61 ; 39 ; 30 ; 64 ; 60 ; 88
+              ])
 
-(* let random_strings_64 nsteps data = *)
-(*   let mx, encoded = compute_params data in *)
-(*   random_strings_64 nsteps mx encoded *)
 
-let random_string' name seed stop c m =
+let random_string' perm name seed stop c m =
   let () = vars := 0 in
   let y f =
       let* om = lambda (fun x -> f (x @/ x)) in
       om @/ om
   in
-  let get i = take (drop (!~ "UDLR") i) (!+ 1) in
+  let get i = take (drop (!~ perm) i) (!+ 1) in
   let body call = lambda (fun s ->
       if_ (s =/ !+ stop)
         (!~ name)
@@ -390,25 +419,25 @@ let random_string' name seed stop c m =
   (y body) @/ !+ seed
 
 let lambdaman4 =
-  random_string' "solve lambdaman4 " 10 58 91 12553
+  random_string' "DRLU" "solve lambdaman4 " 64 50 13 8821
 
 let lambdaman5 =
-  random_string' "solve lambdaman5 " 5 17 92 1873
+  random_string' "UDLR" "solve lambdaman5 " 5 17 92 1873
 
 let lambdaman7 =
-  random_string' "solve lambdaman7 " 89 19 46 6899
+  random_string' "UDLR" "solve lambdaman7 " 89 19 46 6899
 
 (* let lambdaman9 = *)
-(*   random_string' "solve lambdaman9 " 49 81 91 33641 *)
+(*   random_string' "UDLR" "solve lambdaman9 " 49 81 91 33641 *)
 
 let lambdaman10 =
-  random_string' "solve lambdaman10 " 30 9 91 42557
+  random_string' "UDLR" "solve lambdaman10 " 30 9 91 42557
 
 let lambdaman17 =
-  random_string' "solve lambdaman17 " 37 13 91 200671
+  random_string' "UDLR" "solve lambdaman17 " 37 13 91 200671
 
 let lambdaman21 =
-  random_string' "solve lambdaman21 " 5 91 3 999773
+  random_string' "UDLR" "solve lambdaman21 " 5 91 3 999773
 
 let random_string'' name seed stop c m =
  let () = vars := 0 in

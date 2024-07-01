@@ -489,9 +489,9 @@ struct state {
     FOR(i, pb.n-1) {
       if(i % 100 == 0) cerr << i << "/" << pb.n << endl;
       auto a = perm[i], b = perm[i+1];
-      FORU(vx, speed[a].x - 16, speed[a].x + 16) {
+      FORU(vx, speed[a].x - 24, speed[a].x + 24) {
         if(vx < 0 || vx >= 2*MAXV) continue;
-        FORU(vy, speed[a].y - 16, speed[a].y + 16) {
+        FORU(vy, speed[a].y - 24, speed[a].y + 24) {
           if(vy < 0 || vy >= 2*MAXV) continue;
           i64 score = 1ll<<60;
           pt  speed;
@@ -539,7 +539,7 @@ struct state {
   }
 };
 
-void local_opt(problem const &pb, string init_sol) {
+string local_opt(problem const &pb, string init_sol) {
   state S; S.reset(pb, init_sol);
   debug(S.score);
   S.solve_speeds(pb);
@@ -547,8 +547,6 @@ void local_opt(problem const &pb, string init_sol) {
   i64 niter = 0;
   f64 done  = 0;
 
-  i64 last_improvement = 0;
-  
   i64 best_score = S.score;
   auto best_state = S;
 
@@ -560,7 +558,13 @@ void local_opt(problem const &pb, string init_sol) {
     niter += 1;
     if(niter % 1024 == 0) {
       done = (f64) niter / MAX_ITER;
-      done = min(done, 1.0);
+      if(done > 1.0) {
+        best_state.solve_speeds(pb);
+        string out;
+        best_state.reconstruct(pb,out);
+        pb.save(out);
+        return out;
+      }
     }
     if(niter % (1<<18) == 0) {
       S.score = S.calc_score(pb);
@@ -790,19 +794,10 @@ void local_opt(problem const &pb, string init_sol) {
         reverse(begin(S.perm)+i+1, begin(S.perm)+j+1);
       }
     }
-
-    if(niter % 100'000'000 == 0) {
-      S.solve_speeds(pb);
-    }
     
     if(S.score < best_score) {
-      last_improvement = niter;
       best_score = S.score;
       best_state = S;
-    }
-
-    if(niter > last_improvement + 300'000'000) {
-      return;
     }
   }
 }

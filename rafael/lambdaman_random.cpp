@@ -1,7 +1,7 @@
 #include "lambdaman.hpp"
 
 i64 random_next(i64 x) { return (x * 48271) % 2147483647; }
-const i64 RANDOM_SIZE = 62'500;
+const i64 RANDOM_SIZE = (62'500 / 4);
 
 struct state {
   bitset<20000> visited;
@@ -28,9 +28,9 @@ struct state {
     
     FOR(i, T.size()) if(!visited[i]) {
       dfs(i, -1);
-      return 50000 - ret;
+      return ret;
     }
-    return 50000 - ret;
+    return ret;
   }
   
   void step(vector<array<i64,4>> const& graph, vector<vector<i64>> const& T) {
@@ -41,20 +41,23 @@ struct state {
     
     FOR(i, RANDOM_SIZE) {
       i64 d = seed % 4;
+      i32 nr = (seed % 8 < 4) ? 3 : 1;
 
-      i64 nposition = graph[position][d];
-      if(nposition != -1) {
-        position = nposition;
-        if(!visited[position]) {
-          visited[position] = 1;
-          nvisited += 1;
+      FOR(k, nr) {
+        i64 nposition = graph[position][d];
+        if(nposition != -1) {
+          position = nposition;
+          if(!visited[position]) {
+            visited[position] = 1;
+            nvisited += 1;
+          }
         }
       }
       
       seed = random_next(seed);
     }
 
-    value = 100000 * calc_value(T) - maxseed;
+    value = calc_value(T);
   }
 };
 
@@ -77,7 +80,7 @@ int main(int argc, char** argv) {
   
   FOR(step, 1'000'000 / RANDOM_SIZE) {  
     debug(BEAM.size());
-    vector<min_queue<state> > NBEAM(pb.sz);
+    vector<max_queue<state> > NBEAM(pb.sz);
 
     i64 branch = BRANCH;
     if(step == 0) branch *= WIDTH;
@@ -97,7 +100,7 @@ int main(int argc, char** argv) {
         auto key = 0; // sb.position;
         if(NBEAM[key].size() < WIDTH){
           NBEAM[key].push(sb);
-        }else if(sb.value > NBEAM[key].top().value){
+        }else if(sb.value < NBEAM[key].top().value){
           NBEAM[key].pop();
           NBEAM[key].push(sb);
         }
@@ -126,8 +129,8 @@ int main(int argc, char** argv) {
       }
     }
     
-    i64 best = 0;
-    for(auto const& sa : BEAM) best = max(best, sa.value);
+    i64 best = pb.sz;
+    for(auto const& sa : BEAM) best = min(best, sa.value);
     debug((step+1) * RANDOM_SIZE, best, pb.sz);
   }
   
