@@ -16,10 +16,13 @@ type copy = { outs : var list; copied : var * string }
 
 type init_from = { var_to_init : var; init_from : var }
 
+type delay = { delay_to : var; delay_from : input }
+
 type program = {
     act : elt list;
     copies : copy list;
     outputs : var list;
+    delay : delay list;
     to_init_from : init_from list;
   }
 
@@ -200,11 +203,20 @@ let output_init_from (out:out) outputs elt =
   out.acc <- out.last :: out.acc;
   out.last <- Space.empty
 
+let output_delay (out:out) outputs (elt : delay) =
+  let at = add_out out in
+  at (0, 0) (string_of_input elt.delay_from);
+  at (0, 1) ">";
+  output_var_at out outputs (0, 2) elt.delay_to;
+  out.acc <- out.last :: out.acc;
+  out.last <- Space.empty
+
 let output_prog prog =
   let out = { acc = [] ; last = Space.empty } in
   List.iter (output_elt out prog.outputs) prog.act;
   List.iter (output_copy out prog.outputs) prog.copies;
   List.iter (output_init_from out prog.outputs) prog.to_init_from;
+  List.iter (output_delay out prog.outputs) prog.delay;
   List.map P.to_array out.acc
 
 let pad_left n s =

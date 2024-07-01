@@ -1,0 +1,12 @@
+
+          .        YY:          .          .          .          .          .          < Counter:-1          >          .          .          .          .          .          <        U:A          >          .          .
+          1          #          .          0          . Counter_1@x          @ Counter_1@y          v Counter_2@x          @ Counter_2@y          .      U_1@x          @      U_1@y          v      U_2@x          @      U_2@y
+          .          .       Dm2:          +          .       Vm1:          1          .          .          .          1          .          .          .          1          .          .          .          1          .
+    OUT_1@x          @    OUT_1@y          .      Top2:          +          . Counter_3@x          @ Counter_3@y          .          < Counter_if_empty:          >          .      U_3@x          @      U_3@y          0          .
+          .          1        U@x          @        U@y          .          .          .          1       XX@x          @       XX@y          1       YY@x          @       YY@y          1 Counter_1:          =          .
+          . Counter_3:          .          1  Counter@x          @  Counter@y          .         -2          .          1     OUT_1:          -          .          1          .         10          .          S          .
+     Empty:          -          .          0          .          1          0       Top:          *          .          3          .          S          .          0       U_2:          /          .         10          .
+          .          .      Tail:          +          . Count_TMP:          +          .          . Counter_2:          +          .          1       U_3:          =          .          .       U_1:          %          .
+ Counter_if_empty@x          @ Counter_if_empty@y          .          .          .          .     Top2@x          @     Top2@y          .        XX:          =          .          .     Tail@x          @     Tail@y          .          .
+          .          1      Dm2@x          @      Dm2@y      Vm1@x          @      Vm1@y          1 Count_TMP@x          @ Count_TMP@y          S    Empty@x          @    Empty@y          1      Top@x          @      Top@y
+          .          .          .          1          .          .          1          .          .          .          1          .          .          .          1          .          .          .          1          .
