@@ -193,12 +193,12 @@ int main(int argc, char** argv) {
 
   problem pb; pb.load(id);
   
-  { i64 m = 78'074'896 / 20;
+  { i64 m = 78'074'896 / 15;
     while(1) {
       if(!isprime(m)) { m -= 1; continue; }
       debug(m, best, pb.sz);
 #pragma omp parallel for collapse(2) schedule(dynamic)
-      FORU(c, 2, (B-1)/2) {
+      FORU(c, 2, B-1) {
         FORU(start1, 1, (B-1)/2) {
           if(test(pb,m,c,start1)) {
             exit(0);

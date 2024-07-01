@@ -32,6 +32,10 @@ struct pt {
   bool operator<(pt const& o) const { return tie(x,y) < tie(o.x,o.y); }
 };
 
+pt operator-(pt const& a, pt const& b) {
+  return pt(a.x-b.x,a.y-b.y);
+}
+
 pt operator+(pt const& a, pt const& b) {
   return pt(a.x+b.x,a.y+b.y);
 }
