@@ -79,6 +79,11 @@ This is good when distances between points are small.
 2. Solve the TSP instance optimizing the permutation of points when
    all speeds are fixed to zero.
 
+We also tried writing a small GUI (see `bin/spaceship_gui.ml`) to see and
+try some manual optimisations on small problems (and for fun). In practice
+we only used it on `spaceship5`.
+To play with it you can run `dune exec bin/spaceship_gui.exe inputs/spaceship1`
+
 <details>
 <summary>Scores</summary>
 
@@ -116,17 +121,95 @@ This is good when distances between points are small.
 This is the problem for which we wrote the most tooling. Besides the obvious simulator,
 this includes:
 
-- a TUI, which allows us to select and move parts of the solution
+- a TUI, which allows us to select and move parts of the solution. (see `3d/draw/draw.ml`)
+  To play with it you can use `dune exec 3d/draw/draw.exe input.3d output.3d`. The input
+  file should contain at least 1 empty line first and 2 dots.
 
 - a linker, which allows to specify labels in some cells as `X:0` specifying a cell
   named `X` with `0` as its initial value, and `X@x` and `X@y` used to refer to cells
   in the destination of a time warp. Files with labels are often named with a `.3dl`
-  extension.
+  extension. (see `3d/link.ml`)
 
-- a compiler from an embedded language, to 3d programs that always execute with only
-  two different times. It works by generating a given number of widgets, and using
-  a SAT solver to generate a layout packing them as closely as possible.
+  This is our solution for 3d5 using it
 
+```
+      .      B      .      .     T:      .
+    Su:      +      .      0      =      .
+      .      .      .      .      .      .
+  Acc@x      @  Acc@y      .      +      S
+      .      1      .      ^      A      .
+      .      .      <  Acc:B      %      .
+   Su@x      @   Su@y      .      .      .
+      .      1      .    T@x      @    T@y
+      .      .      .      .      1      .
+```
+```
+   .   B   .   .   .   .
+   .   +   .   0   =   .
+   .   .   .   .   .   .
+  -2   @  -2   .   +   S
+   .   1   .   ^   A   .
+   .   .   <   B   %   .
+   1   @   5   .   .   .
+   .   1   .   0   @   7
+   .   .   .   .   1   .
+```
+  This was a hand written example, but gave us the inspiration for patterns that
+  another tool could help us produce on larger problems.
+
+- a compiler from an embedded (very simple) synchronous language, to 3d programs
+  that always execute with only two different times. It works by generating a
+  given number of widgets, and using a SAT solver to generate a layout packing
+  them as closely as possible.
+
+  The code of the the compiler is `3d/compile.ml`, the interpreter is `3d/run_comp.ml`
+  and the packing in `3d/layout.ml`
+
+  A solution are in `3d/c3d*.ml` files. To generate a solution for the 3d7 for instance
+  run `dune exec 3d/c3d_7.exe`
+
+  Extracted from `3d/c3d_7.ml` here is the gist of how it's used.
+```OCaml
+(* T1 *)
+p "V" ~i:"0" "V1" "V2";
+(* p adds a copy widget from the variable V to the variables V1 and V2.
+   V is initialized with 0 *)
+p "U" ~i:"A" "U1" "U2";
+
+(* T2 *)
+p "U2" "U3" "U4";
+a "V10" (v "V1") '*' (c "10");
+(* This tells that V10 is defined as V1 * 10 *)
+a "Umod" (v "U1") '%' (c "10");
+a "R" (c "A") '=' (v "V2");
+
+(* T3 *)
+a "S" (v "R") '/' (c "A");
+a "U" (v "U3") '/' (c "10");
+a "V" (v "V10") '+' (v "Umod");
+a "U0" (v "U4") '=' (c "0");
+
+(* T4 *)
+
+add_delay "S" (v "U0");
+(* delays the output from U0 to S1 by 1 cycle *)
+
+add_out "S"
+(* The variable S will be the result *)
+```
+  It generates our solution which can then be linked.
+
+```
+   .    .    <   U2:    >    .    .    .    .      <   U:A      >     .    .     .
+U3@x    @ U3@y     A U4@x    @ U4@y U1@x    @   U1@y    10   U2@x     @ U2@y     .
+   .    1   R:     /    .    1    .  V2:    1    U1:     %      .     1   10     .
+   .    0    .     S    .   10    A    =    .      .     .      .   V1:    *     .
+ U4:    =    . Umod:  U3:    /    .    .    . Umod@x     @ Umod@y     .    .     .
+   .    . V10:     +    .    .  R@x    @  R@y      .     1      . V10@x    @ V10@y
+U0@x    @ U0@y     .  U@x    @  U@y    1    .      <   V:0      >     .    1     .
+   .    1  V@x     @  V@y    1    . V1@x    @   V1@y     .   V2@x     @ V2@y     .
+   .    .    .     1  U0:    >    S    .    1      .     .      .     1    .     .
+```
 
 We wrote the small examples by hand (using only the linked and the editor), using the
 compiler for the larger examples. Unfortunately, our compiled solutions hit the time
