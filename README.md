@@ -118,12 +118,16 @@ To play with it you can run `dune exec bin/spaceship_gui.exe inputs/spaceship1`
 
 ## 3d
 
-This is the problem for which we wrote the most tooling. Besides the obvious simulator,
-this includes:
+This is the problem for which we wrote the most tooling. this includes:
+
+- Obviously a simulator, producing outputs with lots of colors and some smart printing
+  of large integers to be able to debug the last problems.
+  [![demo](https://asciinema.org/a/jSnSI8DGDf7qq4W8NR72HFX1C.svg)](https://asciinema.org/a/jSnSI8DGDf7qq4W8NR72HFX1C)
 
 - a TUI, which allows us to select and move parts of the solution. (see `3d/draw/draw.ml`)
   To play with it you can use `dune exec 3d/draw/draw.exe input.3d output.3d`. The input
   file should contain at least 1 empty line first and 2 dots.
+  [![demo](https://asciinema.org/a/ptPZPqivt4gMJvrltjIBM26jz.svg)](https://asciinema.org/a/ptPZPqivt4gMJvrltjIBM26jz)
 
 - a linker, which allows to specify labels in some cells as `X:0` specifying a cell
   named `X` with `0` as its initial value, and `X@x` and `X@y` used to refer to cells
