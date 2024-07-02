@@ -84,6 +84,8 @@ try some manual optimisations on small problems (and for fun). In practice
 we only used it on `spaceship5`.
 To play with it you can run `dune exec bin/spaceship_gui.exe inputs/spaceship1`
 
+![spaceship_gui](images/spaceship_gui.png)
+
 <details>
 <summary>Scores</summary>
 
