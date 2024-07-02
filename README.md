@@ -38,7 +38,7 @@ The transitions for local optimization are:
 2. A 2-opt move (reverse some sublist). Because the points are visited
 in the reverse order, we have to replace (speed when reaching the
 point) by -(speed when leaving the point) for points in the sublist.
-3. A 3-opt move (swap two consecutive sublists). The speeds of the
+3. A 3-opt move (swap two adjacent sublists). The speeds of the
 endpoints of the sublists can also be changed.
 4. Once every 10^8 iterations: use beam search to optimize all speeds
 at the same time, without changing the order of visited points.
