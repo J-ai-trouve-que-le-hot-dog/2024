@@ -26,6 +26,7 @@ We wrote our ICFP expressions using a small embedded language in our OCaml code 
 
 <details>
 <summary>Scores</summary>
+
 ```
 * [lambdaman1] Your score: 33. Best score: 33.
 * [lambdaman2] Your score: 44. Best score: 44.
@@ -80,6 +81,7 @@ This is good when distances between points are small.
 
 <details>
 <summary>Scores</summary>
+
 ```
 * [spaceship1] Your score: 5. Best score: 5.
 * [spaceship2] Your score: 49. Best score: 49.
@@ -133,6 +135,7 @@ end of the competition if they had not.
 
 <details>
 <summary>Scores</summary>
+
 ```
 * [3d1] Your score: 3168. Best score: 2982.
 * [3d2] Your score: 1250. Best score: 1250.
