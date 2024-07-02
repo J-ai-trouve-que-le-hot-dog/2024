@@ -91,7 +91,7 @@ and eval_binop : Ast.binop * value * value -> value = function
   | (Gt, VInt(x), VInt(y)) -> VBool Z.(gt x y)
   | (Eq, VInt(x), VInt(y)) -> VBool Z.(equal x y)
   | (Eq, VBool(x), VBool(y)) -> VBool (x = y)
-  | (Eq, VString(x), VString(y)) -> VBool(x = y)
+  | (Eq, VString(x), VString(y)) -> VBool(Rope.equal x y)
   | (Or, VBool(x), VBool(y)) -> VBool(x || y)
   | (And, VBool(x), VBool(y)) -> VBool(x && y)
   | (Concat, VString(s), VString(t)) -> VString(Rope.concat2 s t)
