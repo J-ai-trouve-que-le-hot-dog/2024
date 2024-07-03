@@ -13,6 +13,8 @@ let eye ?(color=Graphics.black) mouse (px, py) radius =
   let d = mouse -- pos in
   let x, y, _ = (radius *. 30. /. norm d) ** d in
   let x, y = px +. x, py +. y in
+  Graphics.set_color white;
+  fill_circle !+px !+py !+(radius *. 50.);
   Graphics.set_color black;
   draw_circle !+px !+py !+(radius *. 50.);
   Graphics.set_color color;
